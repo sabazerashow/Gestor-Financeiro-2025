@@ -65,19 +65,19 @@ const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({ transactions }) =
                 title="Receitas"
                 value={formatCurrency(summary.income)}
                 icon="fa-arrow-up"
-                colorClass="text-green-500"
+                colorClass="text-income"
             />
             <StatCard 
                 title="Despesas"
                 value={formatCurrency(summary.expenseTotal)}
                 icon="fa-arrow-down"
-                colorClass="text-red-500"
+                colorClass="text-expense"
             />
              <StatCard 
                 title="Saldo"
                 value={formatCurrency(summary.balance)}
                 icon="fa-scale-balanced"
-                colorClass={summary.balance >= 0 ? 'text-green-500' : 'text-red-500'}
+                colorClass={summary.balance >= 0 ? 'text-income' : 'text-expense'}
             />
             <StatCard 
                 title="Taxa de Poupança"
@@ -106,4 +106,4 @@ const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({ transactions }) =
 };
 
 export default PeriodSummaryCard;
-
+

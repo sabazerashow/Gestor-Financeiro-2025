@@ -176,7 +176,7 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
                         <p className="text-xs text-gray-400 dark:text-gray-500 truncate" title={t.originalDescription}>{t.originalDescription}</p>
                     </div>
                     <div className="flex items-center justify-between">
-                         <span className="font-bold text-red-500 text-lg md:text-base">
+                         <span className="font-bold text-expense text-lg md:text-base">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.amount)}
                         </span>
                     </div>

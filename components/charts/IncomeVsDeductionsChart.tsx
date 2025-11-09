@@ -17,7 +17,7 @@ const IncomeVsDeductionsChart: React.FC<IncomeVsDeductionsChartProps> = ({ gross
     ]
   ), [gross, deductions]);
 
-  const colors = ['rgba(16, 185, 129, 0.7)', 'rgba(239, 68, 68, 0.7)'];
+  const colors = ['var(--chart-2)', 'var(--destructive)'];
 
   return (
     <div className="h-80 w-full">
@@ -25,7 +25,7 @@ const IncomeVsDeductionsChart: React.FC<IncomeVsDeductionsChartProps> = ({ gross
         <PieChart>
           <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={80} paddingAngle={2}>
             {chartData.map((_, idx) => (
-              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} stroke={colors[idx % colors.length].replace('0.7', '1')} />
+              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} fillOpacity={0.7} stroke={colors[idx % colors.length]} strokeOpacity={1} />
             ))}
           </Pie>
           <Tooltip formatter={(value: any) => currencyFormatter(Number(value))} />

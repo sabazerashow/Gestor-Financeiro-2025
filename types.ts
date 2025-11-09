@@ -19,7 +19,7 @@ export const paymentMethodDetails: { [key in PaymentMethod]: { icon: string; col
     [PaymentMethod.PIX]: { icon: 'fa-brands fa-pix', color: 'text-cyan-500' },
     [PaymentMethod.DEBITO]: { icon: 'fa-solid fa-credit-card', color: 'text-blue-500' },
     [PaymentMethod.CREDITO]: { icon: 'fa-regular fa-credit-card', color: 'text-orange-500' },
-    [PaymentMethod.DINHEIRO]: { icon: 'fa-solid fa-money-bill-wave', color: 'text-green-500' },
+    [PaymentMethod.DINHEIRO]: { icon: 'fa-solid fa-money-bill-wave', color: 'text-primary' },
     [PaymentMethod.OUTRO]: { icon: 'fa-solid fa-circle-question', color: 'text-gray-500' },
 };
 

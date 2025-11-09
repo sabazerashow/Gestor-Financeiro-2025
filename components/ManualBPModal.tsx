@@ -129,7 +129,7 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
   
   const renderItemList = (type: 'payments' | 'deductions', items: PayslipLineItem[]) => (
       <div>
-          <h4 className={`font-bold mb-2 ${type === 'payments' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+          <h4 className={`font-bold mb-2 ${type === 'payments' ? 'text-income' : 'text-expense'}`}>
             {type === 'payments' ? 'Pagamentos' : 'Descontos'}
           </h4>
           <ul className="space-y-2">
@@ -203,9 +203,9 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
             </div>
             
              <div className="flex justify-around bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg text-center font-bold mt-4">
-                <div><span className="block text-xs text-gray-500">Total Bruto</span> <span className="text-green-600">{totals.grossTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
-                <div><span className="block text-xs text-gray-500">Total Descontos</span> <span className="text-red-600">{totals.deductionsTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
-                <div><span className="block text-xs text-gray-500">Total Líquido</span> <span className="text-indigo-600 text-lg">{totals.netTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
+                <div><span className="block text-xs text-gray-500">Total Bruto</span> <span className="text-income">{totals.grossTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
+                <div><span className="block text-xs text-gray-500">Total Descontos</span> <span className="text-expense">{totals.deductionsTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
+                <div><span className="block text-xs text-gray-500">Total Líquido</span> <span className="text-primary text-lg">{totals.netTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
             </div>
             {error && <p className="text-red-500 text-center text-sm">{error}</p>}
         </div>

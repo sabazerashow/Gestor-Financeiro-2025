@@ -57,7 +57,7 @@ const ConsignableMarginCard: React.FC<ConsignableMarginCardProps> = ({ payslip }
                             ></div>
                             {marginData.percentageUsed > 100 && (
                                 <div 
-                                    className="absolute top-0 left-0 h-4 bg-red-500 rounded-full" 
+                                    className="absolute top-0 left-0 h-4 bg-expense rounded-full" 
                                     style={{ width: `${Math.min(marginData.percentageUsed, 100)}%` }}
                                 ></div>
                             )}
@@ -70,7 +70,7 @@ const ConsignableMarginCard: React.FC<ConsignableMarginCardProps> = ({ payslip }
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600 dark:text-gray-300">Disponível:</span>
-                                <span className={`font-semibold ${marginData.availableMargin >= 0 ? 'text-green-500' : 'text-red-500'}`}>{formatCurrency(marginData.availableMargin)}</span>
+                                <span className={`font-semibold ${marginData.availableMargin >= 0 ? 'text-income' : 'text-expense'}`}>{formatCurrency(marginData.availableMargin)}</span>
                             </div>
                             <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
                                 <span className="text-gray-600 dark:text-gray-300 font-bold">Total da Margem:</span>

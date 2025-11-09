@@ -294,7 +294,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
                      <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-500 dark:text-gray-400">Valor</span>
                         <div className="text-right">
-                           <span className="font-bold text-red-500">
+                           <span className="font-bold text-expense">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parsedTransaction.amount)}
                                 {isInstallment && ` (Total)`}
                             </span>

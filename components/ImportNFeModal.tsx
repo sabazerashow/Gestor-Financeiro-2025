@@ -151,7 +151,7 @@ O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
                             )}
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{group.items.join(', ')}</p>
                         </div>
-                        <span className="font-bold text-red-500">
+                        <span className="font-bold text-expense">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(group.totalAmount)}
                         </span>
                     </div>

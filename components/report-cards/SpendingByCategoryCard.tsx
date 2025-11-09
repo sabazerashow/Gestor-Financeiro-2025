@@ -65,7 +65,7 @@ const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transac
           <>
             <div className="text-center mb-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Gasto no Período</p>
-              <p className="text-3xl font-bold text-red-500">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total)}</p>
+              <p className="text-3xl font-bold text-expense">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total)}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">

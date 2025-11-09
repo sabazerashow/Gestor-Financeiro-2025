@@ -10,8 +10,8 @@ interface TransactionItemProps {
 
 const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, onDelete }) => {
   const isIncome = transaction.type === TransactionType.INCOME;
-  const amountColor = isIncome ? 'text-green-500' : 'text-red-500';
-  const borderColor = isIncome ? 'border-green-500' : 'border-red-500';
+  const amountColor = isIncome ? 'text-income' : 'text-expense';
+  const borderColor = isIncome ? 'border-[var(--chart-2)]' : 'border-[var(--destructive)]';
 
   const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(transaction.amount);
   const transactionDate = new Date(transaction.date + 'T00:00:00');

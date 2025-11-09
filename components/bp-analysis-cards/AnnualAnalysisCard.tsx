@@ -76,9 +76,9 @@ const AnnualAnalysisCard: React.FC<AnnualAnalysisCardProps> = ({ payslips, trans
         <div className="space-y-8">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <StatCard title="Total Bruto" value={formatCurrency(yearSummary.totalGross)} colorClass="text-green-500" />
-            <StatCard title="Total Descontos" value={formatCurrency(yearSummary.totalDeductions)} colorClass="text-red-500" />
-            <StatCard title="Média Líquida Mensal" value={formatCurrency(yearSummary.averageNet)} colorClass="text-indigo-500" />
+            <StatCard title="Total Bruto" value={formatCurrency(yearSummary.totalGross)} colorClass="text-income" />
+            <StatCard title="Total Descontos" value={formatCurrency(yearSummary.totalDeductions)} colorClass="text-expense" />
+            <StatCard title="Média Líquida Mensal" value={formatCurrency(yearSummary.averageNet)} colorClass="text-primary" />
           </div>
 
           {/* Charts Section */}

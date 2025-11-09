@@ -24,13 +24,13 @@ const SummaryCard: React.FC<{ title: string; amount: number; icon: string; color
 
 
 const Summary: React.FC<SummaryProps> = ({ income, expense, balance }) => {
-  const balanceColor = balance >= 0 ? 'text-green-500 bg-green-100 dark:bg-green-900 dark:text-green-300' : 'text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300';
+  const balanceColor = balance >= 0 ? 'text-income bg-income' : 'text-expense bg-expense';
   const balanceIcon = balance >= 0 ? 'fa-scale-balanced' : 'fa-hand-holding-dollar';
     
   return (
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <SummaryCard title="Receitas" amount={income} icon="fa-arrow-up" colorClass="text-green-500 bg-green-100 dark:bg-green-900 dark:text-green-300" />
-      <SummaryCard title="Despesas" amount={expense} icon="fa-arrow-down" colorClass="text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300" />
+      <SummaryCard title="Receitas" amount={income} icon="fa-arrow-up" colorClass="text-income bg-income" />
+      <SummaryCard title="Despesas" amount={expense} icon="fa-arrow-down" colorClass="text-expense bg-expense" />
       <SummaryCard title="Saldo" amount={balance} icon={balanceIcon} colorClass={balanceColor} />
     </section>
   );

@@ -272,18 +272,18 @@ Texto OCR:\n\n${ocrText}`;
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                        <h4 className="font-bold text-green-600 dark:text-green-400 mb-2">Pagamentos</h4>
+                        <h4 className="font-bold text-income mb-2">Pagamentos</h4>
                         {renderItemRows(extractedData.payments, 'payments')}
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                        <h4 className="font-bold text-red-600 dark:text-red-400 mb-2">Descontos</h4>
+                        <h4 className="font-bold text-expense mb-2">Descontos</h4>
                         {renderItemRows(extractedData.deductions, 'deductions')}
                     </div>
                 </div>
                 <div className="flex justify-around bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg text-center font-bold">
-                    <div><span className="block text-xs text-gray-500">Total Bruto</span> <span className="text-green-600">{extractedData.grossTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
-                    <div><span className="block text-xs text-gray-500">Total Descontos</span> <span className="text-red-600">{extractedData.deductionsTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
-                    <div><span className="block text-xs text-gray-500">Total Líquido</span> <span className="text-indigo-600 text-lg">{extractedData.netTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
+                    <div><span className="block text-xs text-gray-500">Total Bruto</span> <span className="text-income">{extractedData.grossTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
+                    <div><span className="block text-xs text-gray-500">Total Descontos</span> <span className="text-expense">{extractedData.deductionsTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
+                    <div><span className="block text-xs text-gray-500">Total Líquido</span> <span className="text-primary text-lg">{extractedData.netTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
                 </div>
                 {!isEditing && (
                     <p className="text-center text-sm text-gray-500 dark:text-gray-400 pt-2">

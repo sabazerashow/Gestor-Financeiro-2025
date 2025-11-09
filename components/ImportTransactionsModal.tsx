@@ -32,7 +32,7 @@ const ImportTransactionsModal: React.FC<ImportTransactionsModalProps> = ({ isOpe
                     {new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR')} - {t.category} &gt; {t.subcategory}
                   </p>
                 </div>
-                <span className={`font-bold ${t.type === TransactionType.INCOME ? 'text-green-500' : 'text-red-500'}`}>
+                <span className={`font-bold ${t.type === TransactionType.INCOME ? 'text-income' : 'text-expense'}`}>
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.amount)}
                 </span>
               </li>
