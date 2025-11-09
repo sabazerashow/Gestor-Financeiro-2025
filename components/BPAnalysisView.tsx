@@ -139,7 +139,7 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp"
             />
             <button
               onClick={() => setIsUnderstandModalOpen(true)}

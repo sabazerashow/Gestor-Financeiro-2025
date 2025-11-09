@@ -35,41 +35,54 @@ const GrossPayCompositionCard: React.FC<GrossPayCompositionCardProps> = ({ paysl
         };
     }, [payslip]);
 
+    if (!compositionData) {
+        return (
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform overflow-hidden">
+                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Composição da Remuneração</h2>
+                <div className="flex items-center justify-center py-10 text-gray-500 dark:text-gray-400">
+                    <div className="text-center">
+                        <i className="fas fa-receipt text-4xl mb-3"></i>
+                        <p>Selecione um contracheque para ver a análise.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg h-full flex flex-col">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Composição da Remuneração</h3>
-            {compositionData && payslip ? (
-                <div className="flex-grow flex flex-col">
-                    <div className="grid grid-cols-3 gap-2 text-center mb-4 border-b dark:border-gray-700 pb-4">
-                        <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Soldo</p>
-                            <p className="font-bold text-gray-700 dark:text-gray-300">{formatCurrency(compositionData.soldoValue)}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Adicionais</p>
-                            <p className="font-bold text-gray-700 dark:text-gray-300">{formatCurrency(compositionData.adicionaisTotal)}</p>
-                        </div>
-                         <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Total Bruto</p>
-                            <p className="font-bold text-green-500">{formatCurrency(compositionData.grossTotal)}</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex-grow flex flex-col">
-                        <p className="text-center text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Composição dos Adicionais</p>
-                        <div className="flex-grow">
-                            <SimplePieChart data={compositionData.chartData} />
-                        </div>
-                    </div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform overflow-hidden">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Composição da Remuneração</h2>
+            
+            <div className="flex flex-col text-center mb-4 space-y-3 overflow-x-hidden">
+                <div>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white tabular-nums">{formatCurrency(compositionData.soldoValue)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Soldo</p>
                 </div>
-            ) : (
-                <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                     <div className="text-center">
-                        <i className="fas fa-pie-chart text-4xl mb-3"></i>
-                        <p>Selecione um mês para ver a análise.</p>
-                    </div>
+                <div>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white tabular-nums">{formatCurrency(compositionData.adicionaisTotal)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Adicionais</p>
                 </div>
-            )}
+                <div>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white tabular-nums">{formatCurrency(compositionData.grossTotal)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Bruto</p>
+                </div>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <h3 className="text-lg font-semibold text-center mb-3 text-gray-800 dark:text-white">Composição dos Adicionais</h3>
+                {compositionData.chartData.values.length > 0 ? (
+                    <div className="flex-grow">
+                        <SimplePieChart data={compositionData.chartData} />
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                         <div className="text-center">
+                            <i className="fas fa-pie-chart text-4xl mb-3"></i>
+                            <p>Não há valores adicionais neste período.</p>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

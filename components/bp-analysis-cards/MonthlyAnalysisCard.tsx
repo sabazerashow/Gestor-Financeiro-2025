@@ -57,7 +57,7 @@ const MonthlyAnalysisCard: React.FC<MonthlyAnalysisCardProps> = ({ payslips, tra
       {selectedPayslip && (
         <div className="mb-8 text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
             <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Salário Líquido Recebido</p>
-            <p className="text-4xl font-bold text-indigo-500">{selectedPayslip.netTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+            <p className="text-3xl sm:text-4xl font-bold text-indigo-500">{selectedPayslip.netTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
         </div>
       )}
       

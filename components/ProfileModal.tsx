@@ -80,7 +80,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
                         ref={fileInputRef}
                         onChange={handleFileChange}
                         className="hidden"
-                        accept="image/*"
+                        accept="image/png,image/jpeg,image/webp"
                     />
                     <button onClick={handlePhotoUploadClick} className="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full h-8 w-8 flex items-center justify-center hover:bg-indigo-700 ring-2 ring-white dark:ring-gray-800" title="Alterar foto">
                        <i className="fas fa-camera text-sm"></i>

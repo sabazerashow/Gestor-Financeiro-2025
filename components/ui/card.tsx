@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '../../lib/utils';
 
 const Card = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('bg-white dark:bg-gray-800 rounded-xl shadow-lg', className)} {...props} />
+  <div className={cn('bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform', className)} {...props} />
 );
 
 const CardHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -22,4 +22,3 @@ const CardFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement
 );
 
 export { Card, CardHeader, CardTitle, CardContent, CardFooter };
-

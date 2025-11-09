@@ -18,6 +18,7 @@ import ImportBPModal from './components/ImportBPModal';
 import ManualBPModal from './components/ManualBPModal';
 import BPAnalysisView from './components/BPAnalysisView';
 import DeleteInstallmentModal from './components/DeleteInstallmentModal';
+import ConfirmDialog from './components/ConfirmDialog';
 import ReportsView from './components/ReportsView';
 import SpendingByCategoryCard from './components/report-cards/SpendingByCategoryCard';
 import PendingInstallmentsCard from './components/report-cards/PendingInstallmentsCard';
@@ -56,10 +57,15 @@ const convertToCSV = (transactions: Transaction[]): string => {
     
     const escapeCsvField = (field: any): string => {
         const stringValue = (field === null || field === undefined) ? '' : String(field);
-        if (/[",\n]/.test(stringValue)) {
-            return `"${stringValue.replace(/"/g, '""')}"`;
+        // Mitigação: evitar injeção de fórmula ao abrir em Excel/Sheets
+        // Prefixa com apóstrofo se o valor começar com =, +, - ou @ (após trim)
+        const trimmed = stringValue.trimStart();
+        const startsLikeFormula = /^([=+\-@])/ .test(trimmed);
+        const safeValue = startsLikeFormula ? `'${stringValue}` : stringValue;
+        if (/[",\n]/.test(safeValue)) {
+            return `"${safeValue.replace(/"/g, '""')}"`;
         }
-        return stringValue;
+        return safeValue;
     };
 
     const objectToCsvRow = (obj: Transaction) => {
@@ -353,6 +359,12 @@ const App: React.FC = () => {
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [isDeleteInstallmentModalOpen, setIsDeleteInstallmentModalOpen] = useState(false);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [confirmDeleteContext, setConfirmDeleteContext] = useState<{
+    kind: 'transaction' | 'bill';
+    transaction?: Transaction;
+    billId?: string;
+  } | null>(null);
   const [installmentFilter, setInstallmentFilter] = useState<'all' | 'single' | 'installments'>('all');
   const [monthFilter, setMonthFilter] = useState<'all' | string>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | PaymentMethod>('all');
@@ -611,7 +623,8 @@ const App: React.FC = () => {
         setTransactionToDelete(transaction);
         setIsDeleteInstallmentModalOpen(true);
     } else {
-        deleteTransaction(transaction.id, 'single');
+        setConfirmDeleteContext({ kind: 'transaction', transaction });
+        setIsConfirmDeleteOpen(true);
     }
   };
 
@@ -629,6 +642,22 @@ const App: React.FC = () => {
     }
     setIsDeleteInstallmentModalOpen(false);
     setTransactionToDelete(null);
+  };
+  
+  const handleAttemptDeleteBill = (id: string) => {
+    setConfirmDeleteContext({ kind: 'bill', billId: id });
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!confirmDeleteContext) return;
+    if (confirmDeleteContext.kind === 'transaction' && confirmDeleteContext.transaction) {
+      deleteTransaction(confirmDeleteContext.transaction.id, 'single');
+    } else if (confirmDeleteContext.kind === 'bill' && confirmDeleteContext.billId) {
+      deleteBill(confirmDeleteContext.billId);
+    }
+    setIsConfirmDeleteOpen(false);
+    setConfirmDeleteContext(null);
   };
   
   const addBill = (bill: Omit<Bill, 'id' | 'recurringTransactionId'>) => {
@@ -837,6 +866,24 @@ const App: React.FC = () => {
   
   const monthYearDisplay = new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
   
+  const confirmMessage = (() => {
+    if (isConfirmDeleteOpen && confirmDeleteContext) {
+      if (confirmDeleteContext.kind === 'transaction' && confirmDeleteContext.transaction) {
+        const t = confirmDeleteContext.transaction;
+        const valor = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(t.amount) || 0);
+        const data = new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR');
+        return `Tem certeza que deseja excluir "${t.description}" de ${data} no valor de ${valor}?`;
+      }
+      if (confirmDeleteContext.kind === 'bill' && confirmDeleteContext.billId) {
+        const bill = bills.find(b => b.id === confirmDeleteContext.billId);
+        if (bill) {
+          return `Tem certeza que deseja excluir a conta "${bill.description}" (vencimento dia ${String(bill.dueDay).padStart(2, '0')})?`;
+        }
+      }
+    }
+    return 'Tem certeza que deseja excluir este item?';
+  })();
+  
   const renderContent = () => {
     switch (activeTab) {
         case 'overview':
@@ -889,7 +936,7 @@ const App: React.FC = () => {
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     <AddBillForm onAddBill={addBill} />
-                    <BillList bills={bills} onDelete={deleteBill} />
+                    <BillList bills={bills} onDelete={handleAttemptDeleteBill} />
                 </div>
             );
         case 'reports':
@@ -1001,6 +1048,17 @@ const App: React.FC = () => {
             onConfirmDelete={deleteTransaction}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => {
+          setIsConfirmDeleteOpen(false);
+          setConfirmDeleteContext(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title={confirmDeleteContext?.kind === 'bill' ? 'Confirmar exclusão da conta' : 'Confirmar exclusão do lançamento'}
+        message={confirmMessage}
+      />
 
        <PayBillChoiceModal
             isOpen={isPayBillChoiceModalOpen}

@@ -42,6 +42,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
   const [installments, setInstallments] = useState('');
   const [error, setError] = useState('');
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
   const importTypeRef = useRef<'nfe' | 'statement' | 'bp'>('nfe');
@@ -118,19 +119,24 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
 
     if (!description || !amount || !category || !subcategory || !date) {
       setError('Todos os campos são obrigatórios.');
+      setIsSubmitting(false);
       return;
     }
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
       setError('Por favor, insira um valor numérico positivo.');
+      setIsSubmitting(false);
       return;
     }
     const installmentCount = isInstallment ? parseInt(installments, 10) : undefined;
     if (isInstallment && (!installmentCount || installmentCount <= 1)) {
         setError('O número de parcelas deve ser maior que 1.');
+        setIsSubmitting(false);
         return;
     }
 
@@ -155,6 +161,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
     setPaymentMethod(PaymentMethod.CREDITO);
     setIsInstallment(false);
     setInstallments('');
+    setIsSubmitting(false);
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,7 +214,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
 
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform">
       <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Adicionar Lançamento</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -365,65 +372,28 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
 
         {error && <p className="text-sm text-red-500">{error}</p>}
         <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Button type="submit" className="w-full">
-              Adicionar
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Adicionando...' : 'Adicionar'}
             </Button>
-            <div className="grid grid-cols-2 gap-2">
-                <Button
-                    type="button"
-                    onClick={() => handleImportClick('nfe')}
-                    variant="secondary"
-                    className="w-full flex items-center justify-center space-x-2"
-                >
-                    <i className="fas fa-file-invoice"></i>
-                    <span>Importar NF (XML)</span>
+
+     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xml,.pdf,image/png,image/jpeg,image/webp" />
+            <input type="file" ref={csvFileInputRef} onChange={handleCSVFileChange} className="hidden" accept=".csv" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                <Button variant="secondary" onClick={() => handleImportClick('nfe')} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
+                    <i className="fas fa-file-invoice-dollar fa-fw mr-2"></i> Importar NF (XML)
                 </Button>
-                <Button
-                    type="button"
-                    onClick={() => handleImportClick('statement')}
-                    variant="secondary"
-                    className="w-full flex items-center justify-center space-x-2"
-                >
-                    <i className="fas fa-file-import"></i>
-                    <span>Importar Extrato</span>
+                <Button variant="secondary" onClick={() => handleImportClick('statement')} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
+                    <i className="fas fa-file-alt fa-fw mr-2"></i> Importar Extrato
                 </Button>
-            </div>
-             <div className="grid grid-cols-2 gap-2">
-                 <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                    accept=".xml,.ofx,.csv,image/*"
-                />
-                 <input
-                    type="file"
-                    ref={csvFileInputRef}
-                    onChange={handleCSVFileChange}
-                    className="hidden"
-                    accept=".csv"
-                />
-                <Button
-                    type="button"
-                    onClick={onExportClick}
-                    variant="outline"
-                    className="w-full text-green-800 dark:text-green-200 border-green-300 dark:border-green-700"
-                >
-                    <i className="fas fa-file-export"></i>
-                    <span>Exportar (CSV)</span>
+                <Button variant="outline" onClick={onExportClick} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
+                    <i className="fas fa-file-csv fa-fw mr-2"></i> Exportar (CSV)
                 </Button>
-                 <Button
-                    type="button"
-                    onClick={() => csvFileInputRef.current?.click()}
-                    variant="outline"
-                    className="w-full text-green-800 dark:text-green-200 border-green-300 dark:border-green-700"
-                >
-                    <i className="fas fa-file-upload"></i>
-                    <span>Importar (CSV)</span>
+                <Button variant="outline" onClick={() => csvFileInputRef.current?.click()} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
+                    <i className="fas fa-file-import fa-fw mr-2"></i> Importar (CSV)
                 </Button>
             </div>
         </div>
-
       </form>
     </div>
   );

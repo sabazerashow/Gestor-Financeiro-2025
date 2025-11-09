@@ -7,14 +7,12 @@ interface PeriodSummaryCardProps {
 }
 
 const StatCard: React.FC<{ title: string; value: string; icon: string; colorClass?: string; helpText?: string }> = ({ title, value, icon, colorClass = 'text-gray-800 dark:text-white', helpText }) => (
-    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex flex-col justify-between" title={helpText}>
-        <div>
-            <div className="flex items-center text-gray-500 dark:text-gray-400">
-                <i className={`fas ${icon} fa-fw mr-2`}></i>
-                <h3 className="text-sm font-medium">{title}</h3>
-            </div>
-            <p className={`text-2xl font-bold mt-1 ${colorClass}`}>{value}</p>
+    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex flex-col justify-between transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform" title={helpText}>
+        <div className="flex items-center text-gray-500 dark:text-gray-400">
+            <i className={`fas ${icon} fa-fw mr-2`}></i>
+            <h3 className="text-sm font-medium">{title}</h3>
         </div>
+        <p className={`text-xl sm:text-2xl font-bold mt-1 ${colorClass} whitespace-nowrap tabular-nums`}>{value}</p>
     </div>
 );
 
@@ -108,3 +106,4 @@ const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({ transactions }) =
 };
 
 export default PeriodSummaryCard;
+
