@@ -1,6 +1,7 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
+import ErrorBanner from './ui/error-banner';
 
 interface ProfileData {
     name: string;
@@ -20,7 +21,9 @@ interface ProfileModalProps {
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfile, onSave }) => {
   const [editableProfile, setEditableProfile] = useState<ProfileData>(userProfile);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_IMAGE_SIZE = 3 * 1024 * 1024; // 3MB foto de perfil
 
   useEffect(() => {
     if (isOpen) {
@@ -39,13 +42,26 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        const lowerName = file.name.toLowerCase();
+        const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+        const isValidType = allowedImageTypes.includes(file.type) || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp');
+        if (!isValidType) {
+            setError('Formato de imagem não suportado. Permitidos: PNG, JPEG, WEBP.');
+            return;
+        }
+        if (file.size > MAX_IMAGE_SIZE) {
+            setError('A imagem excede o limite de 3 MB.');
+            return;
+        }
         const reader = new FileReader();
         reader.onload = (event) => {
             if (event.target?.result) {
                 setEditableProfile(prev => ({ ...prev, photo: event.target.result as string }));
+                setError(null);
             }
         };
-        reader.readAsDataURL(e.target.files[0]);
+        reader.readAsDataURL(file);
     }
   };
 
@@ -68,6 +84,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
         </div>
         
         <div className="p-6 overflow-y-auto flex-grow space-y-6">
+            {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
             <div className="flex items-center space-x-6">
                 <div className="relative">
                     <img 
@@ -82,7 +99,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
                         className="hidden"
                         accept="image/png,image/jpeg,image/webp"
                     />
-                    <button onClick={handlePhotoUploadClick} className="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full h-8 w-8 flex items-center justify-center hover:bg-indigo-700 ring-2 ring-white dark:ring-gray-800" title="Alterar foto">
+                    <button onClick={handlePhotoUploadClick} className="absolute bottom-0 right-0 bg-indigo-500 text-white rounded-full h-8 w-8 flex items-center justify-center hover:bg-indigo-600 ring-2 ring-white dark:ring-gray-800" title="Alterar foto">
                        <i className="fas fa-camera text-sm"></i>
                     </button>
                 </div>
@@ -130,7 +147,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-500 hover:bg-indigo-600 transition-colors"
           >
             Salvar Alterações
           </button>

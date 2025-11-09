@@ -6,6 +6,7 @@ import { categories, expenseCategoryList, incomeCategoryList } from '../categori
 import { GoogleGenAI } from '@google/genai';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import ErrorBanner from './ui/error-banner';
 
 function useDebounce(callback: (...args: any[]) => void, delay: number) {
   const timeoutRef = useRef<number | null>(null);
@@ -46,6 +47,8 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvFileInputRef = useRef<HTMLInputElement>(null);
   const importTypeRef = useRef<'nfe' | 'statement' | 'bp'>('nfe');
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limite para uploads gerais
+  const MAX_CSV_SIZE = 2 * 1024 * 1024; // 2MB para CSV
 
   const getCategorySuggestion = async (text: string) => {
     if (text.trim().length < 5) return;
@@ -167,6 +170,27 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Tamanho máximo
+      if (file.size > MAX_FILE_SIZE) {
+        setError('O arquivo selecionado excede o limite de 5 MB.');
+        if (event.target) event.target.value = '';
+        return;
+      }
+
+      // Validação de tipo (mimetype/ extensão)
+      const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+      const allowedDocTypes = ['application/xml', 'text/xml', 'application/pdf'];
+      const lowerName = file.name.toLowerCase();
+      const isXml = lowerName.endsWith('.xml');
+      const isPdf = lowerName.endsWith('.pdf');
+      const isImage = allowedImageTypes.includes(file.type);
+      const isValid = isImage || allowedDocTypes.includes(file.type) || isXml || isPdf;
+      if (!isValid) {
+        setError('Formato de arquivo não suportado. Permitidos: XML, PDF, PNG, JPEG, WEBP.');
+        if (event.target) event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       const mimeType = file.type;
 
@@ -190,6 +214,19 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
   const handleCSVFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      const lowerName = file.name.toLowerCase();
+      const isCsv = lowerName.endsWith('.csv') || file.type === 'text/csv';
+      if (!isCsv) {
+        setError('Formato inválido. Selecione um arquivo CSV.');
+        if (event.target) event.target.value = '';
+        return;
+      }
+
+      if (file.size > MAX_CSV_SIZE) {
+        setError('O arquivo CSV excede o limite de 2 MB.');
+        if (event.target) event.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result;
@@ -370,7 +407,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
             )}
         </div>
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <ErrorBanner message={error} onClose={() => setError('')} />}
         <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Adicionando...' : 'Adicionar'}

@@ -1,8 +1,10 @@
 
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Papa from 'papaparse';
 import { Transaction, TransactionType, RecurringTransaction, Frequency, Bill, Payslip, PaymentMethod } from './types';
 import Header from './components/Header';
+import ErrorBanner from './components/ui/error-banner';
 import Summary from './components/Summary';
 import TransactionList from './components/TransactionList';
 import AddTransactionForm from './components/AddTransactionForm';
@@ -92,49 +94,58 @@ const convertToCSV = (transactions: Transaction[]): string => {
 };
 
 const parseCSV = (csvContent: string): Transaction[] => {
-    const lines = csvContent.trim().split('\n');
-    const headerLine = lines.shift();
-    if (!headerLine) return [];
+    const result = Papa.parse<Record<string, any>>(csvContent, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+        transformHeader: (h) => h.trim(),
+    });
 
-    const headers = headerLine.split(',').map(h => h.trim());
-    const idIndex = headers.indexOf('id');
-    // ... get other indices
+    if (result.errors && result.errors.length > 0) {
+        console.warn('Erros ao analisar CSV:', result.errors);
+    }
 
-    return lines.map(line => {
-        // A simple split won't work for descriptions with commas. 
-        // This is a simplified parser assuming no commas in text fields for now.
-        // A robust implementation would handle quoted fields.
-        const values = line.split(',');
-        const obj = headers.reduce((acc, h, i) => {
-            acc[h] = values[i];
-            return acc;
-        }, {} as Record<string, string>);
+    return result.data.map((row) => {
+        const amountValue = typeof row.amount === 'number'
+            ? row.amount
+            : parseFloat(String(row.amount ?? '0').replace(',', '.')) || 0;
 
         const transaction: Transaction = {
-            id: obj.id,
-            description: obj.description,
-            amount: parseFloat(obj.amount),
-            type: obj.type as TransactionType,
-            date: obj.date,
-            category: obj.category,
-            subcategory: obj.subcategory,
-            paymentMethod: obj.paymentMethod as PaymentMethod,
-            isRecurring: obj.isRecurring === 'true',
+            id: String(row.id ?? ''),
+            description: String(row.description ?? ''),
+            amount: amountValue,
+            type: String(row.type ?? '') as TransactionType,
+            date: String(row.date ?? ''),
+            category: String(row.category ?? ''),
+            subcategory: String(row.subcategory ?? ''),
+            paymentMethod: String(row.paymentMethod ?? '') as PaymentMethod,
+            isRecurring:
+                row.isRecurring === true ||
+                String(row.isRecurring ?? '').toLowerCase() === 'true',
         };
 
-        if (obj.purchaseId) {
+        if (row.purchaseId) {
+            const totalAmountValue = typeof row.totalAmount === 'number'
+                ? row.totalAmount
+                : parseFloat(String(row.totalAmount ?? '0').replace(',', '.')) || 0;
             transaction.installmentDetails = {
-                purchaseId: obj.purchaseId,
-                current: parseInt(obj.current, 10),
-                total: parseInt(obj.total, 10),
-                totalAmount: parseFloat(obj.totalAmount),
+                purchaseId: String(row.purchaseId),
+                current:
+                    typeof row.current === 'number'
+                        ? row.current
+                        : parseInt(String(row.current ?? '0'), 10),
+                total:
+                    typeof row.total === 'number'
+                        ? row.total
+                        : parseInt(String(row.total ?? '0'), 10),
+                totalAmount: totalAmountValue,
             };
         }
         return transaction;
     });
 };
 
-const App: React.FC = () => {
+ const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const savedTransactions = localStorage.getItem('transactions');
     if (savedTransactions) {
@@ -733,6 +744,8 @@ const App: React.FC = () => {
     setIsEditModalOpen(false);
   };
 
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
   const handleFileSelected = (selectedFile: { content: string; mimeType: string }, type: 'nfe' | 'statement' | 'bp') => {
     setFileContent(selectedFile);
     if (type === 'nfe') {
@@ -753,12 +766,13 @@ const App: React.FC = () => {
             if (newTransactions.length > 0) {
                 setTransactionsToImport(newTransactions);
                 setIsImportConfirmModalOpen(true);
+                setGlobalError(null);
             } else {
-                alert("Nenhum lançamento novo encontrado para importar (IDs já existentes).");
+                setGlobalError('Nenhum lançamento novo encontrado para importar (IDs já existentes).');
             }
         } catch (error) {
             console.error("Error parsing CSV:", error);
-            alert("Erro ao ler o arquivo CSV. Verifique o formato do arquivo.");
+            setGlobalError('Erro ao ler o arquivo CSV. Verifique se o arquivo possui cabeçalhos e valores válidos.');
         }
     };
     
@@ -778,7 +792,7 @@ const App: React.FC = () => {
         });
 
         if (filtered.length === 0) {
-            alert("Nenhum lançamento encontrado no período selecionado.");
+            setGlobalError('Nenhum lançamento encontrado no período selecionado.');
             return;
         }
 
@@ -977,6 +991,7 @@ const App: React.FC = () => {
       />
       
       <main className="container mx-auto p-4 md:p-8 flex-grow">
+        {globalError && <div className="mb-4"><ErrorBanner message={globalError} onClose={() => setGlobalError(null)} /></div>}
         {renderContent()}
       </main>
       

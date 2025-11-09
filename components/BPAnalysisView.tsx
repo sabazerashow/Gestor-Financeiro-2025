@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import ErrorBanner from './ui/error-banner';
 import { Payslip, Transaction } from '../types';
 import UnderstandBPModal from './UnderstandBPModal';
 import { DashboardCardConfig } from '../App';
@@ -16,8 +17,10 @@ interface BPAnalysisViewProps {
 
 const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions, onFileSelected, onManualAdd }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB para imagens do BP
   const [isUnderstandModalOpen, setIsUnderstandModalOpen] = useState(false);
   const [isManageCardsModalOpen, setIsManageCardsModalOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const allBPCards: DashboardCardConfig[] = useMemo(() => [
     {
@@ -91,12 +94,26 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      const lowerName = file.name.toLowerCase();
+      const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+      const isValidType = allowedImageTypes.includes(file.type) || lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp');
+      if (!isValidType) {
+        setError('Formato de imagem não suportado. Permitidos: PNG, JPEG, WEBP.');
+        if (event.target) event.target.value = '';
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE) {
+        setError('A imagem excede o limite de 5 MB.');
+        if (event.target) event.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       const mimeType = file.type;
       reader.onload = (e) => {
         const content = e.target?.result;
         if (typeof content === 'string') {
           onFileSelected({ content, mimeType }, 'bp');
+          setError(null);
         }
       };
       reader.readAsDataURL(file);
@@ -117,6 +134,7 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
         <div className="flex flex-wrap justify-between items-center gap-4">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white">Análise de Contracheques</h2>
+          {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
           <div className="flex items-center flex-wrap gap-2">
             <div className="flex items-center rounded-md shadow-sm">
                  <button
@@ -128,7 +146,7 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
                 </button>
                 <button
                     onClick={handleImportClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-700 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 >
                     <i className="fas fa-upload mr-2"></i>
                     Importar Imagem
