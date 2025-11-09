@@ -1,0 +1,39 @@
+
+import React from 'react';
+
+interface SummaryProps {
+  income: number;
+  expense: number;
+  balance: number;
+}
+
+const SummaryCard: React.FC<{ title: string; amount: number; icon: string; colorClass: string }> = ({ title, amount, icon, colorClass }) => {
+    const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
+    return (
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg flex items-center space-x-4 transition-transform transform hover:scale-105">
+            <div className={`text-3xl p-3 rounded-full ${colorClass}`}>
+                <i className={`fas ${icon}`}></i>
+            </div>
+            <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{title}</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-white">{formattedAmount}</p>
+            </div>
+        </div>
+    );
+};
+
+
+const Summary: React.FC<SummaryProps> = ({ income, expense, balance }) => {
+  const balanceColor = balance >= 0 ? 'text-green-500 bg-green-100 dark:bg-green-900 dark:text-green-300' : 'text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300';
+  const balanceIcon = balance >= 0 ? 'fa-scale-balanced' : 'fa-hand-holding-dollar';
+    
+  return (
+    <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <SummaryCard title="Receitas" amount={income} icon="fa-arrow-up" colorClass="text-green-500 bg-green-100 dark:bg-green-900 dark:text-green-300" />
+      <SummaryCard title="Despesas" amount={expense} icon="fa-arrow-down" colorClass="text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300" />
+      <SummaryCard title="Saldo" amount={balance} icon={balanceIcon} colorClass={balanceColor} />
+    </section>
+  );
+};
+
+export default Summary;

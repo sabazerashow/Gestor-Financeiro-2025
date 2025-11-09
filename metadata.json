@@ -1,0 +1,5 @@
+{
+  "name": "Gestor Financeiro Pessoal",
+  "description": "Um aplicativo web para ajudar a controlar e organizar suas finanças pessoais de forma simples e intuitiva. Acompanhe suas receitas e despesas, visualize resumos e mantenha seu orçamento em dia.",
+  "requestFramePermissions": []
+}
