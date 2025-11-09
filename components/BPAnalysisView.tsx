@@ -11,16 +11,17 @@ import PurchasingPowerCard from './bp-analysis-cards/PurchasingPowerCard';
 interface BPAnalysisViewProps {
   payslips: Payslip[];
   transactions: Transaction[];
-  onFileSelected: (file: { content: string; mimeType: string }, type: 'bp') => void;
+  onFileSelectedBP: (file: { content: string; mimeType: string }, mode: 'ocr' | 'ai') => void;
   onManualAdd: () => void;
 }
 
-const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions, onFileSelected, onManualAdd }) => {
+const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions, onFileSelectedBP, onManualAdd }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB para imagens do BP
   const [isUnderstandModalOpen, setIsUnderstandModalOpen] = useState(false);
   const [isManageCardsModalOpen, setIsManageCardsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const importModeRef = useRef<'ocr' | 'ai'>('ocr');
 
   const allBPCards: DashboardCardConfig[] = useMemo(() => [
     {
@@ -87,7 +88,13 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
 
   const visibleCards = sortedCards.filter(card => cardVisibility[card.id]);
 
-  const handleImportClick = () => {
+  const handleImportOCRClick = () => {
+    importModeRef.current = 'ocr';
+    fileInputRef.current?.click();
+  };
+
+  const handleImportAIClick = () => {
+    importModeRef.current = 'ai';
     fileInputRef.current?.click();
   };
 
@@ -112,7 +119,7 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
       reader.onload = (e) => {
         const content = e.target?.result;
         if (typeof content === 'string') {
-          onFileSelected({ content, mimeType }, 'bp');
+          onFileSelectedBP({ content, mimeType }, importModeRef.current);
           setError(null);
         }
       };
@@ -145,11 +152,18 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
                     Lançar Manual
                 </button>
                 <button
-                    onClick={handleImportClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                    onClick={handleImportOCRClick}
+                    className="-ml-px relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
                 >
                     <i className="fas fa-upload mr-2"></i>
-                    Importar Imagem
+                    Importar OCR
+                </button>
+                <button
+                    onClick={handleImportAIClick}
+                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 focus:z-10 focus:outline-none focus:ring-1 focus:ring-purple-300 focus:border-purple-300"
+                >
+                    <i className="fas fa-robot mr-2"></i>
+                    Importar com IA
                 </button>
             </div>
              <input

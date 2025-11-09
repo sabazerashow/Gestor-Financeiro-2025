@@ -8,6 +8,8 @@ interface TransactionListProps {
   transactions: Transaction[];
   onDelete: (transaction: Transaction) => void;
   onEdit: (transaction: Transaction) => void;
+  onAnalyzePending?: () => void;
+  isAnalyzingPending?: boolean;
   installmentFilter?: 'all' | 'single' | 'installments';
   onInstallmentFilterChange?: (filter: 'all' | 'single' | 'installments') => void;
   monthFilter?: 'all' | string;
@@ -46,7 +48,9 @@ const TransactionList: React.FC<TransactionListProps> = ({
     paymentMethodFilter = 'all',
     onPaymentMethodFilterChange,
     availableMonths = [],
-    showFilters = true 
+    showFilters = true,
+    onAnalyzePending,
+    isAnalyzingPending
 }) => {
 
   const groupedTransactions = React.useMemo(() => {
@@ -81,7 +85,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
         <h2 className="text-xl font-bold text-gray-800 dark:text-white">Lançamentos</h2>
         {showFilters && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full">
              {onMonthFilterChange && (
                  <select
                     value={monthFilter}
@@ -113,6 +117,28 @@ const TransactionList: React.FC<TransactionListProps> = ({
                 <FilterButton label="À Vista" isActive={installmentFilter === 'single'} onClick={() => onInstallmentFilterChange?.('single')} />
                 <FilterButton label="Parceladas" isActive={installmentFilter === 'installments'} onClick={() => onInstallmentFilterChange?.('installments')} />
             </div>
+            {onAnalyzePending && (
+              <div className="ml-auto">
+                <button
+                  onClick={onAnalyzePending}
+                  disabled={isAnalyzingPending}
+                  className={`px-3 py-1 text-sm font-medium rounded-md text-white transition-colors flex items-center gap-2 ${isAnalyzingPending ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                  title="Analisar registros com categoria 'A verificar'"
+                >
+                  {isAnalyzingPending ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin"></i>
+                      <span>Analisando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-wand-magic-sparkles"></i>
+                      <span>Analisar registros</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

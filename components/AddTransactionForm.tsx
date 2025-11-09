@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Transaction, TransactionType, PaymentMethod } from '../types';
 import { categories, expenseCategoryList, incomeCategoryList } from '../categories';
-import { GoogleGenAI } from '@google/genai';
+import { generateContent } from '@/lib/aiClient';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import ErrorBanner from './ui/error-banner';
@@ -21,17 +21,14 @@ function useDebounce(callback: (...args: any[]) => void, delay: number) {
   }, [callback, delay]);
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+// IA é chamada via backend usando aiClient
 const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/```/g, '').trim();
 
 interface AddTransactionFormProps {
   onAddTransaction: (transaction: Omit<Transaction, 'id'>, installmentCount?: number) => void;
-  onFileSelected: (file: { content: string; mimeType: string }, type: 'nfe' | 'statement' | 'bp') => void;
-  onExportClick: () => void;
-  onCSVFileSelected: (csvContent: string) => void;
 }
 
-const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransaction, onFileSelected, onExportClick, onCSVFileSelected }) => {
+const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransaction }) => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
@@ -44,11 +41,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
   const [error, setError] = useState('');
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const csvFileInputRef = useRef<HTMLInputElement>(null);
-  const importTypeRef = useRef<'nfe' | 'statement' | 'bp'>('nfe');
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limite para uploads gerais
-  const MAX_CSV_SIZE = 2 * 1024 * 1024; // 2MB para CSV
 
   const getCategorySuggestion = async (text: string) => {
     if (text.trim().length < 5) return;
@@ -65,9 +58,10 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
       Estrutura de categorias de despesa disponível:
       ${availableCategories}`;
 
-      const response = await ai.models.generateContent({
+      const response = await generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
+        expectJson: true,
       });
 
       const suggestion = JSON.parse(cleanJsonString(response.text));
@@ -167,85 +161,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
     setIsSubmitting(false);
   };
   
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Tamanho máximo
-      if (file.size > MAX_FILE_SIZE) {
-        setError('O arquivo selecionado excede o limite de 5 MB.');
-        if (event.target) event.target.value = '';
-        return;
-      }
-
-      // Validação de tipo (mimetype/ extensão)
-      const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
-      const allowedDocTypes = ['application/xml', 'text/xml', 'application/pdf'];
-      const lowerName = file.name.toLowerCase();
-      const isXml = lowerName.endsWith('.xml');
-      const isPdf = lowerName.endsWith('.pdf');
-      const isImage = allowedImageTypes.includes(file.type);
-      const isValid = isImage || allowedDocTypes.includes(file.type) || isXml || isPdf;
-      if (!isValid) {
-        setError('Formato de arquivo não suportado. Permitidos: XML, PDF, PNG, JPEG, WEBP.');
-        if (event.target) event.target.value = '';
-        return;
-      }
-
-      const reader = new FileReader();
-      const mimeType = file.type;
-
-      reader.onload = (e) => {
-        const content = e.target?.result;
-        if (typeof content === 'string') {
-          onFileSelected({ content, mimeType }, importTypeRef.current);
-        }
-      };
-      
-      if (mimeType.startsWith('image/')) {
-        reader.readAsDataURL(file); // Reads as Base64 Data URL
-      } else {
-        reader.readAsText(file, 'ISO-8859-1'); // For XML, OFX, text from PDF
-      }
-    }
-     // Reset file input to allow selecting the same file again
-    event.target.value = '';
-  };
-  
-  const handleCSVFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const lowerName = file.name.toLowerCase();
-      const isCsv = lowerName.endsWith('.csv') || file.type === 'text/csv';
-      if (!isCsv) {
-        setError('Formato inválido. Selecione um arquivo CSV.');
-        if (event.target) event.target.value = '';
-        return;
-      }
-
-      if (file.size > MAX_CSV_SIZE) {
-        setError('O arquivo CSV excede o limite de 2 MB.');
-        if (event.target) event.target.value = '';
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result;
-        if (typeof content === 'string') {
-          onCSVFileSelected(content);
-        }
-      };
-      reader.readAsText(file);
-    }
-    if (event.target) {
-        event.target.value = ''; // Reset
-    }
-  };
-
-
-  const handleImportClick = (type: 'nfe' | 'statement' | 'bp') => {
-    importTypeRef.current = type;
-    fileInputRef.current?.click();
-  };
+  // Importação/Exportação removidas: lançamentos são manuais
   
   const currentCategoryList = type === TransactionType.INCOME ? incomeCategoryList : expenseCategoryList;
 
@@ -413,23 +329,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                 {isSubmitting ? 'Adicionando...' : 'Adicionar'}
             </Button>
 
-     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xml,.pdf,image/png,image/jpeg,image/webp" />
-            <input type="file" ref={csvFileInputRef} onChange={handleCSVFileChange} className="hidden" accept=".csv" />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
-                <Button variant="secondary" onClick={() => handleImportClick('nfe')} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
-                    <i className="fas fa-file-invoice-dollar fa-fw mr-2"></i> Importar NF (XML)
-                </Button>
-                <Button variant="secondary" onClick={() => handleImportClick('statement')} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
-                    <i className="fas fa-file-alt fa-fw mr-2"></i> Importar Extrato
-                </Button>
-                <Button variant="outline" onClick={onExportClick} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
-                    <i className="fas fa-file-csv fa-fw mr-2"></i> Exportar (CSV)
-                </Button>
-                <Button variant="outline" onClick={() => csvFileInputRef.current?.click()} className="w-full transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
-                    <i className="fas fa-file-import fa-fw mr-2"></i> Importar (CSV)
-                </Button>
-            </div>
+            {/* Importação/Exportação removidas: apenas adição manual de lançamentos */}
         </div>
       </form>
     </div>

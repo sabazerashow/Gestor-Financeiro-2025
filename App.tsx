@@ -1,7 +1,6 @@
 
 
 import React, { useState, useEffect, useMemo } from 'react';
-import Papa from 'papaparse';
 import { Transaction, TransactionType, RecurringTransaction, Frequency, Bill, Payslip, PaymentMethod } from './types';
 import Header from './components/Header';
 import ErrorBanner from './components/ui/error-banner';
@@ -31,9 +30,9 @@ import IncomeBreakdown from './components/IncomeBreakdown';
 import PayBillChoiceModal from './components/PayBillChoiceModal';
 import ProfileModal from './components/ProfileModal';
 import InviteModal from './components/InviteModal';
-import ExportModal from './components/ExportModal';
-import ImportTransactionsModal from './components/ImportTransactionsModal';
+// Removidos: ExportModal e ImportTransactionsModal (lançamentos manuais)
 import { mockTransactions, mockPayslips, mockRecurringTransactions, mockBills } from './mockData';
+import { generateContent } from '@/lib/aiClient';
 
 
 // Define the shape of a dashboard card configuration
@@ -54,96 +53,7 @@ const defaultProfile = {
     photo: 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
 };
 
-const convertToCSV = (transactions: Transaction[]): string => {
-    const headers = ['id', 'description', 'amount', 'type', 'date', 'category', 'subcategory', 'paymentMethod', 'isRecurring', 'purchaseId', 'current', 'total', 'totalAmount'];
-    
-    const escapeCsvField = (field: any): string => {
-        const stringValue = (field === null || field === undefined) ? '' : String(field);
-        // Mitigação: evitar injeção de fórmula ao abrir em Excel/Sheets
-        // Prefixa com apóstrofo se o valor começar com =, +, - ou @ (após trim)
-        const trimmed = stringValue.trimStart();
-        const startsLikeFormula = /^([=+\-@])/ .test(trimmed);
-        const safeValue = startsLikeFormula ? `'${stringValue}` : stringValue;
-        if (/[",\n]/.test(safeValue)) {
-            return `"${safeValue.replace(/"/g, '""')}"`;
-        }
-        return safeValue;
-    };
-
-    const objectToCsvRow = (obj: Transaction) => {
-        return [
-            escapeCsvField(obj.id),
-            escapeCsvField(obj.description),
-            escapeCsvField(obj.amount),
-            escapeCsvField(obj.type),
-            escapeCsvField(obj.date),
-            escapeCsvField(obj.category),
-            escapeCsvField(obj.subcategory),
-            escapeCsvField(obj.paymentMethod),
-            escapeCsvField(obj.isRecurring),
-            escapeCsvField(obj.installmentDetails?.purchaseId),
-            escapeCsvField(obj.installmentDetails?.current),
-            escapeCsvField(obj.installmentDetails?.total),
-            escapeCsvField(obj.installmentDetails?.totalAmount),
-        ].join(',');
-    };
-
-    const csvRows = [headers.join(',')];
-    transactions.forEach(t => csvRows.push(objectToCsvRow(t)));
-    return csvRows.join('\n');
-};
-
-const parseCSV = (csvContent: string): Transaction[] => {
-    const result = Papa.parse<Record<string, any>>(csvContent, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true,
-        transformHeader: (h) => h.trim(),
-    });
-
-    if (result.errors && result.errors.length > 0) {
-        console.warn('Erros ao analisar CSV:', result.errors);
-    }
-
-    return result.data.map((row) => {
-        const amountValue = typeof row.amount === 'number'
-            ? row.amount
-            : parseFloat(String(row.amount ?? '0').replace(',', '.')) || 0;
-
-        const transaction: Transaction = {
-            id: String(row.id ?? ''),
-            description: String(row.description ?? ''),
-            amount: amountValue,
-            type: String(row.type ?? '') as TransactionType,
-            date: String(row.date ?? ''),
-            category: String(row.category ?? ''),
-            subcategory: String(row.subcategory ?? ''),
-            paymentMethod: String(row.paymentMethod ?? '') as PaymentMethod,
-            isRecurring:
-                row.isRecurring === true ||
-                String(row.isRecurring ?? '').toLowerCase() === 'true',
-        };
-
-        if (row.purchaseId) {
-            const totalAmountValue = typeof row.totalAmount === 'number'
-                ? row.totalAmount
-                : parseFloat(String(row.totalAmount ?? '0').replace(',', '.')) || 0;
-            transaction.installmentDetails = {
-                purchaseId: String(row.purchaseId),
-                current:
-                    typeof row.current === 'number'
-                        ? row.current
-                        : parseInt(String(row.current ?? '0'), 10),
-                total:
-                    typeof row.total === 'number'
-                        ? row.total
-                        : parseInt(String(row.total ?? '0'), 10),
-                totalAmount: totalAmountValue,
-            };
-        }
-        return transaction;
-    });
-};
+// CSV export/import removidos: funcionalidades migradas para lançamentos manuais.
 
  const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -362,6 +272,7 @@ const parseCSV = (csvContent: string): Transaction[] => {
   const [isNFeModalOpen, setIsNFeModalOpen] = useState(false);
   const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
   const [isBPModalOpen, setIsBPModalOpen] = useState(false);
+  const [bpImportMode, setBpImportMode] = useState<'ocr' | 'ai'>('ocr');
   const [isManualBPModalOpen, setIsManualBPModalOpen] = useState(false);
   const [fileContent, setFileContent] = useState<{ content: string; mimeType: string } | null>(null);
   const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
@@ -384,9 +295,7 @@ const parseCSV = (csvContent: string): Transaction[] => {
   const [quickAddMode, setQuickAddMode] = useState<'ai' | 'manual'>('ai');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isImportConfirmModalOpen, setIsImportConfirmModalOpen] = useState(false);
-  const [transactionsToImport, setTransactionsToImport] = useState<Transaction[]>([]);
+  // Estados de Exportação/Importação CSV removidos
 
   const [userProfile, setUserProfile] = useState(() => {
     const savedProfile = localStorage.getItem('userProfile');
@@ -543,7 +452,18 @@ const parseCSV = (csvContent: string): Transaction[] => {
     });
 
     if (newTransactions.length > 0) {
-      setTransactions(prev => [...prev, ...newTransactions]);
+      // Mesclar com deduplicação por id (ou description+date quando id não existir)
+      setTransactions(prev => {
+        const seen = new Set<string>();
+        const merged = [...prev, ...newTransactions];
+        const unique = merged.filter(t => {
+          const key = t.id || `${t.description}-${t.date}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        return unique;
+      });
       setRecurringTransactions(updatedRecurring);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -745,6 +665,7 @@ const parseCSV = (csvContent: string): Transaction[] => {
   };
 
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
   const handleFileSelected = (selectedFile: { content: string; mimeType: string }, type: 'nfe' | 'statement' | 'bp') => {
     setFileContent(selectedFile);
@@ -753,62 +674,18 @@ const parseCSV = (csvContent: string): Transaction[] => {
     } else if (type === 'statement'){
         setIsStatementModalOpen(true);
     } else {
+        setBpImportMode('ocr');
         setIsBPModalOpen(true);
     }
   };
+
+  const handleFileSelectedBP = (selectedFile: { content: string; mimeType: string }, mode: 'ocr' | 'ai') => {
+    setFileContent(selectedFile);
+    setBpImportMode(mode);
+    setIsBPModalOpen(true);
+  };
   
-   const handleCSVFileSelected = (csvContent: string) => {
-        try {
-            const parsed = parseCSV(csvContent);
-            const existingIds = new Set(transactions.map(t => t.id));
-            const newTransactions = parsed.filter(t => t.id && !existingIds.has(t.id));
-            
-            if (newTransactions.length > 0) {
-                setTransactionsToImport(newTransactions);
-                setIsImportConfirmModalOpen(true);
-                setGlobalError(null);
-            } else {
-                setGlobalError('Nenhum lançamento novo encontrado para importar (IDs já existentes).');
-            }
-        } catch (error) {
-            console.error("Error parsing CSV:", error);
-            setGlobalError('Erro ao ler o arquivo CSV. Verifique se o arquivo possui cabeçalhos e valores válidos.');
-        }
-    };
-    
-    const handleConfirmImport = () => {
-        setTransactions(prev => [...prev, ...transactionsToImport]);
-        setTransactionsToImport([]);
-        setIsImportConfirmModalOpen(false);
-    };
-    
-    const handleExport = (start: string, end: string) => {
-        const startDate = new Date(start + 'T00:00:00');
-        const endDate = new Date(end + 'T23:59:59');
-
-        const filtered = transactions.filter(t => {
-            const tDate = new Date(t.date);
-            return tDate >= startDate && tDate <= endDate;
-        });
-
-        if (filtered.length === 0) {
-            setGlobalError('Nenhum lançamento encontrado no período selecionado.');
-            return;
-        }
-
-        const csvString = convertToCSV(filtered);
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `lancamentos_${start}_a_${end}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        setIsExportModalOpen(false);
-    };
+  // Removidos: handlers CSV (import/export)
 
   const handleCloseModals = () => {
     setIsNFeModalOpen(false);
@@ -924,10 +801,7 @@ const parseCSV = (csvContent: string): Transaction[] => {
             return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                      <AddTransactionForm 
-                        onAddTransaction={addTransaction} 
-                        onFileSelected={handleFileSelected} 
-                        onExportClick={() => setIsExportModalOpen(true)}
-                        onCSVFileSelected={handleCSVFileSelected}
+                        onAddTransaction={addTransaction}
                      />
                     <div className="lg:col-span-2">
                         <TransactionList
@@ -940,8 +814,10 @@ const parseCSV = (csvContent: string): Transaction[] => {
                             onMonthFilterChange={setMonthFilter}
                             paymentMethodFilter={paymentMethodFilter}
                             onPaymentMethodFilterChange={setPaymentMethodFilter}
-                            availableMonths={availableMonths}
-                            showFilters={true}
+                         availableMonths={availableMonths}
+                          showFilters={true}
+                            onAnalyzePending={analyzePendingTransactions}
+                            isAnalyzingPending={isAnalyzing}
                         />
                     </div>
                 </div>
@@ -968,12 +844,80 @@ const parseCSV = (csvContent: string): Transaction[] => {
                 <BPAnalysisView
                     payslips={payslips}
                     transactions={transactions}
-                    onFileSelected={handleFileSelected}
+                    onFileSelectedBP={handleFileSelectedBP}
                     onManualAdd={() => setIsManualBPModalOpen(true)}
                 />
             );
         default:
             return null;
+    }
+  };
+
+  const analyzePendingTransactions = async () => {
+    try {
+      setIsAnalyzing(true);
+      setGlobalError(null);
+      const pending = transactions.filter(t => t.category === 'A verificar');
+      if (pending.length === 0) {
+        setGlobalError("Nenhum registro marcado como 'A verificar' para analisar.");
+        return;
+      }
+
+      // Prepare category structure for the model
+      const availableCategories = JSON.stringify(
+        Object.fromEntries(
+          Object.keys(categories)
+            .filter(catName => catName !== 'Receitas/Entradas')
+            .map(catName => [catName, categories[catName].subcategories])
+        ), null, 2
+      );
+
+      for (const t of pending) {
+        try {
+          const prompt = `Dada a descrição da transação: "${t.description}", sugira a categoria e subcategoria mais apropriada.
+Responda APENAS com um objeto JSON contendo "category" e "subcategory".
+Estrutura de categorias de despesa disponível:
+${availableCategories}`;
+
+          const response = await generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            expectJson: true,
+          });
+
+          const clean = (s: string) => s.replace(/```json/g, '').replace(/```/g, '').trim();
+          let suggestion: { category?: string; subcategory?: string } = {};
+          try {
+            suggestion = JSON.parse(clean(response.text));
+          } catch {
+            suggestion = {};
+          }
+
+          if (suggestion.category && categories[suggestion.category]) {
+            const chosenSub = suggestion.subcategory && categories[suggestion.category].subcategories.includes(suggestion.subcategory)
+              ? suggestion.subcategory
+              : categories[suggestion.category].subcategories[0];
+
+            updateTransaction(t.id, {
+              description: t.description,
+              amount: t.amount,
+              type: t.type,
+              date: t.date,
+              category: suggestion.category,
+              subcategory: chosenSub,
+              paymentMethod: t.paymentMethod,
+              isRecurring: t.isRecurring,
+              installmentDetails: t.installmentDetails,
+            });
+          }
+        } catch (err) {
+          console.warn('Falha ao classificar registro', t.id, err);
+        }
+      }
+    } catch (e) {
+      setGlobalError('Falha ao analisar registros. Verifique a configuração da IA.');
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -1024,6 +968,7 @@ const parseCSV = (csvContent: string): Transaction[] => {
           isOpen={isBPModalOpen} 
           onClose={handleCloseModals} 
           file={fileContent}
+          mode={bpImportMode}
           onConfirm={addPayslip}
         />
       )}
@@ -1090,18 +1035,7 @@ const parseCSV = (csvContent: string): Transaction[] => {
       />
       <InviteModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} />
 
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        onExport={handleExport}
-      />
-
-      <ImportTransactionsModal
-        isOpen={isImportConfirmModalOpen}
-        onClose={() => setIsImportConfirmModalOpen(false)}
-        transactions={transactionsToImport}
-        onConfirm={handleConfirmImport}
-      />
+      {/* ExportModal e ImportTransactionsModal removidos */}
     </div>
   );
 };

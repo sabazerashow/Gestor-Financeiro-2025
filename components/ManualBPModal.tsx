@@ -62,6 +62,38 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
     }
   };
 
+  const handleReorderItem = (type: 'payments' | 'deductions', index: number, direction: 'up' | 'down') => {
+    if (type === 'payments') {
+      const list = [...payments];
+      const newIndex = direction === 'up' ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= list.length) return;
+      const [item] = list.splice(index, 1);
+      list.splice(newIndex, 0, item);
+      setPayments(list);
+    } else {
+      const list = [...deductions];
+      const newIndex = direction === 'up' ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= list.length) return;
+      const [item] = list.splice(index, 1);
+      list.splice(newIndex, 0, item);
+      setDeductions(list);
+    }
+  };
+
+  const moveItemBetweenLists = (from: 'payments' | 'deductions', index: number) => {
+    if (from === 'payments') {
+      const src = [...payments];
+      const [item] = src.splice(index, 1);
+      setPayments(src);
+      setDeductions([...deductions, item]);
+    } else {
+      const src = [...deductions];
+      const [item] = src.splice(index, 1);
+      setDeductions(src);
+      setPayments([...payments, item]);
+    }
+  };
+
   const handleSubmit = () => {
     setError('');
     if (!monthYear) {
@@ -118,13 +150,25 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
                         className="w-32 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm text-right"
                         step="0.01"
                     />
-                    <button 
-                        onClick={() => handleRemoveItem(type, index)}
-                        className="text-gray-400 hover:text-red-500 disabled:opacity-50"
-                        disabled={items.length <= 1}
-                    >
-                        <i className="fas fa-trash-alt"></i>
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button title="Subir" onClick={() => handleReorderItem(type, index, 'up')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                        ↑
+                      </button>
+                      <button title="Descer" onClick={() => handleReorderItem(type, index, 'down')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                        ↓
+                      </button>
+                      <button title="Mover para outra lista" onClick={() => moveItemBetweenLists(type, index)} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                        ↔
+                      </button>
+                      <button 
+                          title="Remover"
+                          onClick={() => handleRemoveItem(type, index)}
+                          className="px-2 py-1 text-xs rounded bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 disabled:opacity-50"
+                          disabled={items.length <= 1}
+                      >
+                          Remover
+                      </button>
+                    </div>
                 </li>
             ))}
           </ul>

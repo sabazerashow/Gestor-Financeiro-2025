@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleGenAI, Type } from '@google/genai';
+// IA não é usada no QuickAdd: categorização fica "A verificar"
 import { Transaction, TransactionType, PaymentMethod, paymentMethodDetails } from '../types';
 import { categories, expenseCategoryList } from '../categories';
 
@@ -21,10 +21,67 @@ interface ParsedTransaction {
     installments: number;
 }
 
-// Initialize AI client only if an API key is available (supports Vite and Node envs)
-const resolvedApiKey = (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_GOOGLE_API_KEY) || (process.env as any)?.API_KEY;
-const ai = resolvedApiKey ? new GoogleGenAI({ apiKey: resolvedApiKey }) : null;
 const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/```/g, '').trim();
+
+const monthMap: Record<string, number> = {
+  'janeiro': 1, 'jan': 1,
+  'fevereiro': 2, 'fev': 2,
+  'março': 3, 'marco': 3, 'mar': 3,
+  'abril': 4, 'abr': 4,
+  'maio': 5,
+  'junho': 6, 'jun': 6,
+  'julho': 7, 'jul': 7,
+  'agosto': 8, 'ago': 8,
+  'setembro': 9, 'set': 9,
+  'outubro': 10, 'out': 10,
+  'novembro': 11, 'nov': 11,
+  'dezembro': 12, 'dez': 12,
+};
+
+const toISO = (y: number, m: number, d: number) => {
+  const dt = new Date(y, m - 1, d);
+  return dt.toISOString().split('T')[0];
+};
+
+const parseDateFromText = (text: string, todayISO: string): string => {
+  const raw = text.toLowerCase();
+  const today = new Date(todayISO + 'T00:00:00');
+
+  if (raw.includes('ontem')) {
+    const d = new Date(today); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0];
+  }
+  if (raw.includes('hoje')) {
+    return todayISO;
+  }
+
+  // dd/mm/yyyy or dd/mm
+  const dm = raw.match(/(\b\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:[\/\-](\d{4}))?/);
+  if (dm) {
+    const d = parseInt(dm[1]);
+    const m = parseInt(dm[2]);
+    const y = dm[3] ? parseInt(dm[3]) : today.getFullYear();
+    return toISO(y, m, d);
+  }
+
+  // "14 de dezembro" ou "14 dezembro"
+  const named = raw.match(/\b(\d{1,2})\s*(?:de\s*)?(janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|jun|jul|ago|set|out|nov|dez)\b/);
+  if (named) {
+    const d = parseInt(named[1]);
+    const m = monthMap[named[2]] || today.getMonth() + 1;
+    const yearHint = raw.match(/\b(\d{4})\b/);
+    const y = yearHint ? parseInt(yearHint[1]) : today.getFullYear();
+    return toISO(y, m, d);
+  }
+
+  // "dia 14" → mês/ano atuais
+  const onlyDay = raw.match(/\bdia\s*(\d{1,2})\b/);
+  if (onlyDay) {
+    const d = parseInt(onlyDay[1]);
+    return toISO(today.getFullYear(), today.getMonth() + 1, d);
+  }
+
+  return todayISO;
+};
 
 const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTransaction, initialDescription, initialMode = 'ai' }) => {
   const [inputValue, setInputValue] = useState('');
@@ -76,11 +133,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
     setParsedTransaction(null);
     setIsEditing(false);
     
-    const availableCategories = JSON.stringify(
-      Object.fromEntries(
-        expenseCategoryList.map(catName => [catName, categories[catName].subcategories])
-      ), null, 2
-    );
+    // Mantemos lista de categorias para edição manual, mas não chamamos IA
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -93,7 +146,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
       const installmentsMatch = raw.match(/(\d+)\s*x/);
       const installments = installmentsMatch ? parseInt(installmentsMatch[1]) : 1;
       let paymentMethod: PaymentMethod = PaymentMethod.OUTRO;
-      if (raw.includes('crédito') || raw.includes('cartao') || raw.includes('cartão')) paymentMethod = PaymentMethod.CREDITO;
+      if (raw.includes('crédito') || raw.includes('credito') || raw.includes('cartao') || raw.includes('cartão')) paymentMethod = PaymentMethod.CREDITO;
       else if (raw.includes('débito') || raw.includes('debito')) paymentMethod = PaymentMethod.DEBITO;
       else if (raw.includes('pix')) paymentMethod = PaymentMethod.PIX;
       else if (raw.includes('dinheiro')) paymentMethod = PaymentMethod.DINHEIRO;
@@ -111,94 +164,29 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
       ];
       for (const m of map) { if (m.k.test(raw)) { category = m.c; subcategory = m.s; break; } }
 
-      let date = today;
-      const dayMatch = raw.match(/dia\s*(\d{1,2})/);
-      if (dayMatch) {
-        const d = new Date();
-        d.setDate(parseInt(dayMatch[1]));
-        date = d.toISOString().split('T')[0];
-      } else if (raw.includes('ontem')) {
-        const d = new Date(); d.setDate(d.getDate() - 1); date = d.toISOString().split('T')[0];
-      } else if (raw.includes('hoje')) {
-        date = today;
-      }
+      const date = parseDateFromText(text, today);
 
       const description = text.trim();
       return { description, amount, category, subcategory, paymentMethod, date, installments };
     };
 
-    const prompt = `Você é um assistente financeiro inteligente. Analise o texto a seguir e extraia os detalhes da transação.
-    A data de hoje é ${today}.
-    Texto de entrada: "${inputValue}"
-    Métodos de pagamento disponíveis: ${paymentMethods.join(', ')}
-    Estrutura de categorias de despesa disponível:
-    ${availableCategories}
-    
-    Sua tarefa é extrair:
-    - descrição: Uma descrição clara e concisa.
-    - amount: O valor monetário TOTAL da compra (como um número).
-    - category: A categoria principal mais apropriada da lista.
-    - subcategory: A subcategoria mais apropriada dentro da categoria principal escolhida.
-    - paymentMethod: O método de pagamento. Se não mencionado, assuma 'Crédito' se for parcelado, ou 'Débito' se for à vista.
-    - date: A data da transação (formato YYYY-MM-DD). Se não mencionada, use a data de hoje (${today}).
-    - installments: O número de parcelas. Se não houver menção, o número é 1.
-    
-    Responda APENAS com um objeto JSON válido.
-    `;
-    
-    const responseSchema = {
-        type: Type.OBJECT,
-        properties: {
-            description: { type: Type.STRING },
-            amount: { type: Type.NUMBER },
-            category: { type: Type.STRING },
-            subcategory: { type: Type.STRING },
-            paymentMethod: { type: Type.STRING },
-            date: { type: Type.STRING },
-            installments: { type: Type.NUMBER }
-        },
-        required: ['description', 'amount', 'category', 'subcategory', 'paymentMethod', 'date', 'installments']
-    };
-
     try {
-        if (!ai) {
-            const parsed = localParse(inputValue);
-            if (!parsed) throw new Error('local-parse-failed');
-            setParsedTransaction(parsed);
-            return;
-        }
-
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: responseSchema,
-            }
-        });
-        
-        const parsedResponse = JSON.parse(cleanJsonString(response.text)) as ParsedTransaction;
-        
-        // Validation
-        if (!expenseCategoryList.includes(parsedResponse.category) || !categories[parsedResponse.category]?.subcategories.includes(parsedResponse.subcategory)) {
-             parsedResponse.category = 'Outros';
-             parsedResponse.subcategory = 'Presentes';
-        }
-        if (!paymentMethods.includes(parsedResponse.paymentMethod)) {
-            parsedResponse.paymentMethod = PaymentMethod.OUTRO;
-        }
-
-        setParsedTransaction(parsedResponse);
+      const local = localParse(inputValue);
+      if (!local) {
+        setError('Por favor, informe um valor (ex.: 85 reais)');
+        return;
+      }
+      // Marcar sempre como "A verificar > A classificar"
+      setParsedTransaction({
+        ...local,
+        category: 'A verificar',
+        subcategory: categories['A verificar']?.subcategories[0] || 'A classificar',
+      });
     } catch (e: any) {
-        console.error(e);
-        const parsed = localParse(inputValue);
-        if (parsed) {
-            setParsedTransaction(parsed);
-        } else {
-            setError("Não consegui entender o que você digitou. Tente ser mais específico, por exemplo: 'jantar 50 reais no crédito ontem'");
-        }
+      console.error(e);
+      setError('Falha ao processar entrada. Tente novamente.');
     } finally {
-        setIsProcessing(false);
+      setIsProcessing(false);
     }
   };
   

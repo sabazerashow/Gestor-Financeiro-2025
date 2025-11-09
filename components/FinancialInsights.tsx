@@ -1,14 +1,12 @@
 
 
 import React, { useState, useCallback } from 'react';
-import { GoogleGenAI } from '@google/genai';
+import { generateContent } from '@/lib/aiClient';
 import { Transaction, TransactionType } from '../types';
 
 interface FinancialInsightsProps {
   transactions: Transaction[];
 }
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 const renderMarkdownBold = (text: string) => {
     if (!text) return null;
@@ -52,11 +50,7 @@ ${transactionSummary}
 
 Responda em português do Brasil, usando markdown para os tópicos (* para bullet points, ** para negrito).`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-      });
-
+      const response = await generateContent({ model: 'gemini-2.5-flash', contents: prompt });
       setInsights(response.text);
       setAnalysisHasRun(true);
     } catch (e) {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Payslip } from '../../types';
-import PurchasingPowerChart, { PurchasingPowerChartRef } from '../charts/PurchasingPowerChart';
+import PurchasingPowerChart from '../charts/PurchasingPowerChart';
 
 interface PurchasingPowerCardProps {
   payslips: Payslip[];
@@ -13,7 +13,7 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
   const [purchasingPowerData, setPurchasingPowerData] = useState<{ labels: string[]; nominal: number[]; real: number[] } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationError, setCalculationError] = useState<string | null>(null);
-  const purchasingPowerChartRef = useRef<PurchasingPowerChartRef>(null);
+  // Exportação de gráfico removida; referência ao chart não é mais necessária.
   
   // Set initial dates for purchasing power analysis based on available payslips
   useEffect(() => {
@@ -118,30 +118,13 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
     }
   };
 
-  const handleExportPurchasingPowerChart = () => {
-    const imageBase64 = purchasingPowerChartRef.current?.exportChart();
-    if (imageBase64) {
-        const link = document.createElement('a');
-        link.href = imageBase64;
-        const isSvg = imageBase64.startsWith('data:image/svg+xml');
-        const ext = isSvg ? 'svg' : 'png';
-        link.download = `grafico_poder_de_compra_${new Date().toISOString().split('T')[0]}.${ext}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-  };
+  // Função de exportação removida
 
   return (
     <>
       <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
           <h3 className="text-lg font-bold text-gray-800 dark:text-white">Análise do Poder de Compra (vs IPCA)</h3>
-          {purchasingPowerData && (
-            <button onClick={handleExportPurchasingPowerChart} className="px-3 py-1 text-sm font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800 transition-colors flex items-center gap-2">
-              <i className="fas fa-download"></i>
-              Exportar Gráfico
-            </button>
-          )}
+          {/* Botão de exportar gráfico removido */}
       </div>
       <div className="flex flex-wrap items-end gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-4 text-sm">
           <div>
@@ -169,7 +152,7 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
             <p className="mt-4 text-gray-600 dark:text-gray-300">Buscando dados do IPCA e calculando...</p>
           </div>
         )}
-        {purchasingPowerData && !isCalculating && <PurchasingPowerChart ref={purchasingPowerChartRef} data={purchasingPowerData} />}
+        {purchasingPowerData && !isCalculating && <PurchasingPowerChart data={purchasingPowerData} />}
         {!purchasingPowerData && !isCalculating && !calculationError && (
           <div className="flex flex-col items-center justify-center text-center h-full text-gray-500 dark:text-gray-400">
             <i className="fas fa-search-dollar text-4xl mb-4"></i>

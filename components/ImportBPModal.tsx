@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleGenAI, Type } from '@google/genai';
+import { recognizeTextFromDataUrl, recognizePayslip, parsePayslipFromText, parsePayslipFromStructured } from '@/lib/ocr';
+import { generateContent } from '@/lib/aiClient';
 import { Payslip, PayslipLineItem } from '../types';
 
 interface ImportBPModalProps {
   isOpen: boolean;
   onClose: () => void;
   file: { content: string; mimeType: string } | null;
+  mode?: 'ocr' | 'ai';
   onConfirm: (payslipData: Omit<Payslip, 'id'>, shouldLaunchTransaction: boolean) => void;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/```/g, '').trim();
 
-const ImportBPModal: React.FC<ImportBPModalProps> = ({ isOpen, onClose, file, onConfirm }) => {
+const ImportBPModal: React.FC<ImportBPModalProps> = ({ isOpen, onClose, file, mode = 'ocr', onConfirm }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<Omit<Payslip, 'id'> | null>(null);
@@ -53,80 +54,67 @@ const ImportBPModal: React.FC<ImportBPModalProps> = ({ isOpen, onClose, file, on
         if (!fileData.mimeType.startsWith('image/')) {
             throw new Error('Formato de arquivo inválido. Por favor, envie apenas uma imagem (PNG, JPG, etc).');
         }
-        
-        const responseSchema = {
-            type: Type.OBJECT,
-            properties: {
-                month: { type: Type.NUMBER, description: "O número do mês (1 para Janeiro, 12 para Dezembro)" },
-                year: { type: Type.NUMBER, description: "O ano com 4 dígitos" },
-                payments: { 
-                    type: Type.ARRAY,
-                    description: "Lista de todos os rendimentos.",
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            description: { type: Type.STRING },
-                            value: { type: Type.NUMBER }
-                        },
-                        required: ["description", "value"]
-                    }
-                },
-                deductions: {
-                    type: Type.ARRAY,
-                    description: "Lista de todos os descontos.",
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            description: { type: Type.STRING },
-                            value: { type: Type.NUMBER }
-                        },
-                        required: ["description", "value"]
-                    }
-                },
-                grossTotal: { type: Type.NUMBER, description: "O valor total na coluna 'Pagamentos'."},
-                deductionsTotal: { type: Type.NUMBER, description: "O valor total na coluna 'Descontos'."},
-                netTotal: { type: Type.NUMBER, description: "O valor do 'Total líquido'."},
-            },
-            required: ['month', 'year', 'payments', 'deductions', 'grossTotal', 'deductionsTotal', 'netTotal'],
-        };
-        
-        const prompt = `Você é um especialista em OCR e análise de contracheques (Bilhetes de Pagamento) da Marinha do Brasil. Analise a imagem a seguir com extrema precisão e extraia as informações financeiras.
 
-**Instruções de Extração:**
-1.  **Data de Referência**: Localize o "Mês de Pagamento" e o ano. Converta o nome do mês para seu número (ex: Setembro = 9).
-2.  **Itens de Pagamento**: Identifique a tabela de verbas. Para cada linha que tiver um valor na coluna "Pagamentos", extraia a "Descrição" exata daquela linha e o valor numérico correspondente.
-3.  **Itens de Desconto**: Faça o mesmo para a coluna "Descontos". Para cada linha com um valor em "Descontos", extraia a "Descrição" e o valor.
-4.  **Valores Totais**: Encontre a linha "Totais em R$" na parte inferior. Extraia os três valores nesta ordem: Total de Pagamentos, Total de Descontos e Total Líquido.
+        let parsed: Omit<Payslip, 'id'> | null = null;
 
-**Regras Importantes:**
-- NÃO invente valores ou descrições. Se uma informação não estiver clara, não a inclua.
-- Associe corretamente a descrição da linha com os valores de pagamento ou desconto na MESMA linha.
-- Converta todos os valores monetários para números (ex: 1.234,56 se torna 1234.56).
+        if (mode === 'ai') {
+            const ocrText = await recognizeTextFromDataUrl(fileData.content, 'por');
 
-Responda APENAS com um objeto JSON válido, seguindo o schema fornecido.`;
-        
-        const imagePart = {
-            inlineData: {
-                mimeType: fileData.mimeType,
-                data: fileData.content.split(',')[1], // Remove "data:image/png;base64," part
-            },
-        };
+            const prompt = `Você receberá o texto extraído (OCR) de um contracheque brasileiro.
+Extraia um JSON com:
+{
+  "month": número de 1 a 12,
+  "year": número com 4 dígitos,
+  "payments": [{"description": string, "value": number}],
+  "deductions": [{"description": string, "value": number}]
+}
+Regras:
+- Use os blocos "Pagamentos" e "Descontos"; se não houver indicação clara, deduza pela linha de totais.
+- Valores devem ser números (ponto ou vírgula como decimal serão normalizados).
+- Ignore colunas de parâmetros.
+Texto OCR:\n\n${ocrText}`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: { parts: [{ text: prompt }, imagePart] },
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: responseSchema
+            try {
+                const response = await generateContent({ model: 'gemini-2.5-flash', contents: prompt, expectJson: true });
+                const ai = JSON.parse(cleanJsonString(response.text));
+                const payments: PayslipLineItem[] = Array.isArray(ai.payments) ? ai.payments.map((p: any) => ({ description: String(p.description || '').trim(), value: Number(String(p.value).replace(',', '.')) || 0 })) : [];
+                const deductions: PayslipLineItem[] = Array.isArray(ai.deductions) ? ai.deductions.map((d: any) => ({ description: String(d.description || '').trim(), value: Number(String(d.value).replace(',', '.')) || 0 })) : [];
+                const grossTotal = payments.reduce((acc, p) => acc + Number(p.value), 0);
+                const deductionsTotal = deductions.reduce((acc, d) => acc + Number(d.value), 0);
+                const netTotal = grossTotal - deductionsTotal;
+                parsed = {
+                    month: Number(ai.month) || new Date().getMonth() + 1,
+                    year: Number(ai.year) || new Date().getFullYear(),
+                    payments,
+                    deductions,
+                    grossTotal,
+                    deductionsTotal,
+                    netTotal,
+                };
+            } catch (err) {
+                console.warn('Falha IA, tentando OCR estruturado como fallback.', err);
             }
-        });
-      
-      const parsedData = JSON.parse(cleanJsonString(response.text)) as Omit<Payslip, 'id'>;
-      setExtractedData(parsedData);
+        }
 
+        if (!parsed) {
+            // OCR estruturado primeiro (sem IA)
+            const ocr = await recognizePayslip(fileData.content, 'por');
+            parsed = parsePayslipFromStructured(ocr.lines, ocr.text);
+            // Fallback para parser textual simples se não houver itens/totais
+            if (!parsed || (!parsed.payments.length && !parsed.deductions.length)) {
+                const ocrText = ocr.text || await recognizeTextFromDataUrl(fileData.content, 'por');
+                parsed = parsePayslipFromText(ocrText);
+            }
+        }
+
+        if (!parsed || (!parsed.payments.length && !parsed.deductions.length && !parsed.netTotal)) {
+            throw new Error('Não foi possível identificar os campos do contracheque.');
+        }
+        setExtractedData(parsed);
+        setError(null);
     } catch (e: any) {
-      setError('Não foi possível analisar o arquivo. Verifique se a imagem está nítida e tente novamente.');
-      console.error(e);
+        console.error(e);
+        setError('Não foi possível analisar o arquivo. Verifique se a imagem está nítida e tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -158,6 +146,49 @@ Responda APENAS com um objeto JSON válido, seguindo o schema fornecido.`;
     });
   };
 
+  const moveItem = (from: 'payments' | 'deductions', index: number) => {
+    if (!extractedData) return;
+    const source = [...extractedData[from]];
+    const [item] = source.splice(index, 1);
+    const to: 'payments' | 'deductions' = from === 'payments' ? 'deductions' : 'payments';
+    const target = [...extractedData[to], item];
+    setExtractedData({
+      ...extractedData,
+      [from]: source,
+      [to]: target,
+    });
+  };
+
+  const reorderItem = (type: 'payments' | 'deductions', index: number, direction: 'up' | 'down') => {
+    if (!extractedData) return;
+    const list = [...extractedData[type]];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= list.length) return;
+    const [item] = list.splice(index, 1);
+    list.splice(newIndex, 0, item);
+    setExtractedData({ ...extractedData, [type]: list });
+  };
+
+  const removeItem = (type: 'payments' | 'deductions', index: number) => {
+    if (!extractedData) return;
+    const list = [...extractedData[type]];
+    list.splice(index, 1);
+    setExtractedData({ ...extractedData, [type]: list });
+  };
+
+  const addItem = (type: 'payments' | 'deductions') => {
+    if (!extractedData) return;
+    const list = [...extractedData[type]];
+    list.push({ description: '', value: 0 });
+    setExtractedData({ ...extractedData, [type]: list });
+    setIsEditing(true);
+  };
+
+  const handlePeriodChange = (field: 'month' | 'year', value: number) => {
+    if (!extractedData) return;
+    setExtractedData({ ...extractedData, [field]: value });
+  };
+
   if (!isOpen) return null;
   
   const renderItemRows = (items: PayslipLineItem[], type: 'payments' | 'deductions') => (
@@ -174,8 +205,31 @@ Responda APENAS com um objeto JSON válido, seguindo o schema fornecido.`;
                 ) : (
                     <span>{p.value.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span>
                 )}
+                {isEditing && (
+                    <div className="flex items-center gap-1">
+                        <button title="Subir" onClick={() => reorderItem(type, i, 'up')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                          ↑
+                        </button>
+                        <button title="Descer" onClick={() => reorderItem(type, i, 'down')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                          ↓
+                        </button>
+                        <button title="Mover para outra lista" onClick={() => moveItem(type, i)} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                          ↔
+                        </button>
+                        <button title="Remover" onClick={() => removeItem(type, i)} className="px-2 py-1 text-xs rounded bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800">
+                          Remover
+                        </button>
+                    </div>
+                )}
             </li>
         ))}
+        {isEditing && (
+          <li className="flex justify-end">
+            <button onClick={() => addItem(type)} className="mt-1 px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800">
+              Adicionar {type === 'payments' ? 'Pagamento' : 'Desconto'}
+            </button>
+          </li>
+        )}
     </ul>
   );
 
@@ -184,6 +238,7 @@ Responda APENAS com um objeto JSON válido, seguindo o schema fornecido.`;
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white">Importar Contracheque (BP)</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Modo: {mode === 'ai' ? 'Importar com IA' : 'Importar OCR'}</p>
         </div>
         
         <div className="p-6 overflow-y-auto flex-grow">
@@ -199,6 +254,22 @@ Responda APENAS com um objeto JSON válido, seguindo o schema fornecido.`;
                 <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-white">
                     Resumo para {new Date(extractedData.year, extractedData.month - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
                 </h3>
+                {isEditing && (
+                  <div className="flex justify-center gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <label className="text-gray-600 dark:text-gray-300">Mês</label>
+                      <select value={extractedData.month} onChange={(e) => handlePeriodChange('month', Number(e.target.value))} className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1">
+                        {Array.from({ length: 12 }).map((_, idx) => (
+                          <option key={idx+1} value={idx+1}>{new Date(2000, idx, 1).toLocaleString('pt-BR', { month: 'long' })}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-gray-600 dark:text-gray-300">Ano</label>
+                      <input type="number" value={extractedData.year} onChange={(e) => handlePeriodChange('year', Number(e.target.value))} className="w-24 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1" />
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                         <h4 className="font-bold text-green-600 dark:text-green-400 mb-2">Pagamentos</h4>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleGenAI, Type } from '@google/genai';
+import { generateContent } from '@/lib/aiClient';
 import { Transaction, TransactionToReview, TransactionType, PaymentMethod } from '../types';
 import { categories, expenseCategoryList } from '../categories';
 
@@ -10,7 +10,6 @@ interface ImportStatementModalProps {
   onConfirm: (transactions: Omit<Transaction, 'id'>[]) => void;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/```/g, '').trim();
 
 // A simple placeholder for parsing OFX/CSV. A robust solution would use a dedicated library.
@@ -93,13 +92,10 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
                 Extraia uma descrição limpa, a categoria, a subcategoria e o método de pagamento mais prováveis.
                 Responda APENAS com um objeto JSON.`;
 
-             const response = await ai.models.generateContent({
+            const response = await generateContent({
                 model: 'gemini-2.5-flash',
                 contents: prompt,
-                config: {
-                    responseMimeType: 'application/json',
-                    responseSchema: responseSchema,
-                }
+                expectJson: true,
             });
 
             const parsed = JSON.parse(cleanJsonString(response.text));

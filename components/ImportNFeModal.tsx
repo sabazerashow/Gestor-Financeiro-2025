@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleGenAI, Type } from '@google/genai';
+import { generateContent } from '@/lib/aiClient';
 import { GroupedTransaction, Transaction, TransactionType } from '../types';
 import { categories, expenseCategoryList } from '../categories';
 
@@ -10,7 +10,6 @@ interface ImportNFeModalProps {
   onConfirm: (transactions: Omit<Transaction, 'id'>[]) => void;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/```/g, '').trim();
 
 // This interface is slightly different from types.ts GroupedTransaction
@@ -87,28 +86,10 @@ ${items.map(item => `- ${item.description}: R$ ${item.amount.toFixed(2)}`).join(
 O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
 `;
 
-      const responseSchema = {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            category: { type: Type.STRING },
-            subcategory: { type: Type.STRING },
-            totalAmount: { type: Type.NUMBER },
-            items: { type: Type.ARRAY, items: { type: Type.STRING } },
-            description: { type: Type.STRING, description: 'Uma descrição geral para a transação agrupada. Ex: "Compras de Alimentação no Supermercado XYZ"' },
-          },
-          required: ['category', 'subcategory', 'totalAmount', 'items', 'description'],
-        },
-      };
-
-      const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-          config: {
-              responseMimeType: 'application/json',
-              responseSchema: responseSchema,
-          }
+      const response = await generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        expectJson: true,
       });
       
       const parsedResponse = JSON.parse(cleanJsonString(response.text)) as AIGroupedTransaction[];
