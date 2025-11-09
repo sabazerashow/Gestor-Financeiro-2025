@@ -59,13 +59,16 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         return acc;
     }, {});
 
-    return Object.entries(byCategory).map(([category, amount]) => ({
+    const palette = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
+    return Object.entries(byCategory)
+      .map(([category, amount], idx) => ({
         category,
         amount,
         percentage: (amount / totalExpense) * 100,
-        color: categories[category]?.color || 'bg-gray-400',
+        color: palette[idx % palette.length],
         icon: categories[category]?.icon || 'fa-tag',
-    })).sort((a, b) => b.amount - a.amount);
+      }))
+      .sort((a, b) => b.amount - a.amount);
   }, [analysisTransactions]);
 
   const incomeData: CategoryIncome[] = useMemo(() => {
@@ -81,13 +84,16 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         return acc;
     }, {});
 
-    return Object.entries(byCategory).map(([category, amount]) => ({
+    const palette = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
+    return Object.entries(byCategory)
+      .map(([category, amount], idx) => ({
         category,
         amount,
         percentage: (amount / totalIncome) * 100,
-        color: categories[category]?.color || 'bg-gray-400',
+        color: palette[idx % palette.length],
         icon: categories[category]?.icon || 'fa-tag',
-    })).sort((a, b) => b.amount - a.amount);
+      }))
+      .sort((a, b) => b.amount - a.amount);
   }, [analysisTransactions]);
 
   const CreditCardFooter = () => {

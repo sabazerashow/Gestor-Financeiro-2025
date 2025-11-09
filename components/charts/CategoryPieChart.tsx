@@ -4,29 +4,20 @@ import { PieChart, Pie, Tooltip, Cell, ResponsiveContainer } from 'recharts';
 interface PieChartDataItem {
   label: string;
   value: number;
-  color: string;
+  color: string; // expect CSS color (e.g., 'var(--chart-1)')
 }
 
 interface CategoryPieChartProps {
   data: PieChartDataItem[];
 }
 
-const colorMap: { [key: string]: string } = {
-  'bg-blue-500': 'rgba(59, 130, 246, 0.7)',
-  'bg-green-500': 'rgba(34, 197, 94, 0.7)',
-  'bg-yellow-500': 'rgba(234, 179, 8, 0.7)',
-  'bg-purple-500': 'rgba(139, 92, 246, 0.7)',
-  'bg-red-500': 'rgba(239, 68, 68, 0.7)',
-  'bg-indigo-500': 'rgba(99, 102, 241, 0.7)',
-  'bg-pink-500': 'rgba(236, 72, 153, 0.7)',
-  'bg-gray-500': 'rgba(107, 114, 128, 0.7)',
-  'bg-emerald-500': 'rgba(16, 185, 129, 0.7)',
-  'bg-teal-500': 'rgba(20, 184, 166, 0.7)',
-  'bg-stone-500': 'rgba(120, 113, 108, 0.7)',
-};
+// Colors now come from design tokens via CSS variables; no Tailwind mapping needed.
 
 const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data }) => {
-  const chartData = useMemo(() => data.map(item => ({ name: item.label, value: item.value, color: colorMap[item.color] || 'rgba(156, 163, 175, 0.7)' })), [data]);
+  const chartData = useMemo(
+    () => data.map(item => ({ name: item.label, value: item.value, color: item.color || 'var(--chart-5)' })),
+    [data]
+  );
   const total = useMemo(() => chartData.reduce((sum, d) => sum + (d.value || 0), 0), [chartData]);
   const isDarkMode = typeof document !== 'undefined' && document.body.classList.contains('dark');
 

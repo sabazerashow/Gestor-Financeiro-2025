@@ -1,5 +1,5 @@
-/* Design System atualizado com tokens fornecidos */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+/* Design System: fontes Montserrat (sans), Georgia (serif) e Fira Code (mono) */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap');
 
 :root {
   --background: oklch(0.9551 0 0);
@@ -36,7 +36,7 @@
   --sidebar-ring: oklch(0.4891 0 0);
   --font-sans: Montserrat, sans-serif;
   --font-serif: Georgia, serif;
-  --font-mono: Fira Code, monospace;
+  --font-mono: 'Fira Code', monospace;
   --radius: 0.35rem;
   --shadow-x: 0px;
   --shadow-y: 2px;
@@ -101,7 +101,10 @@
   --sidebar-accent-foreground: oklch(0.8853 0 0);
   --sidebar-border: oklch(0.3290 0 0);
   --sidebar-ring: oklch(0.7058 0 0);
-  --font-sans: Inter, sans-serif;
+  /* Mantém Montserrat também no tema escuro */
+  --font-sans: Montserrat, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: 'Fira Code', monospace;
 
   /* Aliases */
   --color-bg: var(--background);
@@ -121,6 +124,7 @@ body {
   font-family: var(--font-sans);
   color: var(--color-text);
   background-color: var(--color-bg);
+  letter-spacing: var(--tracking-normal);
 }
 
 /* Utilitários de cores para entradas/saídas */
@@ -146,3 +150,11 @@ body {
     opacity: 0;
   }
 }
+
+/* Mapeia classes utilitárias de fonte para os tokens do Design System */
+.font-sans { font-family: var(--font-sans); }
+.font-serif { font-family: var(--font-serif); }
+.font-mono { font-family: var(--font-mono); }
+
+/* Garante monoespaçada em elementos sem classe utilitária */
+code, pre { font-family: var(--font-mono); }

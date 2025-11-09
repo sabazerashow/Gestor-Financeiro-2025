@@ -43,7 +43,7 @@ const UpcomingPaymentItem: React.FC<{ bill: Bill; dueDate: Date; onPayBill: (des
       <div className="flex items-center space-x-4 self-end sm:self-center">
         <button 
             onClick={() => onPayBill(bill.description)}
-            className="px-3 py-1 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors"
+            className="px-3 py-1 text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
         >
             Pagar Conta
         </button>

@@ -21,7 +21,7 @@ const RecurringTransactionItem: React.FC<{ transaction: RecurringTransaction; on
           {categoryInfo && (
             <>
               <span className="text-sm text-gray-400">·</span>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${categoryInfo.color || 'bg-gray-400'}`}>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]`}>
                 <i className={`fas ${categoryInfo.icon || 'fa-tag'} mr-1`}></i>
                 {transaction.category} {'>'} {transaction.subcategory}
               </span>
@@ -30,7 +30,7 @@ const RecurringTransactionItem: React.FC<{ transaction: RecurringTransaction; on
         </div>
       </div>
       <div className="flex items-center space-x-4 ml-4">
-        <span className="font-bold whitespace-nowrap text-red-500">{formattedAmount}</span>
+        <span className="font-bold whitespace-nowrap text-expense">{formattedAmount}</span>
         <button
           onClick={() => onDelete(transaction.id)}
           className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"

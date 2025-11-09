@@ -17,6 +17,7 @@ interface HeaderProps {
     userProfile: ProfileData;
     onOpenProfile: () => void;
     onOpenInvite: () => void;
+    onLogoutClick?: () => void;
 }
 
 const NavButton: React.FC<{label: string; icon: string; isActive: boolean; onClick: () => void;}> = ({label, icon, isActive, onClick}) => (
@@ -34,7 +35,7 @@ const NavButton: React.FC<{label: string; icon: string; isActive: boolean; onCli
 );
 
 
-const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite }) => {
+const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite, onLogoutClick }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const defaultPhotoUrl = 'https://i.ibb.co/6n20d5w/placeholder-profile.png';
@@ -73,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
             
             <button
                 onClick={onQuickAdd}
-                className="px-3 py-2 text-sm font-medium rounded-md transition-colors bg-green-500 text-white hover:bg-green-600 flex items-center justify-center gap-2"
+                className="px-3 py-2 text-sm font-medium rounded-md transition-colors text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] flex items-center justify-center gap-2"
                 >
                 <i className="fas fa-bolt"></i>
                 <span className="hidden lg:inline">Rápido</span>
@@ -99,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
                         setTheme={setTheme}
                         onProfileClick={() => { setIsProfileMenuOpen(false); onOpenProfile(); }}
                         onInviteClick={() => { setIsProfileMenuOpen(false); onOpenInvite(); }}
-                        onLogoutClick={() => { setIsProfileMenuOpen(false); alert('Logout clicked!'); }}
+                        onLogoutClick={() => { setIsProfileMenuOpen(false); onLogoutClick?.(); }}
                     />
                 )}
             </div>

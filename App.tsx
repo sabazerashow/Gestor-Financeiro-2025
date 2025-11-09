@@ -33,6 +33,9 @@ import InviteModal from './components/InviteModal';
 // Removidos: ExportModal e ImportTransactionsModal (lançamentos manuais)
 import { mockTransactions, mockPayslips, mockRecurringTransactions, mockBills } from './mockData';
 import { generateContent } from '@/lib/aiClient';
+import AuthGate from './components/AuthGate';
+import supabase, { isSupabaseEnabled } from '@/lib/supabase';
+import db, { getSession, signOut } from '@/lib/db';
 
 
 // Define the shape of a dashboard card configuration
@@ -56,6 +59,7 @@ const defaultProfile = {
 // CSV export/import removidos: funcionalidades migradas para lançamentos manuais.
 
  const App: React.FC = () => {
+  const [session, setSession] = useState<any>(null);
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const savedTransactions = localStorage.getItem('transactions');
     if (savedTransactions) {
@@ -127,6 +131,8 @@ const defaultProfile = {
 
   // Seed mock data on first run when local storage is empty
   useEffect(() => {
+    // Com Supabase habilitado, não semeamos dados locais
+    if (isSupabaseEnabled) return;
     const hasTransactions = transactions && transactions.length > 0;
     const hasPayslips = payslips && payslips.length > 0;
     const hasRecurring = recurringTransactions && recurringTransactions.length > 0;
@@ -170,6 +176,58 @@ const defaultProfile = {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Supabase Auth: obter sessão e escutar mudanças
+  useEffect(() => {
+    if (!isSupabaseEnabled) return;
+    let mounted = true;
+    (async () => {
+      const s = await getSession();
+      if (mounted) setSession(s);
+    })();
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s ?? null);
+    });
+    return () => { mounted = false; sub?.subscription?.unsubscribe(); };
+  }, []);
+
+  // Ao autenticar, buscar dados do Supabase e preencher estados
+  useEffect(() => {
+    if (!isSupabaseEnabled || !session) return;
+    (async () => {
+      try {
+        const [tx, rec, bl, ps] = await Promise.all([
+          db.fetchTransactions(),
+          db.fetchRecurring(),
+          db.fetchBills(),
+          db.fetchPayslips(),
+        ]);
+        if (tx && tx.length >= 0) setTransactions(tx as any);
+        if (rec && rec.length >= 0) setRecurringTransactions(rec as any);
+        if (bl && bl.length >= 0) setBills(bl as any);
+        if (ps && ps.length >= 0) setPayslips(ps as any);
+      } catch (e) {
+        console.error('Falha ao buscar dados do Supabase', e);
+      }
+    })();
+    // não depende dos estados locais para evitar loops iniciais
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  // Sincronizar alterações locais com Supabase
+  useEffect(() => {
+    if (!isSupabaseEnabled || !session) return;
+    (async () => {
+      try {
+        await db.upsertTransactions(transactions as any);
+        await db.upsertRecurring(recurringTransactions as any);
+        await db.upsertBills(bills as any);
+        await db.upsertPayslips(payslips as any);
+      } catch (e) {
+        console.error('Falha ao sincronizar dados com Supabase', e);
+      }
+    })();
+  }, [transactions, recurringTransactions, bills, payslips, session]);
   
   const allDashboardCards: DashboardCardConfig[] = useMemo(() => [
      {
@@ -921,6 +979,11 @@ ${availableCategories}`;
     }
   };
 
+  // Gate de autenticação: com Supabase ativo e sem sessão, mostrar tela de login
+  if (isSupabaseEnabled && !session) {
+    return <AuthGate onSignedIn={() => { /* sessão será atualizada via listener */ }} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans flex flex-col">
       <Header 
@@ -932,6 +995,13 @@ ${availableCategories}`;
         userProfile={userProfile}
         onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
+        onLogoutClick={async () => {
+          try {
+            await signOut();
+          } catch (e) {
+            console.error('Falha ao sair', e);
+          }
+        }}
       />
       
       <main className="container mx-auto p-4 md:p-8 flex-grow">

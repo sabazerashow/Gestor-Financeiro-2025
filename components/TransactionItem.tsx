@@ -47,7 +47,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
             {transaction.category && categoryInfo && (
                 <>
                 <span className="text-sm text-gray-400">·</span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${categoryInfo.color || 'bg-gray-400'}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]`}>
                     <i className={`fas ${categoryInfo.icon || 'fa-tag'} mr-1`}></i>
                     {transaction.category} {transaction.subcategory && `> ${transaction.subcategory}`}
                 </span>

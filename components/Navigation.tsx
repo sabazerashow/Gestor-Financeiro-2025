@@ -32,7 +32,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab, onQuic
             <NavButton tabName="history" label="Transações" icon="fa-exchange-alt" isActive={activeTab === 'history'} onClick={() => setActiveTab('history')} />
             <button
                 onClick={onQuickAdd}
-                className="flex-grow md:flex-grow-0 px-3 py-2 text-sm font-medium rounded-md transition-colors bg-green-500 text-white hover:bg-green-600 flex items-center justify-center gap-2 shadow-md"
+                className="flex-grow md:flex-grow-0 px-3 py-2 text-sm font-medium rounded-md transition-colors text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] flex items-center justify-center gap-2 shadow-md"
                 >
                 <i className="fas fa-bolt"></i>
                 <span className="hidden md:inline">Lançamento Rápido</span>

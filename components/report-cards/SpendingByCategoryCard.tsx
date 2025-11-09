@@ -31,11 +31,13 @@ const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transac
       return acc;
     }, {});
 
+    const palette = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
+
     const categoryBreakdown = Object.entries(byCategory)
-      .map(([category, amount]) => ({
+      .map(([category, amount], idx) => ({
         category,
         amount,
-        color: categories[category]?.color || 'bg-gray-400',
+        color: palette[idx % palette.length],
         icon: categories[category]?.icon || 'fa-tag',
       }))
       .sort((a, b) => b.amount - a.amount);
@@ -76,7 +78,7 @@ const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transac
                 {data.categoryBreakdown.slice(0, 5).map(item => (
                   <li key={item.category} className="flex items-center justify-between p-1 rounded">
                       <div className="flex items-center space-x-2">
-                          <span className={`w-2 h-2 rounded-full ${item.color}`}></span>
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
                           <span className="text-gray-600 dark:text-gray-300">{item.category}</span>
                       </div>
                       <span className="font-medium text-gray-700 dark:text-gray-200">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount)}</span>

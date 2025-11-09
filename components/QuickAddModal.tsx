@@ -312,7 +312,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
                     <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-500 dark:text-gray-400">Categoria</span>
                         {categoryInfo && (
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${categoryInfo.color}`}>
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]`}>
                                 <i className={`fas ${categoryInfo.icon} mr-1`}></i>
                                 {parsedTransaction.category} {'>'} {parsedTransaction.subcategory}
                             </span>
@@ -385,7 +385,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
             ) : isEditing ? (
                  <button
                     onClick={handleConfirm}
-                    className="px-4 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors"
+                    className="px-4 py-2 text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
                   >
                     Salvar
                   </button>
@@ -399,7 +399,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
                     </button>
                     <button
                         onClick={handleConfirm}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
                     >
                         Confirmar e Adicionar
                     </button>

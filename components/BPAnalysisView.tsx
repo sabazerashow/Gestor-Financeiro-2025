@@ -153,14 +153,14 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
                 </button>
                 <button
                     onClick={handleImportOCRClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 bg-indigo-500 text-sm font-medium text-white hover:bg-indigo-600 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300"
+                    className="-ml-px relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 bg-[var(--secondary)] text-sm font-medium text-[var(--secondary-foreground)] hover:bg-[var(--accent)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
                     <i className="fas fa-upload mr-2"></i>
                     Importar OCR
                 </button>
                 <button
                     onClick={handleImportAIClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 focus:z-10 focus:outline-none focus:ring-1 focus:ring-purple-300 focus:border-purple-300"
+                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-[var(--primary)] text-sm font-medium text-white hover:bg-[var(--primary-hover)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
                     <i className="fas fa-robot mr-2"></i>
                     Importar com IA
@@ -175,7 +175,7 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
             />
             <button
               onClick={() => setIsUnderstandModalOpen(true)}
-              className="px-3 py-1 text-sm font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800 transition-colors flex items-center gap-2"
+              className="px-3 py-1 text-sm font-medium rounded-md text-[var(--secondary-foreground)] bg-[var(--secondary)] hover:bg-[var(--accent)] transition-colors flex items-center gap-2"
             >
               <i className="fas fa-question-circle"></i>
               <span>Entenda seu BP</span>

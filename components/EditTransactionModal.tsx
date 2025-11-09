@@ -166,9 +166,9 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
                   value={TransactionType.INCOME}
                   checked={type === TransactionType.INCOME}
                   onChange={() => setType(TransactionType.INCOME)}
-                  className="form-radio h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
                 />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Receita</span>
+                <span className="ml-2 text-sm text-income">Receita</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -177,9 +177,9 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
                   value={TransactionType.EXPENSE}
                   checked={type === TransactionType.EXPENSE}
                   onChange={() => setType(TransactionType.EXPENSE)}
-                  className="form-radio h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
                 />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Despesa</span>
+                <span className="ml-2 text-sm text-expense">Despesa</span>
               </label>
             </div>
           </div>

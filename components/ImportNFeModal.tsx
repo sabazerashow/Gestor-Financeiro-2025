@@ -144,7 +144,7 @@ O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
                     <div className="flex items-center justify-between mt-2">
                         <div>
                             {categoryInfo && (
-                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${categoryInfo.color}`}>
+                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]`}>
                                 <i className={`fas ${categoryInfo.icon} mr-1`}></i>
                                 {group.category} {'>'} {group.subcategory}
                                 </span>
