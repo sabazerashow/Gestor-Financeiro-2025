@@ -30,6 +30,7 @@ import ProfileModal from './components/ProfileModal';
 import InviteModal from './components/InviteModal';
 import ExportModal from './components/ExportModal';
 import ImportTransactionsModal from './components/ImportTransactionsModal';
+import { mockTransactions, mockPayslips, mockRecurringTransactions, mockBills } from './mockData';
 
 
 // Define the shape of a dashboard card configuration
@@ -196,6 +197,52 @@ const App: React.FC = () => {
     }
     return [];
   });
+
+  // Seed mock data on first run when local storage is empty
+  useEffect(() => {
+    const hasTransactions = transactions && transactions.length > 0;
+    const hasPayslips = payslips && payslips.length > 0;
+    const hasRecurring = recurringTransactions && recurringTransactions.length > 0;
+    const hasBills = bills && bills.length > 0;
+
+    if (!hasTransactions) {
+      setTransactions(mockTransactions);
+      localStorage.setItem('transactions', JSON.stringify(mockTransactions));
+    }
+
+    if (!hasPayslips) {
+      setPayslips(mockPayslips);
+      localStorage.setItem('payslips', JSON.stringify(mockPayslips));
+    }
+
+    if (!hasRecurring) {
+      setRecurringTransactions(mockRecurringTransactions);
+      localStorage.setItem('recurringTransactions', JSON.stringify(mockRecurringTransactions));
+    }
+
+    if (!hasBills) {
+      setBills(mockBills);
+      localStorage.setItem('bills', JSON.stringify(mockBills));
+    }
+  // Intentionally depend on the base states so seeding only runs when empty
+  }, []);
+
+  // One-shot de-duplication for transactions persisted from previous dev sessions
+  useEffect(() => {
+    if (!transactions || transactions.length === 0) return;
+    const seen = new Set<string>();
+    const unique = transactions.filter(t => {
+      const key = t.id || `${t.description}-${t.date}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (unique.length !== transactions.length) {
+      setTransactions(unique);
+      try { localStorage.setItem('transactions', JSON.stringify(unique)); } catch(e) { /* ignore */ }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   const allDashboardCards: DashboardCardConfig[] = useMemo(() => [
      {
@@ -439,18 +486,24 @@ const App: React.FC = () => {
       const updatedRec = { ...rec };
 
       while (nextDueDate <= today) {
-        const transactionExists = transactions.some(t => 
-            t.description === rec.description &&
-            new Date(t.date).getTime() === nextDueDate.getTime()
-        );
+        const dueDateStr = nextDueDate.toISOString().split('T')[0];
+        const occurrenceId = `${rec.id}-${nextDueDate.getTime()}`;
+        // Prevent duplicates across dev double-effects by checking unique occurrence id
+        const transactionExists = transactions.some(t => t.id === occurrenceId) ||
+          newTransactions.some(t => t.id === occurrenceId) ||
+          transactions.some(t => (
+            t.description === rec.description && t.date === dueDateStr
+          )) || newTransactions.some(t => (
+            t.description === rec.description && t.date === dueDateStr
+          ));
 
         if (!transactionExists) {
             newTransactions.push({
-              id: `${rec.id}-${nextDueDate.getTime()}`,
+              id: occurrenceId,
               description: rec.description,
               amount: rec.amount,
               type: rec.type,
-              date: nextDueDate.toISOString().split('T')[0],
+              date: dueDateStr,
               category: rec.category,
               subcategory: rec.subcategory,
               isRecurring: true,

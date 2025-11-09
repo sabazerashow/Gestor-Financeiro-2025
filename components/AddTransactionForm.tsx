@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Transaction, TransactionType, PaymentMethod } from '../types';
 import { categories, expenseCategoryList, incomeCategoryList } from '../categories';
 import { GoogleGenAI } from '@google/genai';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 
 function useDebounce(callback: (...args: any[]) => void, delay: number) {
   const timeoutRef = useRef<number | null>(null);
@@ -210,12 +212,12 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
-          <input
+          <Input
             type="text"
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="mt-1"
             placeholder="Ex: Jantar com amigos"
           />
         </div>
@@ -224,12 +226,12 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Valor {isInstallment ? 'Total' : ''} (R$)
             </label>
-            <input
+            <Input
               type="number"
               id="amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1"
               placeholder="Ex: 80.00"
               step="0.01"
               min="0"
@@ -239,12 +241,12 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
             <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Data {isInstallment ? 'da Compra' : ''}
             </label>
-            <input
+            <Input
               type="date"
               id="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1"
             />
           </div>
         </div>
@@ -303,14 +305,14 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
              {isInstallment && (
                 <div>
                     <label htmlFor="installments" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nº de Parcelas</label>
-                    <input
-                    type="number"
-                    id="installments"
-                    value={installments}
-                    onChange={(e) => setInstallments(e.target.value)}
-                    className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="Ex: 6"
-                    min="2"
+                    <Input
+                      type="number"
+                      id="installments"
+                      value={installments}
+                      onChange={(e) => setInstallments(e.target.value)}
+                      className="mt-1"
+                      placeholder="Ex: 6"
+                      min="2"
                     />
                 </div>
             )}
@@ -363,29 +365,28 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
 
         {error && <p className="text-sm text-red-500">{error}</p>}
         <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-            type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-            >
-            Adicionar
-            </button>
+            <Button type="submit" className="w-full">
+              Adicionar
+            </Button>
             <div className="grid grid-cols-2 gap-2">
-                <button
+                <Button
                     type="button"
                     onClick={() => handleImportClick('nfe')}
-                    className="w-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors flex items-center justify-center space-x-2"
+                    variant="secondary"
+                    className="w-full flex items-center justify-center space-x-2"
                 >
                     <i className="fas fa-file-invoice"></i>
                     <span>Importar NF (XML)</span>
-                </button>
-                <button
+                </Button>
+                <Button
                     type="button"
                     onClick={() => handleImportClick('statement')}
-                    className="w-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors flex items-center justify-center space-x-2"
+                    variant="secondary"
+                    className="w-full flex items-center justify-center space-x-2"
                 >
                     <i className="fas fa-file-import"></i>
                     <span>Importar Extrato</span>
-                </button>
+                </Button>
             </div>
              <div className="grid grid-cols-2 gap-2">
                  <input
@@ -402,22 +403,24 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                     className="hidden"
                     accept=".csv"
                 />
-                <button
+                <Button
                     type="button"
                     onClick={onExportClick}
-                    className="w-full bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-900 text-green-800 dark:text-green-200 font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition-colors flex items-center justify-center space-x-2"
+                    variant="outline"
+                    className="w-full text-green-800 dark:text-green-200 border-green-300 dark:border-green-700"
                 >
                     <i className="fas fa-file-export"></i>
                     <span>Exportar (CSV)</span>
-                </button>
-                 <button
+                </Button>
+                 <Button
                     type="button"
                     onClick={() => csvFileInputRef.current?.click()}
-                    className="w-full bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-900 text-green-800 dark:text-green-200 font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition-colors flex items-center justify-center space-x-2"
+                    variant="outline"
+                    className="w-full text-green-800 dark:text-green-200 border-green-300 dark:border-green-700"
                 >
                     <i className="fas fa-file-upload"></i>
                     <span>Importar (CSV)</span>
-                </button>
+                </Button>
             </div>
         </div>
 

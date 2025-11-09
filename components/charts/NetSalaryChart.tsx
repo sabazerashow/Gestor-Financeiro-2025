@@ -1,91 +1,33 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { Payslip } from '../../types';
-
-declare const Chart: any;
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface NetSalaryChartProps {
   payslips: Payslip[];
 }
 
+const currencyFormatter = (value: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
+
 const NetSalaryChart: React.FC<NetSalaryChartProps> = ({ payslips }) => {
-  const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstanceRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (chartRef.current && payslips.length > 0) {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
-
-      const ctx = chartRef.current.getContext('2d');
-      if (!ctx) return;
-      
-      const labels = payslips.map(p => 
-        new Date(p.year, p.month - 1).toLocaleString('pt-BR', { month: 'short' })
-      );
-      const data = payslips.map(p => p.netTotal);
-
-      chartInstanceRef.current = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Salário Líquido',
-              data: data,
-              borderColor: 'rgba(79, 70, 229, 1)',
-              backgroundColor: 'rgba(79, 70, 229, 0.2)',
-              fill: true,
-              tension: 0.3,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: false,
-              ticks: {
-                callback: function (value: number) {
-                  return 'R$ ' + value.toLocaleString('pt-BR');
-                },
-              },
-            },
-          },
-          plugins: {
-            legend: {
-              display: false,
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context: any) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        if (context.parsed.y !== null) {
-                            label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
-                        }
-                        return label;
-                    }
-                }
-            }
-          },
-        },
-      });
-    }
-
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
-    };
-  }, [payslips]);
+  const chartData = useMemo(() => (
+    payslips.map(p => ({
+      name: new Date(p.year, p.month - 1).toLocaleString('pt-BR', { month: 'short' }),
+      netTotal: p.netTotal,
+    }))
+  ), [payslips]);
 
   return (
     <div className="h-80 w-full">
-      <canvas ref={chartRef}></canvas>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 10 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+          <XAxis dataKey="name" tick={{ fill: document.body.classList.contains('dark') ? '#9ca3af' : '#4b5563' }} />
+          <YAxis tick={{ fill: document.body.classList.contains('dark') ? '#9ca3af' : '#4b5563' }} tickFormatter={(v: number) => currencyFormatter(v)} />
+          <Tooltip formatter={(value: any) => currencyFormatter(Number(value))} />
+          <Line type="monotone" dataKey="netTotal" stroke="rgba(79, 70, 229, 1)" strokeWidth={2} dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 };

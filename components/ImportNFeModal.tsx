@@ -165,7 +165,7 @@ O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
                             {categoryInfo && (
                                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${categoryInfo.color}`}>
                                 <i className={`fas ${categoryInfo.icon} mr-1`}></i>
-                                {group.category} > {group.subcategory}
+                                {group.category} {'>'} {group.subcategory}
                                 </span>
                             )}
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{group.items.join(', ')}</p>

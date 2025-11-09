@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-
-declare const Chart: any;
+import React, { useMemo, forwardRef, useImperativeHandle, useRef } from 'react';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 interface PurchasingPowerChartProps {
   data: {
@@ -14,117 +13,44 @@ export interface PurchasingPowerChartRef {
   exportChart: () => string | null;
 }
 
+const currencyFormatter = (value: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value ?? 0);
+
 const PurchasingPowerChart = forwardRef<PurchasingPowerChartRef, PurchasingPowerChartProps>(({ data }, ref) => {
-  const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstanceRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
     exportChart: () => {
-      if (chartInstanceRef.current) {
-        return chartInstanceRef.current.toBase64Image('image/png', 1);
-      }
-      return null;
-    }
+      const svg = containerRef.current?.querySelector('svg');
+      if (!svg) return null;
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svg);
+      const encoded = encodeURIComponent(svgString);
+      return `data:image/svg+xml;charset=utf-8,${encoded}`;
+    },
   }));
 
-  useEffect(() => {
-    if (chartRef.current && data) {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
-
-      const ctx = chartRef.current.getContext('2d');
-      if (!ctx) return;
-
-      chartInstanceRef.current = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: data.labels,
-          datasets: [
-            {
-              label: 'Salário Nominal',
-              data: data.nominal,
-              borderColor: 'rgba(129, 140, 248, 1)', // Indigo-400
-              backgroundColor: 'rgba(129, 140, 248, 0.2)',
-              fill: false,
-              tension: 0.1,
-              pointRadius: 3,
-              pointHoverRadius: 6,
-            },
-            {
-              label: 'Poder de Compra (Salário Real)',
-              data: data.real,
-              borderColor: 'rgba(16, 185, 129, 1)', // Emerald-500
-              backgroundColor: 'rgba(16, 185, 129, 0.2)',
-              fill: true,
-              tension: 0.3,
-              borderDash: [5, 5],
-              pointRadius: 3,
-              pointHoverRadius: 6,
-            }
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: false,
-              ticks: { 
-                  callback: (value: number) => 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
-                  color: document.body.classList.contains('dark') ? '#9ca3af' : '#4b5563',
-                },
-              grid: {
-                color: document.body.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-              }
-            },
-            x: {
-              ticks: { 
-                  color: document.body.classList.contains('dark') ? '#9ca3af' : '#4b5563',
-              },
-               grid: {
-                display: false,
-              }
-            }
-          },
-          plugins: {
-            legend: { 
-                position: 'top',
-                labels: {
-                    color: document.body.classList.contains('dark') ? '#d1d5db' : '#374151',
-                }
-            },
-            tooltip: {
-              callbacks: {
-                label: (context: any) => {
-                  let label = context.dataset.label || '';
-                  if (label) label += ': ';
-                  if (context.parsed.y !== null) {
-                    label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
-                  }
-                  return label;
-                }
-              }
-            }
-          },
-          interaction: {
-            intersect: false,
-            mode: 'index',
-          },
-        },
-      });
-    }
-
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.destroy();
-      }
-    };
+  const chartData = useMemo(() => {
+    return data.labels.map((label, idx) => ({
+      name: label,
+      nominal: data.nominal[idx] ?? 0,
+      real: data.real[idx] ?? 0,
+    }));
   }, [data]);
 
   return (
-    <div className="h-96 w-full">
-      <canvas ref={chartRef}></canvas>
+    <div ref={containerRef} className="h-96 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 10 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={document.body.classList.contains('dark') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} />
+          <XAxis dataKey="name" tick={{ fill: document.body.classList.contains('dark') ? '#9ca3af' : '#4b5563' }} />
+          <YAxis tick={{ fill: document.body.classList.contains('dark') ? '#9ca3af' : '#4b5563' }} tickFormatter={(v: number) => currencyFormatter(v)} />
+          <Tooltip formatter={(value: any) => currencyFormatter(Number(value))} />
+          <Legend verticalAlign="top" />
+          <Line type="monotone" dataKey="nominal" name="Salário Nominal" stroke="rgba(129, 140, 248, 1)" strokeWidth={2} dot={{ r: 3 }} />
+          <Line type="monotone" dataKey="real" name="Poder de Compra (Salário Real)" stroke="rgba(16, 185, 129, 1)" strokeWidth={2} dot={{ r: 3 }} strokeDasharray="5 5" />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 });

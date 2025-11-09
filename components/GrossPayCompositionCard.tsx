@@ -7,6 +7,12 @@ interface GrossPayCompositionCardProps {
 }
 
 const GrossPayCompositionCard: React.FC<GrossPayCompositionCardProps> = ({ payslip }) => {
+    const formatCurrency = (value: number) => {
+        // Some environments render thin/non-breaking spaces as boxes; sanitize them.
+        return value
+            .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+            .replace(/[\u00A0\u202F]/g, ' ');
+    };
     const compositionData = useMemo(() => {
         if (!payslip) return null;
 
@@ -37,15 +43,15 @@ const GrossPayCompositionCard: React.FC<GrossPayCompositionCardProps> = ({ paysl
                     <div className="grid grid-cols-3 gap-2 text-center mb-4 border-b dark:border-gray-700 pb-4">
                         <div>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Soldo</p>
-                            <p className="font-bold text-gray-700 dark:text-gray-300">{compositionData.soldoValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            <p className="font-bold text-gray-700 dark:text-gray-300">{formatCurrency(compositionData.soldoValue)}</p>
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Adicionais</p>
-                            <p className="font-bold text-gray-700 dark:text-gray-300">{compositionData.adicionaisTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            <p className="font-bold text-gray-700 dark:text-gray-300">{formatCurrency(compositionData.adicionaisTotal)}</p>
                         </div>
                          <div>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Total Bruto</p>
-                            <p className="font-bold text-green-500">{compositionData.grossTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                            <p className="font-bold text-green-500">{formatCurrency(compositionData.grossTotal)}</p>
                         </div>
                     </div>
                     

@@ -21,7 +21,9 @@ interface ParsedTransaction {
     installments: number;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+// Initialize AI client only if an API key is available (supports Vite and Node envs)
+const resolvedApiKey = (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_GOOGLE_API_KEY) || (process.env as any)?.API_KEY;
+const ai = resolvedApiKey ? new GoogleGenAI({ apiKey: resolvedApiKey }) : null;
 const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/```/g, '').trim();
 
 const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTransaction, initialDescription, initialMode = 'ai' }) => {
@@ -81,6 +83,50 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
     );
 
     const today = new Date().toISOString().split('T')[0];
+
+    // Lightweight local parser as fallback when AI is unavailable or fails
+    const localParse = (text: string): ParsedTransaction | null => {
+      const raw = text.toLowerCase();
+      const amountMatch = raw.match(/(\d+[\.,]?\d*)\s*(reais|r\$|rs)?/);
+      if (!amountMatch) return null;
+      const amount = parseFloat(amountMatch[1].replace(/\./g, '').replace(',', '.'));
+      const installmentsMatch = raw.match(/(\d+)\s*x/);
+      const installments = installmentsMatch ? parseInt(installmentsMatch[1]) : 1;
+      let paymentMethod: PaymentMethod = PaymentMethod.OUTRO;
+      if (raw.includes('crédito') || raw.includes('cartao') || raw.includes('cartão')) paymentMethod = PaymentMethod.CREDITO;
+      else if (raw.includes('débito') || raw.includes('debito')) paymentMethod = PaymentMethod.DEBITO;
+      else if (raw.includes('pix')) paymentMethod = PaymentMethod.PIX;
+      else if (raw.includes('dinheiro')) paymentMethod = PaymentMethod.DINHEIRO;
+      else if (raw.includes('boleto')) paymentMethod = PaymentMethod.BOLETO;
+
+      let category = 'Outros';
+      let subcategory = 'Presentes';
+      const map: Array<{k: RegExp, c: string, s: string}> = [
+        { k: /(cinema|filme|movie)/, c: 'Lazer', s: 'Entretenimento' },
+        { k: /(restaurante|jantar|almoço|ifood|delivery)/, c: 'Alimentação', s: 'Delivery/Apps' },
+        { k: /(supermercado|mercado|compras)/, c: 'Alimentação', s: 'Supermercado/Compras' },
+        { k: /(combustível|gasolina|posto)/, c: 'Transporte', s: 'Combustível/Manutenção' },
+        { k: /(internet|luz|energia|conta)/, c: 'Casa/Moradia', s: 'Contas Domésticas' },
+        { k: /(saúde|plano|consulta|médico)/, c: 'Saúde', s: 'Consultas/Médicos' },
+      ];
+      for (const m of map) { if (m.k.test(raw)) { category = m.c; subcategory = m.s; break; } }
+
+      let date = today;
+      const dayMatch = raw.match(/dia\s*(\d{1,2})/);
+      if (dayMatch) {
+        const d = new Date();
+        d.setDate(parseInt(dayMatch[1]));
+        date = d.toISOString().split('T')[0];
+      } else if (raw.includes('ontem')) {
+        const d = new Date(); d.setDate(d.getDate() - 1); date = d.toISOString().split('T')[0];
+      } else if (raw.includes('hoje')) {
+        date = today;
+      }
+
+      const description = text.trim();
+      return { description, amount, category, subcategory, paymentMethod, date, installments };
+    };
+
     const prompt = `Você é um assistente financeiro inteligente. Analise o texto a seguir e extraia os detalhes da transação.
     A data de hoje é ${today}.
     Texto de entrada: "${inputValue}"
@@ -115,6 +161,13 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
     };
 
     try {
+        if (!ai) {
+            const parsed = localParse(inputValue);
+            if (!parsed) throw new Error('local-parse-failed');
+            setParsedTransaction(parsed);
+            return;
+        }
+
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
@@ -138,7 +191,12 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
         setParsedTransaction(parsedResponse);
     } catch (e: any) {
         console.error(e);
-        setError("Não consegui entender o que você digitou. Tente ser mais específico, por exemplo: 'jantar 50 reais no crédito ontem'");
+        const parsed = localParse(inputValue);
+        if (parsed) {
+            setParsedTransaction(parsed);
+        } else {
+            setError("Não consegui entender o que você digitou. Tente ser mais específico, por exemplo: 'jantar 50 reais no crédito ontem'");
+        }
     } finally {
         setIsProcessing(false);
     }
@@ -268,7 +326,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
                         {categoryInfo && (
                             <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${categoryInfo.color}`}>
                                 <i className={`fas ${categoryInfo.icon} mr-1`}></i>
-                                {parsedTransaction.category} > {parsedTransaction.subcategory}
+                                {parsedTransaction.category} {'>'} {parsedTransaction.subcategory}
                             </span>
                         )}
                     </div>

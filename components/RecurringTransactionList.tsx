@@ -23,7 +23,7 @@ const RecurringTransactionItem: React.FC<{ transaction: RecurringTransaction; on
               <span className="text-sm text-gray-400">·</span>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${categoryInfo.color || 'bg-gray-400'}`}>
                 <i className={`fas ${categoryInfo.icon || 'fa-tag'} mr-1`}></i>
-                {transaction.category} > {transaction.subcategory}
+                {transaction.category} {'>'} {transaction.subcategory}
               </span>
             </>
           )}

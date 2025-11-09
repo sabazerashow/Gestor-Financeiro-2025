@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 interface DashboardCardProps {
     title: string;
@@ -8,10 +9,14 @@ interface DashboardCardProps {
 
 const DashboardCard: React.FC<DashboardCardProps> = ({ title, children }) => {
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg h-full">
-            {/* The actual content is passed as children and is expected to handle its own padding */}
-            {children}
-        </div>
+        <Card className="h-full">
+            <CardHeader>
+                <CardTitle>{title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {children}
+            </CardContent>
+        </Card>
     );
 };
 

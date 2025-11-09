@@ -123,7 +123,9 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
     if (imageBase64) {
         const link = document.createElement('a');
         link.href = imageBase64;
-        link.download = `grafico_poder_de_compra_${new Date().toISOString().split('T')[0]}.png`;
+        const isSvg = imageBase64.startsWith('data:image/svg+xml');
+        const ext = isSvg ? 'svg' : 'png';
+        link.download = `grafico_poder_de_compra_${new Date().toISOString().split('T')[0]}.${ext}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
