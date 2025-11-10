@@ -31,7 +31,6 @@ import PayBillChoiceModal from './components/PayBillChoiceModal';
 import ProfileModal from './components/ProfileModal';
 import InviteModal from './components/InviteModal';
 // Removidos: ExportModal e ImportTransactionsModal (lançamentos manuais)
-import { mockTransactions, mockPayslips, mockRecurringTransactions, mockBills } from './mockData';
 import { generateContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
 import supabase, { isSupabaseEnabled } from '@/lib/supabase';
@@ -139,9 +138,8 @@ const defaultProfile = {
     return [];
   });
 
-  // Seed mock data on first run when local storage is empty
+  // Seed desativado: zerar dados locais caso estejam vazios
   useEffect(() => {
-    // Com Supabase habilitado, não semeamos dados locais
     if (isSupabaseEnabled) return;
     const hasTransactions = transactions && transactions.length > 0;
     const hasPayslips = payslips && payslips.length > 0;
@@ -149,25 +147,24 @@ const defaultProfile = {
     const hasBills = bills && bills.length > 0;
 
     if (!hasTransactions) {
-      setTransactions(mockTransactions);
-      localStorage.setItem('transactions', JSON.stringify(mockTransactions));
+      setTransactions([]);
+      try { localStorage.removeItem('transactions'); } catch { /* ignore */ }
     }
 
     if (!hasPayslips) {
-      setPayslips(mockPayslips);
-      localStorage.setItem('payslips', JSON.stringify(mockPayslips));
+      setPayslips([]);
+      try { localStorage.removeItem('payslips'); } catch { /* ignore */ }
     }
 
     if (!hasRecurring) {
-      setRecurringTransactions(mockRecurringTransactions);
-      localStorage.setItem('recurringTransactions', JSON.stringify(mockRecurringTransactions));
+      setRecurringTransactions([]);
+      try { localStorage.removeItem('recurringTransactions'); } catch { /* ignore */ }
     }
 
     if (!hasBills) {
-      setBills(mockBills);
-      localStorage.setItem('bills', JSON.stringify(mockBills));
+      setBills([]);
+      try { localStorage.removeItem('bills'); } catch { /* ignore */ }
     }
-  // Intentionally depend on the base states so seeding only runs when empty
   }, []);
 
   // One-shot de-duplication for transactions persisted from previous dev sessions
