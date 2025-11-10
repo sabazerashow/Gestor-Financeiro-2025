@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import ProfileMenu from './ProfileMenu';
+import Logo from './Logo';
 
 interface ProfileData {
     name: string;
@@ -18,6 +19,9 @@ interface HeaderProps {
     onOpenProfile: () => void;
     onOpenInvite: () => void;
     onLogoutClick?: () => void;
+    accountName?: string;
+    onOpenAccountSwitch?: () => void;
+    onPurgeAll?: () => void;
 }
 
 const NavButton: React.FC<{label: string; icon: string; isActive: boolean; onClick: () => void;}> = ({label, icon, isActive, onClick}) => (
@@ -35,7 +39,7 @@ const NavButton: React.FC<{label: string; icon: string; isActive: boolean; onCli
 );
 
 
-const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite, onLogoutClick }) => {
+const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite, onLogoutClick, accountName, onOpenAccountSwitch, onPurgeAll }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const defaultPhotoUrl = 'https://i.ibb.co/6n20d5w/placeholder-profile.png';
@@ -58,10 +62,24 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
         
         {/* Left Side: Logo and Title */}
         <div className="flex items-center">
+            <div className="text-white mr-3">
+              <Logo size={28} />
+            </div>
             <h1 className="text-2xl font-bold font-oswald tracking-wider uppercase text-white">
               <span className="hidden md:inline">FINANCE PILOT</span>
               <span className="md:hidden">FP</span>
             </h1>
+            {accountName && (
+              <button
+                onClick={() => (onOpenAccountSwitch ? onOpenAccountSwitch() : onOpenInvite())}
+                className="ml-3 px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-sm flex items-center"
+                title="Selecionar conta"
+              >
+                <i className="fas fa-building mr-2"></i>
+                <span className="truncate max-w-[14ch]">{accountName}</span>
+                <i className="fas fa-chevron-down ml-2 opacity-80"></i>
+              </button>
+            )}
         </div>
         
         {/* Right Side: Navigation and Actions */}
@@ -101,6 +119,7 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
                         onProfileClick={() => { setIsProfileMenuOpen(false); onOpenProfile(); }}
                         onInviteClick={() => { setIsProfileMenuOpen(false); onOpenInvite(); }}
                         onLogoutClick={() => { setIsProfileMenuOpen(false); onLogoutClick?.(); }}
+                        onPurgeClick={() => { setIsProfileMenuOpen(false); onPurgeAll?.(); }}
                     />
                 )}
             </div>

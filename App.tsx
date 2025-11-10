@@ -35,7 +35,7 @@ import { mockTransactions, mockPayslips, mockRecurringTransactions, mockBills } 
 import { generateContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
 import supabase, { isSupabaseEnabled } from '@/lib/supabase';
-import db, { getSession, signOut } from '@/lib/db';
+import db, { getSession, signOut, ensureDefaultAccount, purgeAccountData } from '@/lib/db';
 
 
 // Define the shape of a dashboard card configuration
@@ -60,6 +60,16 @@ const defaultProfile = {
 
  const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
+  const [accountId, setAccountId] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('accountId');
+    } catch { return null; }
+  });
+  const [accountName, setAccountName] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('accountName');
+    } catch { return null; }
+  });
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const savedTransactions = localStorage.getItem('transactions');
     if (savedTransactions) {
@@ -191,16 +201,35 @@ const defaultProfile = {
     return () => { mounted = false; sub?.subscription?.unsubscribe(); };
   }, []);
 
+  // Após autenticar, garantir accountId (workspace) e armazenar
+  useEffect(() => {
+    if (!isSupabaseEnabled || !session?.user?.id) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const { accountId: accId, name } = await ensureDefaultAccount(session.user.id);
+        if (!mounted) return;
+        setAccountId(accId);
+        setAccountName(name || null);
+        try { localStorage.setItem('accountId', accId); } catch {/* ignore */}
+        try { if (name) localStorage.setItem('accountName', name); } catch {/* ignore */}
+      } catch (e) {
+        console.error('Falha ao garantir conta padrão', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [session]);
+
   // Ao autenticar, buscar dados do Supabase e preencher estados
   useEffect(() => {
-    if (!isSupabaseEnabled || !session) return;
+    if (!isSupabaseEnabled || !session || !accountId) return;
     (async () => {
       try {
         const [tx, rec, bl, ps] = await Promise.all([
-          db.fetchTransactions(),
-          db.fetchRecurring(),
-          db.fetchBills(),
-          db.fetchPayslips(),
+          db.fetchTransactions(accountId),
+          db.fetchRecurring(accountId),
+          db.fetchBills(accountId),
+          db.fetchPayslips(accountId),
         ]);
         if (tx && tx.length >= 0) setTransactions(tx as any);
         if (rec && rec.length >= 0) setRecurringTransactions(rec as any);
@@ -212,22 +241,22 @@ const defaultProfile = {
     })();
     // não depende dos estados locais para evitar loops iniciais
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, accountId]);
 
   // Sincronizar alterações locais com Supabase
   useEffect(() => {
-    if (!isSupabaseEnabled || !session) return;
+    if (!isSupabaseEnabled || !session || !accountId) return;
     (async () => {
       try {
-        await db.upsertTransactions(transactions as any);
-        await db.upsertRecurring(recurringTransactions as any);
-        await db.upsertBills(bills as any);
-        await db.upsertPayslips(payslips as any);
+        await db.upsertTransactions(transactions as any, accountId);
+        await db.upsertRecurring(recurringTransactions as any, accountId);
+        await db.upsertBills(bills as any, accountId);
+        await db.upsertPayslips(payslips as any, accountId);
       } catch (e) {
         console.error('Falha ao sincronizar dados com Supabase', e);
       }
     })();
-  }, [transactions, recurringTransactions, bills, payslips, session]);
+  }, [transactions, recurringTransactions, bills, payslips, session, accountId]);
   
   const allDashboardCards: DashboardCardConfig[] = useMemo(() => [
      {
@@ -353,6 +382,7 @@ const defaultProfile = {
   const [quickAddMode, setQuickAddMode] = useState<'ai' | 'manual'>('ai');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isPurgeAllOpen, setIsPurgeAllOpen] = useState(false);
   // Estados de Exportação/Importação CSV removidos
 
   const [userProfile, setUserProfile] = useState(() => {
@@ -995,6 +1025,7 @@ ${availableCategories}`;
         userProfile={userProfile}
         onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
+        accountName={accountName || undefined}
         onLogoutClick={async () => {
           try {
             await signOut();
@@ -1002,6 +1033,7 @@ ${availableCategories}`;
             console.error('Falha ao sair', e);
           }
         }}
+        onPurgeAll={() => setIsPurgeAllOpen(true)}
       />
       
       <main className="container mx-auto p-4 md:p-8 flex-grow">
@@ -1040,6 +1072,14 @@ ${availableCategories}`;
           file={fileContent}
           mode={bpImportMode}
           onConfirm={addPayslip}
+        />
+      )}
+
+      {isInviteModalOpen && (
+        <InviteModal
+          isOpen={isInviteModalOpen}
+          onClose={handleCloseModals}
+          accountId={accountId}
         />
       )}
 
@@ -1104,6 +1144,28 @@ ${availableCategories}`;
         onSave={setUserProfile}
       />
       <InviteModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} />
+
+      <ConfirmDialog
+        isOpen={isPurgeAllOpen}
+        onClose={() => setIsPurgeAllOpen(false)}
+        onConfirm={async () => {
+          try {
+            if (!accountId) throw new Error('Conta não definida');
+            await purgeAccountData(accountId);
+            setTransactions([]);
+            setRecurringTransactions([]);
+            setBills([]);
+            setPayslips([]);
+            setIsPurgeAllOpen(false);
+          } catch (e) {
+            console.error('Falha ao apagar dados', e);
+            alert('Falha ao apagar dados. Verifique políticas do Supabase.');
+          }
+        }}
+        title={'Apagar todos os dados da conta'}
+        message={'Isso removerá todos os lançamentos, recorrências, contas e contracheques desta conta. Esta ação é irreversível. Deseja continuar?'}
+        confirmText={'Apagar tudo'}
+      />
 
       {/* ExportModal e ImportTransactionsModal removidos */}
     </div>

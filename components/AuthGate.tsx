@@ -1,17 +1,17 @@
 import React from 'react';
-import { signInWithGoogle, signInWithEmailLink } from '@/lib/db';
+import { signInWithGithub, signInWithEmailLink } from '@/lib/db';
 
 interface AuthGateProps {
   onSignedIn?: () => void;
 }
 
 const AuthGate: React.FC<AuthGateProps> = ({ onSignedIn }) => {
-  const handleGoogle = async () => {
+  const handleGithub = async () => {
     try {
-      await signInWithGoogle();
+      await signInWithGithub();
       onSignedIn?.();
     } catch (e) {
-      alert('Falha ao iniciar login com Google');
+      alert('Falha ao iniciar login com GitHub');
       console.error(e);
     }
   };
@@ -36,9 +36,9 @@ const AuthGate: React.FC<AuthGateProps> = ({ onSignedIn }) => {
 
         <button
           className="w-full mb-3 px-4 py-2 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]"
-          onClick={handleGoogle}
+          onClick={handleGithub}
         >
-          Entrar com Google
+          Entrar com GitHub
         </button>
 
         <button

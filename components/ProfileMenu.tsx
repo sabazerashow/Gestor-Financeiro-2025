@@ -8,6 +8,7 @@ interface ProfileMenuProps {
   onProfileClick: () => void;
   onInviteClick: () => void;
   onLogoutClick: () => void;
+  onPurgeClick?: () => void;
 }
 
 const ThemeOption: React.FC<{ label: string; icon: string; currentTheme: string; themeValue: string; onClick: () => void; }> = 
@@ -22,7 +23,7 @@ const ThemeOption: React.FC<{ label: string; icon: string; currentTheme: string;
 );
 
 
-const ProfileMenu: React.FC<ProfileMenuProps> = ({ theme, setTheme, onProfileClick, onInviteClick, onLogoutClick }) => {
+const ProfileMenu: React.FC<ProfileMenuProps> = ({ theme, setTheme, onProfileClick, onInviteClick, onLogoutClick, onPurgeClick }) => {
     const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
   return (
@@ -62,6 +63,12 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ theme, setTheme, onProfileCli
       </div>
       <div className="border-t border-gray-100 dark:border-gray-700"></div>
       <div className="py-1" role="none">
+        {onPurgeClick && (
+          <a href="#" onClick={(e) => { e.preventDefault(); onPurgeClick(); }} className="text-red-600 dark:text-red-400 block px-4 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-900/30" role="menuitem">
+            <i className="fas fa-trash-alt w-5 mr-2"></i>
+            Apagar todos os dados
+          </a>
+        )}
         <a href="#" onClick={(e) => { e.preventDefault(); onLogoutClick(); }} className="text-gray-700 dark:text-gray-200 block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" role="menuitem">
           <i className="fas fa-sign-out-alt w-5 mr-2"></i>
           Logout
