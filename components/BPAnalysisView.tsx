@@ -148,21 +148,18 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
                     onClick={onManualAdd}
                     className="relative inline-flex items-center px-3 py-1 rounded-l-md border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)]/60 focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
-                    <i className="fas fa-keyboard mr-2"></i>
                     Lançar Manual
                 </button>
                 <button
                     onClick={handleImportOCRClick}
                     className="-ml-px relative inline-flex items-center px-3 py-1 border border-[var(--border)] bg-[var(--secondary)] text-sm font-medium text-[var(--secondary-foreground)] hover:bg-[var(--accent)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
-                    <i className="fas fa-upload mr-2"></i>
                     Importar OCR
                 </button>
                 <button
                     onClick={handleImportAIClick}
                     className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-[var(--border)] bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--color-primary-hover)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
-                    <i className="fas fa-robot mr-2"></i>
                     Importar com IA
                 </button>
             </div>

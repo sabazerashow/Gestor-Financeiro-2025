@@ -18,6 +18,7 @@ const ImportBPModal: React.FC<ImportBPModalProps> = ({ isOpen, onClose, file, mo
   const [error, setError] = useState<string | null>(null);
   const [extractedData, setExtractedData] = useState<Omit<Payslip, 'id'> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [backupData, setBackupData] = useState<Omit<Payslip, 'id'> | null>(null);
 
   useEffect(() => {
     if (isOpen && file) {
@@ -27,6 +28,7 @@ const ImportBPModal: React.FC<ImportBPModalProps> = ({ isOpen, onClose, file, mo
         setError(null);
         setIsLoading(false);
         setIsEditing(false);
+        setBackupData(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, file]);
@@ -49,6 +51,7 @@ const ImportBPModal: React.FC<ImportBPModalProps> = ({ isOpen, onClose, file, mo
     setError(null);
     setExtractedData(null);
     setIsEditing(false);
+    setBackupData(null);
 
     try {
         if (!fileData.mimeType.startsWith('image/')) {
@@ -196,27 +199,27 @@ Texto OCR:\n\n${ocrText}`;
         {items.map((p, i) => (
             <li key={i} className="flex justify-between items-center gap-2">
                 {isEditing ? (
-                    <input type="text" value={p.description} onChange={(e) => handleItemChange(type, i, 'description', e.target.value)} className="w-full bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm"/>
+                    <input type="text" value={p.description} onChange={(e) => handleItemChange(type, i, 'description', e.target.value)} className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm"/>
                 ) : (
                     <span>{p.description}</span>
                 )}
                 {isEditing ? (
-                    <input type="number" value={p.value} onChange={(e) => handleItemChange(type, i, 'value', e.target.value)} className="w-32 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm text-right"/>
+                    <input type="number" value={p.value} onChange={(e) => handleItemChange(type, i, 'value', e.target.value)} className="w-32 bg-white border border-gray-300 rounded px-2 py-1 text-sm text-right"/>
                 ) : (
                     <span>{p.value.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span>
                 )}
                 {isEditing && (
                     <div className="flex items-center gap-1">
-                        <button title="Subir" onClick={() => reorderItem(type, i, 'up')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                        <button title="Subir" onClick={() => reorderItem(type, i, 'up')} className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">
                           ↑
                         </button>
-                        <button title="Descer" onClick={() => reorderItem(type, i, 'down')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                        <button title="Descer" onClick={() => reorderItem(type, i, 'down')} className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">
                           ↓
                         </button>
-                        <button title="Mover para outra lista" onClick={() => moveItem(type, i)} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                        <button title="Mover para outra lista" onClick={() => moveItem(type, i)} className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">
                           ↔
                         </button>
-                        <button title="Remover" onClick={() => removeItem(type, i)} className="px-2 py-1 text-xs rounded bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800">
+                        <button title="Remover" onClick={() => removeItem(type, i)} className="px-2 py-1 text-xs rounded bg-red-100 text-red-600 hover:bg-red-200">
                           Remover
                         </button>
                     </div>
@@ -225,7 +228,7 @@ Texto OCR:\n\n${ocrText}`;
         ))}
         {isEditing && (
           <li className="flex justify-end">
-            <button onClick={() => addItem(type)} className="mt-1 px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800">
+            <button onClick={() => addItem(type)} className="mt-1 px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
               Adicionar {type === 'payments' ? 'Pagamento' : 'Desconto'}
             </button>
           </li>
@@ -235,73 +238,79 @@ Texto OCR:\n\n${ocrText}`;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Importar Contracheque (BP)</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Modo: {mode === 'ai' ? 'Importar com IA' : 'Importar OCR'}</p>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">Importar Contracheque (BP)</h2>
+          <p className="text-xs text-gray-500 mt-1">Modo: {mode === 'ai' ? 'Importar com IA' : 'Importar OCR'}</p>
         </div>
         
         <div className="p-6 overflow-y-auto flex-grow">
           {isLoading && (
             <div className="flex flex-col items-center justify-center text-center h-full">
               <i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i>
-              <p className="mt-4 text-gray-600 dark:text-gray-300">Analisando contracheque...</p>
+              <p className="mt-4 text-gray-600">Analisando contracheque...</p>
             </div>
           )}
           {error && <p className="text-red-500 text-center">{error}</p>}
           {extractedData && (
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-center text-gray-800 dark:text-white">
+                <h3 className="text-lg font-semibold text-center text-gray-800">
                     Resumo para {new Date(extractedData.year, extractedData.month - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
                 </h3>
                 {isEditing && (
                   <div className="flex justify-center gap-3 text-sm">
                     <div className="flex items-center gap-2">
-                      <label className="text-gray-600 dark:text-gray-300">Mês</label>
-                      <select value={extractedData.month} onChange={(e) => handlePeriodChange('month', Number(e.target.value))} className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1">
+                      <label className="text-gray-600">Mês</label>
+                      <select value={extractedData.month} onChange={(e) => handlePeriodChange('month', Number(e.target.value))} className="bg-white border border-gray-300 rounded px-2 py-1">
                         {Array.from({ length: 12 }).map((_, idx) => (
                           <option key={idx+1} value={idx+1}>{new Date(2000, idx, 1).toLocaleString('pt-BR', { month: 'long' })}</option>
                         ))}
                       </select>
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="text-gray-600 dark:text-gray-300">Ano</label>
-                      <input type="number" value={extractedData.year} onChange={(e) => handlePeriodChange('year', Number(e.target.value))} className="w-24 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1" />
+                      <label className="text-gray-600">Ano</label>
+                      <input type="number" value={extractedData.year} onChange={(e) => handlePeriodChange('year', Number(e.target.value))} className="w-24 bg-white border border-gray-300 rounded px-2 py-1" />
                     </div>
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                    <div className="bg-gray-50 p-3 rounded-lg">
                         <h4 className="font-bold text-income mb-2">Pagamentos</h4>
                         {renderItemRows(extractedData.payments, 'payments')}
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                    <div className="bg-gray-50 p-3 rounded-lg">
                         <h4 className="font-bold text-expense mb-2">Descontos</h4>
                         {renderItemRows(extractedData.deductions, 'deductions')}
                     </div>
                 </div>
-                <div className="flex justify-around bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg text-center font-bold">
+                <div className="flex justify-around bg-gray-100 p-4 rounded-lg text-center font-bold">
                     <div><span className="block text-xs text-gray-500">Total Bruto</span> <span className="text-income">{extractedData.grossTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
                     <div><span className="block text-xs text-gray-500">Total Descontos</span> <span className="text-expense">{extractedData.deductionsTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
                     <div><span className="block text-xs text-gray-500">Total Líquido</span> <span className="text-primary text-lg">{extractedData.netTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
                 </div>
                 {!isEditing && (
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 pt-2">
-                        Revise os dados extraídos. Você pode <button onClick={() => setIsEditing(true)} className="text-indigo-500 hover:underline font-semibold">Editar</button> se algo estiver incorreto.
+                    <p className="text-center text-sm text-gray-500 pt-2">
+                        Revise os dados extraídos. Você pode <button onClick={startEditing} className="text-indigo-500 hover:underline font-semibold">Editar</button> se algo estiver incorreto.
                     </p>
                 )}
             </div>
           )}
         </div>
         
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+        <div className="p-4 bg-gray-50 border-t border-gray-200">
            {isEditing ? (
-             <div className="flex justify-end">
+             <div className="flex justify-end gap-3">
                 <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={cancelEditing}
+                    className="px-4 py-2 text-sm font-medium rounded-md text-[var(--secondary-foreground)] bg-[var(--secondary)] hover:bg-[var(--secondary-hover)] border border-[var(--border)] transition-colors"
+                >
+                    Cancelar Edição
+                </button>
+                <button
+                    onClick={saveEditing}
                     className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
                 >
-                    Concluir Edição
+                    Salvar Alterações
                 </button>
              </div>
            ) : (
@@ -314,7 +323,7 @@ Texto OCR:\n\n${ocrText}`;
                         Cancelar
                     </button>
                     <button
-                        onClick={() => setIsEditing(true)}
+                        onClick={startEditing}
                         disabled={isLoading || error !== null || !extractedData}
                         className="px-4 py-2 text-sm font-medium rounded-md text-[var(--secondary-foreground)] bg-[var(--secondary)] hover:bg-[var(--secondary-hover)] border border-[var(--border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -346,3 +355,23 @@ Texto OCR:\n\n${ocrText}`;
 };
 
 export default ImportBPModal;
+  const startEditing = () => {
+    if (extractedData) {
+      // deep copy to allow cancel restoration
+      setBackupData(JSON.parse(JSON.stringify(extractedData)));
+    }
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    if (backupData) {
+      setExtractedData(backupData);
+    }
+    setIsEditing(false);
+    setBackupData(null);
+  };
+
+  const saveEditing = () => {
+    setIsEditing(false);
+    setBackupData(null);
+  };

@@ -31,7 +31,7 @@ import PayBillChoiceModal from './components/PayBillChoiceModal';
 import ProfileModal from './components/ProfileModal';
 import InviteModal from './components/InviteModal';
 // Removidos: ExportModal e ImportTransactionsModal (lançamentos manuais)
-import { generateContent } from '@/lib/aiClient';
+import { generateContent, generateGLMContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
 import supabase, { isSupabaseEnabled, isAuthActive, isAuthDisabled } from '@/lib/supabase';
 import db, { getSession, signOut, ensureDefaultAccount, purgeAccountData } from '@/lib/db';
@@ -380,6 +380,7 @@ const defaultProfile = {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isPurgeAllOpen, setIsPurgeAllOpen] = useState(false);
+  const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
   // Estados de Exportação/Importação CSV removidos
 
   const [userProfile, setUserProfile] = useState(() => {
@@ -392,41 +393,7 @@ const defaultProfile = {
     return defaultProfile;
   });
   
-  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'auto') {
-        return savedTheme;
-    }
-    return 'auto';
-  });
 
-  useEffect(() => {
-    const applyTheme = () => {
-        if (theme === 'auto') {
-            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        } else if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    };
-
-    localStorage.setItem('theme', theme);
-    applyTheme();
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-        if (theme === 'auto') {
-            applyTheme();
-        }
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
@@ -631,7 +598,7 @@ const defaultProfile = {
     };
 
   const updateTransaction = (id: string, updatedTransaction: Omit<Transaction, 'id'>) => {
-    setTransactions(transactions.map(t => t.id === id ? { ...updatedTransaction, id } : t));
+    setTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t));
   };
 
   const handleAttemptDelete = (transaction: Transaction) => {
@@ -899,9 +866,9 @@ const defaultProfile = {
                             onMonthFilterChange={setMonthFilter}
                             paymentMethodFilter={paymentMethodFilter}
                             onPaymentMethodFilterChange={setPaymentMethodFilter}
-                         availableMonths={availableMonths}
+                        availableMonths={availableMonths}
                           showFilters={true}
-                            onAnalyzePending={analyzePendingTransactions}
+                            onAnalyzePending={() => setIsConfirmAnalyzeOpen(true)}
                             isAnalyzingPending={isAnalyzing}
                         />
                     </div>
@@ -959,23 +926,29 @@ const defaultProfile = {
 
       for (const t of pending) {
         try {
-          const prompt = `Dada a descrição da transação: "${t.description}", sugira a categoria e subcategoria mais apropriada.
-Responda APENAS com um objeto JSON contendo "category" e "subcategory".
-Estrutura de categorias de despesa disponível:
-${availableCategories}`;
+          // Primeiro tentamos com GLM
+          const glmMessages = [
+            { role: 'system', content: 'Você é um classificador de despesas pessoais. Responda apenas com JSON: {"category":"...","subcategory":"..."} usando uma categoria e subcategoria presentes na estrutura fornecida. Não inclua explicações.' },
+            { role: 'user', content: `Descrição: ${t.description}\nEstrutura de categorias disponível (não invente novas):\n${availableCategories}\nResponda somente JSON.` }
+          ];
 
-          const response = await generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-            expectJson: true,
-          });
-
-          const clean = (s: string) => s.replace(/```json/g, '').replace(/```/g, '').trim();
           let suggestion: { category?: string; subcategory?: string } = {};
           try {
-            suggestion = JSON.parse(clean(response.text));
-          } catch {
-            suggestion = {};
+            const glmResp = await generateGLMContent({ model: 'glm-4', messages: glmMessages, temperature: 0.2, max_tokens: 256 });
+            const glmText = glmResp?.choices?.[0]?.message?.content || '';
+            const cleanGLM = (s: string) => s.replace(/```json/g, '').replace(/```/g, '').trim();
+            suggestion = JSON.parse(cleanGLM(glmText));
+          } catch (glmErr) {
+            // Fallback para Gemini, caso GLM falhe
+            try {
+              const prompt = `Dada a descrição da transação: "${t.description}", sugira a categoria e subcategoria mais apropriada.\nResponda APENAS com um objeto JSON contendo \"category\" e \"subcategory\".\nEstrutura de categorias de despesa disponível:\n${availableCategories}`;
+              const response = await generateContent({ model: 'gemini-2.5-flash', contents: prompt, expectJson: true });
+              const cleanGemini = (s: string) => s.replace(/```json/g, '').replace(/```/g, '').trim();
+              suggestion = JSON.parse(cleanGemini(response.text));
+            } catch (gemErr) {
+              console.warn('Falha ao classificar registro com GLM e Gemini', t.id, glmErr, gemErr);
+              suggestion = {};
+            }
           }
 
           if (suggestion.category && categories[suggestion.category]) {
@@ -1014,8 +987,6 @@ ${availableCategories}`;
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-col">
       <Header 
-        theme={theme} 
-        setTheme={setTheme}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onQuickAdd={() => setIsQuickAddModalOpen(true)}
@@ -1175,6 +1146,17 @@ ${availableCategories}`;
       />
 
       {/* ExportModal e ImportTransactionsModal removidos */}
+      <ConfirmDialog
+        isOpen={isConfirmAnalyzeOpen}
+        onClose={() => setIsConfirmAnalyzeOpen(false)}
+        onConfirm={async () => {
+          setIsConfirmAnalyzeOpen(false);
+          await analyzePendingTransactions();
+        }}
+        title={'Confirmar análise por IA'}
+        message={'Esta análise usa créditos de IA e pode consumir saldo. Deseja continuar?'}
+        confirmText={'Analisar'}
+      />
     </div>
   );
 };

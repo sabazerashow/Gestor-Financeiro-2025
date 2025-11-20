@@ -19,7 +19,6 @@ const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data }) => {
     [data]
   );
   const total = useMemo(() => chartData.reduce((sum, d) => sum + (d.value || 0), 0), [chartData]);
-  const isDarkMode = typeof document !== 'undefined' && document.body.classList.contains('dark');
 
   return (
     <div className="h-48 w-full">

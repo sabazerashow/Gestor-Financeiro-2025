@@ -10,6 +10,7 @@ dotenv.config(); // fallback to .env
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
+const GLM_API_KEY = process.env.GLM_API_KEY;
 const APP_ACCESS_TOKEN = process.env.APP_ACCESS_TOKEN || null;
 
 if (!GEMINI_API_KEY) {
@@ -69,6 +70,51 @@ app.post('/api/ai/generate', async (req, res) => {
   } catch (err) {
     console.error('Erro no /api/ai/generate:', err);
     return res.status(500).json({ error: 'Falha ao gerar conteúdo' });
+  }
+});
+
+// Endpoint para GLM API
+app.post('/api/ai/glm', async (req, res) => {
+  try {
+    if (!GLM_API_KEY) {
+      return res.status(500).json({ error: 'GLM_API_KEY não configurado no servidor' });
+    }
+
+    const { model = 'glm-4', messages, temperature = 0.7, max_tokens = 1000 } = req.body || {};
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'messages é obrigatório e deve ser um array' });
+    }
+
+    const url = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+
+    const body = {
+      model,
+      messages,
+      temperature,
+      max_tokens,
+    };
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${GLM_API_KEY}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error('Erro GLM API:', errText);
+      return res.status(500).json({ error: 'Falha ao gerar conteúdo com GLM' });
+    }
+
+    const data = await resp.json();
+    return res.json(data);
+  } catch (err) {
+    console.error('Erro no /api/ai/glm:', err);
+    return res.status(500).json({ error: 'Falha ao gerar conteúdo com GLM' });
   }
 });
 

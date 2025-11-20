@@ -3,28 +3,14 @@
 import React, { useState } from 'react';
 
 interface ProfileMenuProps {
-  theme: 'light' | 'dark' | 'auto';
-  setTheme: (theme: 'light' | 'dark' | 'auto') => void;
   onProfileClick: () => void;
   onInviteClick: () => void;
   onLogoutClick: () => void;
   onPurgeClick?: () => void;
 }
 
-const ThemeOption: React.FC<{ label: string; icon: string; currentTheme: string; themeValue: string; onClick: () => void; }> = 
-({ label, icon, currentTheme, themeValue, onClick }) => (
-    <button onClick={onClick} className="w-full text-left px-3 py-2 text-sm text-[var(--color-text)] hover:bg-[var(--surface)] flex items-center justify-between">
-        <div className="flex items-center">
-            <i className={`fas ${icon} w-5 mr-2`}></i>
-            <span>{label}</span>
-        </div>
-        {currentTheme === themeValue && <i className="fas fa-check text-[var(--primary)]"></i>}
-    </button>
-);
 
-
-const ProfileMenu: React.FC<ProfileMenuProps> = ({ theme, setTheme, onProfileClick, onInviteClick, onLogoutClick, onPurgeClick }) => {
-    const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick, onLogoutClick, onPurgeClick }) => {
 
   return (
     <div
@@ -38,24 +24,7 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ theme, setTheme, onProfileCli
           <i className="fas fa-user-edit w-5 mr-2"></i>
           Perfil
         </a>
-        <div className="relative" onMouseEnter={() => setIsThemeMenuOpen(true)} onMouseLeave={() => setIsThemeMenuOpen(false)}>
-            <button className="w-full text-left text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] flex justify-between items-center" role="menuitem">
-              <div>
-                <i className="fas fa-palette w-5 mr-2"></i>
-                Tema
-              </div>
-              <i className="fas fa-chevron-right text-xs"></i>
-            </button>
-            {isThemeMenuOpen && (
-                 <div className="absolute right-full top-0 mt-[-8px] mr-1 w-40 rounded-md shadow-lg bg-[var(--card)] ring-1 ring-black ring-opacity-5">
-                     <div className="py-1">
-                        <ThemeOption label="Claro" icon="fa-sun" currentTheme={theme} themeValue="light" onClick={() => setTheme('light')} />
-                        <ThemeOption label="Escuro" icon="fa-moon" currentTheme={theme} themeValue="dark" onClick={() => setTheme('dark')} />
-                        <ThemeOption label="Automático" icon="fa-desktop" currentTheme={theme} themeValue="auto" onClick={() => setTheme('auto')} />
-                     </div>
-                 </div>
-            )}
-        </div>
+
         <a href="#" onClick={(e) => { e.preventDefault(); onInviteClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)]" role="menuitem">
           <i className="fas fa-user-plus w-5 mr-2"></i>
           Convidar usuários

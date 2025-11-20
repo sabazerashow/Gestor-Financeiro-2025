@@ -140,30 +140,30 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
                         placeholder="Descrição" 
                         value={item.description}
                         onChange={(e) => handleItemChange(type, index, 'description', e.target.value)}
-                        className="flex-grow bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm"
+                        className="flex-grow bg-white border border-gray-300 rounded px-2 py-1 text-sm"
                     />
                     <input 
                         type="number" 
                         placeholder="Valor" 
                         value={item.value || ''}
                         onChange={(e) => handleItemChange(type, index, 'value', e.target.valueAsNumber || 0)}
-                        className="w-32 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded px-2 py-1 text-sm text-right"
+                        className="w-32 bg-white border border-gray-300 rounded px-2 py-1 text-sm text-right"
                         step="0.01"
                     />
                     <div className="flex items-center gap-1">
-                      <button title="Subir" onClick={() => handleReorderItem(type, index, 'up')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                      <button title="Subir" onClick={() => handleReorderItem(type, index, 'up')} className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">
                         ↑
                       </button>
-                      <button title="Descer" onClick={() => handleReorderItem(type, index, 'down')} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                      <button title="Descer" onClick={() => handleReorderItem(type, index, 'down')} className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">
                         ↓
                       </button>
-                      <button title="Mover para outra lista" onClick={() => moveItemBetweenLists(type, index)} className="px-2 py-1 text-xs rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">
+                      <button title="Mover para outra lista" onClick={() => moveItemBetweenLists(type, index)} className="px-2 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">
                         ↔
                       </button>
                       <button 
                           title="Remover"
                           onClick={() => handleRemoveItem(type, index)}
-                          className="px-2 py-1 text-xs rounded bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 disabled:opacity-50"
+                          className="px-2 py-1 text-xs rounded bg-red-100 text-red-600 hover:bg-red-200 disabled:opacity-50"
                           disabled={items.length <= 1}
                       >
                           Remover
@@ -172,7 +172,7 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
                 </li>
             ))}
           </ul>
-          <button onClick={() => handleAddItem(type)} className="mt-2 text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-semibold">
+          <button onClick={() => handleAddItem(type)} className="mt-2 text-indigo-600 hover:underline text-sm font-semibold">
             + Adicionar {type === 'payments' ? 'Pagamento' : 'Desconto'}
           </button>
       </div>
@@ -180,20 +180,20 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Lançar Contracheque Manualmente</h2>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">Lançar Contracheque Manualmente</h2>
         </div>
         
         <div className="p-6 overflow-y-auto flex-grow space-y-4">
             <div>
-                <label htmlFor="month-year" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Mês de Referência</label>
+                <label htmlFor="month-year" className="block text-sm font-medium text-gray-700">Mês de Referência</label>
                 <input 
                     type="month" 
                     id="month-year" 
                     value={monthYear} 
                     onChange={e => setMonthYear(e.target.value)}
-                    className="mt-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3"
+                    className="mt-1 bg-gray-50 border border-gray-300 rounded-md py-2 px-3"
                 />
             </div>
 
@@ -202,7 +202,7 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
                 {renderItemList('deductions', deductions)}
             </div>
             
-             <div className="flex justify-around bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg text-center font-bold mt-4">
+             <div className="flex justify-around bg-gray-100 p-4 rounded-lg text-center font-bold mt-4">
                 <div><span className="block text-xs text-gray-500">Total Bruto</span> <span className="text-income">{totals.grossTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
                 <div><span className="block text-xs text-gray-500">Total Descontos</span> <span className="text-expense">{totals.deductionsTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
                 <div><span className="block text-xs text-gray-500">Total Líquido</span> <span className="text-primary text-lg">{totals.netTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</span></div>
@@ -210,7 +210,7 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
             {error && <p className="text-red-500 text-center text-sm">{error}</p>}
         </div>
         
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
             <div className="flex items-center">
                 <input 
                     type="checkbox" 
@@ -219,7 +219,7 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, onConfir
                     onChange={e => setShouldLaunchTransaction(e.target.checked)}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
-                <label htmlFor="launch-transaction" className="ml-2 text-sm text-gray-700 dark:text-gray-300">Lançar transação de receita com o valor líquido</label>
+                <label htmlFor="launch-transaction" className="ml-2 text-sm text-gray-700">Lançar transação de receita com o valor líquido</label>
             </div>
             <div className="flex space-x-3">
                 <button

@@ -24,7 +24,7 @@ const SummaryCard: React.FC<{ title: string; amount: number; icon: string; color
 
 
 const Summary: React.FC<SummaryProps> = ({ income, expense, balance }) => {
-  const balanceColor = balance >= 0 ? 'text-[var(--income)] bg-[var(--income)]' : 'text-[var(--expense)] bg-[var(--expense)]';
+  const balanceColor = balance >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100';
   const balanceIcon = balance >= 0 ? 'fa-scale-balanced' : 'fa-hand-holding-dollar';
     
   return (

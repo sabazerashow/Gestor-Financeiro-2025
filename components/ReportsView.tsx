@@ -5,6 +5,7 @@ import { Transaction, CategoryExpense, CategoryIncome, PaymentMethod } from '../
 import { DashboardCardConfig } from '../App';
 import Dashboard from './Dashboard';
 import { categories } from '../categories';
+import GLMAnalysis from './GLMAnalysis';
 
 interface ReportsViewProps {
   transactions: Transaction[];
@@ -172,6 +173,9 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           )}
         </div>
       </div>
+      
+      <GLMAnalysis transactions={analysisTransactions} />
+      
        <Dashboard 
             allCards={allDashboardCards}
             cardVisibility={cardVisibility}

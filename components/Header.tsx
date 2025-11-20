@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import ProfileMenu from './ProfileMenu';
-import ThemeToggle from './ThemeToggle';
 
 interface ProfileData {
     name: string;
@@ -10,8 +9,6 @@ interface ProfileData {
 }
 
 interface HeaderProps {
-    theme: 'light' | 'dark' | 'auto';
-    setTheme: (theme: 'light' | 'dark' | 'auto') => void;
     activeTab: string;
     setActiveTab: (tab: string) => void;
     onQuickAdd: () => void;
@@ -39,7 +36,7 @@ const NavButton: React.FC<{label: string; icon: string; isActive: boolean; onCli
 );
 
 
-const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite, onLogoutClick, accountName, onOpenAccountSwitch, onPurgeAll }) => {
+const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite, onLogoutClick, accountName, onOpenAccountSwitch, onPurgeAll }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const defaultPhotoUrl = 'https://i.ibb.co/6n20d5w/placeholder-profile.png';
@@ -97,8 +94,7 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
 
             <div className="h-6 border-l border-gray-700 mx-1 md:mx-2"></div>
 
-            {/* Theme toggle visible */}
-            <ThemeToggle theme={theme} setTheme={setTheme} />
+
 
             <div className="relative" ref={menuRef}>
                 <button
@@ -114,8 +110,6 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
                 </button>
                 {isProfileMenuOpen && (
                     <ProfileMenu
-                        theme={theme}
-                        setTheme={setTheme}
                         onProfileClick={() => { setIsProfileMenuOpen(false); onOpenProfile(); }}
                         onInviteClick={() => { setIsProfileMenuOpen(false); onOpenInvite(); }}
                         onLogoutClick={() => { setIsProfileMenuOpen(false); onLogoutClick?.(); }}

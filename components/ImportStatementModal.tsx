@@ -152,28 +152,28 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Revisar Transações do Extrato</h2>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">Revisar Transações do Extrato</h2>
         </div>
         
         <div className="p-6 overflow-y-auto flex-grow">
           {isLoading && (
             <div className="flex flex-col items-center justify-center text-center h-full">
               <i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i>
-              <p className="mt-4 text-gray-600 dark:text-gray-300">Analisando extrato e categorizando despesas...</p>
+              <p className="mt-4 text-gray-600">Analisando extrato e categorizando despesas...</p>
             </div>
           )}
           {error && <p className="text-red-500 text-center">{error}</p>}
           {!isLoading && !error && transactionsToReview.length > 0 && (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Ajuste as categorias conforme necessário antes de importar.</p>
+              <p className="text-sm text-gray-500 mb-4">Ajuste as categorias conforme necessário antes de importar.</p>
               <ul className="space-y-2">
                 {transactionsToReview.map((t, index) => (
-                  <li key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <li key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center p-3 bg-gray-50 rounded-lg">
                     <div className="md:col-span-2">
-                        <p className="font-semibold text-gray-800 dark:text-gray-200">{t.description}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate" title={t.originalDescription}>{t.originalDescription}</p>
+                        <p className="font-semibold text-gray-800">{t.description}</p>
+                        <p className="text-xs text-gray-400 truncate" title={t.originalDescription}>{t.originalDescription}</p>
                     </div>
                     <div className="flex items-center justify-between">
                          <span className="font-bold text-expense text-lg md:text-base">
@@ -181,13 +181,13 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
                         </span>
                     </div>
                     <div>
-                         <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                         <span className="text-sm text-gray-500">{new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
                     </div>
                     <div>
                         <select
                             value={t.category}
                             onChange={(e) => handleItemChange(index, 'category', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            className="w-full bg-white border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                         >
                             {expenseCategoryList.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
@@ -196,7 +196,7 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
                         <select
                             value={t.subcategory}
                             onChange={(e) => handleItemChange(index, 'subcategory', e.target.value)}
-                            className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            className="w-full bg-white border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                         >
                             {categories[t.category]?.subcategories.map(sub => <option key={sub} value={sub}>{sub}</option>)}
                         </select>
@@ -208,10 +208,10 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
           )}
         </div>
         
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 transition-colors"
           >
             Cancelar
           </button>

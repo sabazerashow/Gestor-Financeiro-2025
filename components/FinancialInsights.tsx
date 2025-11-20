@@ -84,7 +84,7 @@ Responda em português do Brasil, usando markdown para os tópicos (* para bulle
     if (insights) {
         return (
             <div className="text-[var(--color-text)] space-y-2">
-                <div className={`prose prose-sm dark:prose-invert max-w-none transition-all duration-300 ${isExpanded ? 'max-h-full' : 'max-h-40 overflow-hidden'}`}>
+                <div className={`prose prose-sm max-w-none transition-all duration-300 ${isExpanded ? 'max-h-full' : 'max-h-40 overflow-hidden'}`}>
                     {isExpanded ? (
                         insights.split('\n\n').map((paragraph, pIndex) => (
                             <div key={pIndex}>

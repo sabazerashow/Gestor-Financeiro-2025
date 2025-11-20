@@ -14,10 +14,10 @@ const ImportTransactionsModal: React.FC<ImportTransactionsModalProps> = ({ isOpe
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Confirmar Importação</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div className="p-6 border-b border-gray-200">
+      <h2 className="text-xl font-bold text-gray-800">Confirmar Importação</h2>
+      <p className="text-sm text-gray-500 mt-1">
             Encontramos <span className="font-bold">{transactions.length}</span> novo(s) lançamento(s) para importar.
           </p>
         </div>
@@ -25,10 +25,10 @@ const ImportTransactionsModal: React.FC<ImportTransactionsModalProps> = ({ isOpe
         <div className="p-6 overflow-y-auto flex-grow">
           <ul className="space-y-2">
             {transactions.map(t => (
-              <li key={t.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg flex justify-between items-center text-sm">
-                <div>
-                  <p className="font-semibold text-gray-800 dark:text-gray-200">{t.description}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+              <li key={t.id} className="p-3 bg-gray-50 rounded-lg flex justify-between items-center text-sm">
+        <div className="flex-1">
+          <p className="font-semibold text-gray-800">{t.description}</p>
+          <p className="text-xs text-gray-500">
                     {new Date(t.date + 'T00:00:00').toLocaleDateString('pt-BR')} - {t.category} &gt; {t.subcategory}
                   </p>
                 </div>

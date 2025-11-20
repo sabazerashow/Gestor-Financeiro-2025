@@ -13,6 +13,8 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
   const [purchasingPowerData, setPurchasingPowerData] = useState<{ labels: string[]; nominal: number[]; real: number[] } | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calculationError, setCalculationError] = useState<string | null>(null);
+  const [inflationSummary, setInflationSummary] = useState<string | null>(null);
+  const [isInflationLoading, setIsInflationLoading] = useState(false);
   // Exportação de gráfico removida; referência ao chart não é mais necessária.
   
   // Set initial dates for purchasing power analysis based on available payslips
@@ -26,6 +28,44 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
         setReferenceDate(`${last.year}-${String(last.month).padStart(2, '0')}`);
     }
   }, [payslips]);
+
+  // Comentário automático de inflação acumulada ao selecionar início e fim
+  useEffect(() => {
+    const fetchInflationSummary = async () => {
+      if (!analysisStartDate || !analysisEndDate) { setInflationSummary(null); return; }
+      try {
+        setIsInflationLoading(true);
+        setInflationSummary(null);
+        const [startYear, startMonth] = analysisStartDate.split('-').map(Number);
+        const [endYear, endMonth] = analysisEndDate.split('-').map(Number);
+
+        const apiStartDate = `01/${startMonth}/${startYear}`;
+        const lastDayOfEndMonth = new Date(endYear, endMonth, 0).getDate();
+        const apiEndDate = `${lastDayOfEndMonth}/${endMonth}/${endYear}`;
+
+        const response = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados?formato=json&dataInicial=${apiStartDate}&dataFinal=${apiEndDate}`);
+        if (!response.ok) throw new Error('Falha ao buscar dados de inflação do Banco Central.');
+        const ipcaRawData: { data: string; valor: string }[] = await response.json();
+        if (ipcaRawData.length === 0) { setInflationSummary('Sem dados de inflação para o período selecionado.'); return; }
+
+        // Calcular inflação acumulada (índice multiplicativo)
+        let cumulativeIndex = 1;
+        ipcaRawData.forEach(item => {
+          const monthly = Number(item.valor) / 100;
+          cumulativeIndex *= (1 + monthly);
+        });
+        const accumulated = (cumulativeIndex - 1) * 100;
+        setInflationSummary(`Inflação acumulada no período: ${accumulated.toFixed(2)}%`);
+      } catch (e) {
+        setInflationSummary(null);
+        console.warn(e);
+      } finally {
+        setIsInflationLoading(false);
+      }
+    };
+
+    fetchInflationSummary();
+  }, [analysisStartDate, analysisEndDate]);
 
   const handleGeneratePurchasingPowerChart = async () => {
     setIsCalculating(true);
@@ -142,6 +182,11 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
           <button onClick={handleGeneratePurchasingPowerChart} disabled={isCalculating || !analysisStartDate || !analysisEndDate || !referenceDate} className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] disabled:bg-[color-mix(in oklab, var(--primary) 60%, transparent)] disabled:cursor-not-allowed transition-colors w-36">
             {isCalculating ? <i className="fas fa-spinner fa-spin"></i> : 'Gerar Gráfico'}
           </button>
+          {analysisStartDate && analysisEndDate && (
+            <p className="ml-auto text-xs text-[var(--color-text-muted)]">
+              {isInflationLoading ? 'Calculando inflação acumulada…' : (inflationSummary ?? '')}
+            </p>
+          )}
       </div>
       
       <div className="mt-4 min-h-[24rem]">

@@ -120,17 +120,17 @@ O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Importar Transações da Nota Fiscal</h2>
-          {issuer && <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">De: {issuer}</p>}
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div className="p-6 border-b border-gray-200">
+      <h2 className="text-xl font-bold text-gray-800">Importar Transações da Nota Fiscal</h2>
+      {issuer && <p className="text-sm text-gray-500 mt-1">De: {issuer}</p>}
         </div>
         
         <div className="p-6 overflow-y-auto flex-grow">
           {isLoading && (
             <div className="flex flex-col items-center justify-center text-center h-full">
               <i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i>
-              <p className="mt-4 text-gray-600 dark:text-gray-300">Analisando nota e sugerindo categorias...</p>
+              <p className="mt-4 text-gray-600">Analisando nota e sugerindo categorias...</p>
             </div>
           )}
           {error && <p className="text-red-500 text-center">{error}</p>}
@@ -139,8 +139,8 @@ O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
               {groupedTransactions.map((group, index) => {
                 const categoryInfo = categories[group.category];
                 return (
-                  <li key={index} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="font-semibold text-gray-800 dark:text-gray-200">{group.description}</p>
+                  <li key={index} className="p-3 bg-gray-50 rounded-lg">
+        <p className="font-semibold text-gray-800">{group.description}</p>
                     <div className="flex items-center justify-between mt-2">
                         <div>
                             {categoryInfo && (
@@ -149,7 +149,7 @@ O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
                                 {group.category} {'>'} {group.subcategory}
                                 </span>
                             )}
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{group.items.join(', ')}</p>
+                            <p className="text-xs text-gray-500 mt-1 italic">{group.items.join(', ')}</p>
                         </div>
                         <span className="font-bold text-expense">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(group.totalAmount)}
@@ -162,10 +162,10 @@ O nome do emissor da nota é: "${issuerName || 'Não identificado'}"
           )}
         </div>
         
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 transition-colors"
           >
             Cancelar
           </button>

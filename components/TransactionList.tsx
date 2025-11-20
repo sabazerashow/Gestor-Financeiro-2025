@@ -1,6 +1,7 @@
 
 
 import React from 'react';
+import { Button } from './ui/button';
 import { Transaction, PaymentMethod } from '../types';
 import TransactionItem from './TransactionItem';
 
@@ -119,24 +120,24 @@ const TransactionList: React.FC<TransactionListProps> = ({
             </div>
             {onAnalyzePending && (
               <div className="ml-auto">
-                <button
+                <Button
                   onClick={onAnalyzePending}
                   disabled={isAnalyzingPending}
-                  className={`px-3 py-1 text-sm font-medium rounded-md text-[var(--primary-foreground)] transition-colors flex items-center gap-2 ${isAnalyzingPending ? 'bg-[var(--primary)]/40 cursor-not-allowed' : 'bg-[var(--primary)] hover:bg-[var(--color-primary-hover)]'}`}
+                  size="sm"
                   title="Analisar registros com categoria 'A verificar'"
                 >
                   {isAnalyzingPending ? (
                     <>
                       <i className="fas fa-spinner fa-spin"></i>
-                      <span>Analisando...</span>
+                      <span className="ml-2">Analisando...</span>
                     </>
                   ) : (
                     <>
                       <i className="fas fa-wand-magic-sparkles"></i>
-                      <span>Analisar registros</span>
+                      <span className="ml-2">Analisar registros</span>
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             )}
           </div>
