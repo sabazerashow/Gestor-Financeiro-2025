@@ -110,7 +110,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     const invoiceMonth = new Date(year, month - 1, 1).toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
     
     return (
-        <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+        <p className="text-xs text-center text-[var(--color-text-muted)] mt-2">
             Fatura {invoiceMonth}: <span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoiceTotal)}</span>, vence em {dueDate.toLocaleDateString('pt-BR')}
         </p>
     );
@@ -120,17 +120,17 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   return (
     <div className="space-y-8">
       <div>
-        <div className="flex flex-wrap items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="flex flex-wrap items-center gap-4 p-4 bg-[var(--card)] rounded-lg shadow">
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setPeriodType('month')}
-              className={`px-3 py-1 text-sm rounded-md ${periodType === 'month' ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+              className={`px-3 py-1 text-sm rounded-md ${periodType === 'month' ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : 'bg-[var(--surface)]'}`}
             >
               Mês
             </button>
             <button
               onClick={() => setPeriodType('period')}
-              className={`px-3 py-1 text-sm rounded-md ${periodType === 'period' ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+              className={`px-3 py-1 text-sm rounded-md ${periodType === 'period' ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : 'bg-[var(--surface)]'}`}
             >
               Período
             </button>
@@ -143,7 +143,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                 id="month-select"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] text-sm"
               />
             </div>
           ) : (
@@ -155,7 +155,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                   id="start-date"
                   value={dateRange.start}
                   onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] text-sm"
                 />
               </div>
               <div>
@@ -165,7 +165,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                   id="end-date"
                   value={dateRange.end}
                   onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] text-sm"
                 />
               </div>
             </div>

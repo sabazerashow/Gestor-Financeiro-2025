@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import ProfileMenu from './ProfileMenu';
+import ThemeToggle from './ThemeToggle';
 import Logo from './Logo';
 
 interface ProfileData {
@@ -29,8 +30,8 @@ const NavButton: React.FC<{label: string; icon: string; isActive: boolean; onCli
       onClick={onClick}
       className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center justify-center gap-2 ${
         isActive
-          ? 'bg-indigo-500 text-white'
-          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+          ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
+          : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/60 hover:text-[var(--color-text)]'
       }`}
     >
       <i className={`fas ${icon} w-5 text-center`}></i>
@@ -57,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
   }, []);
     
   return (
-    <header className="bg-black shadow-lg sticky top-0 z-30">
+    <header className="bg-[var(--background)] shadow-lg sticky top-0 z-30">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         
         {/* Left Side: Logo and Title */}
@@ -92,13 +93,16 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
             
             <button
                 onClick={onQuickAdd}
-                className="px-3 py-2 text-sm font-medium rounded-md transition-colors text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] flex items-center justify-center gap-2"
+                className="px-3 py-2 text-sm font-medium rounded-md transition-colors text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] flex items-center justify-center gap-2"
                 >
                 <i className="fas fa-bolt"></i>
                 <span className="hidden lg:inline">Rápido</span>
             </button>
 
             <div className="h-6 border-l border-gray-700 mx-1 md:mx-2"></div>
+
+            {/* Theme toggle visible */}
+            <ThemeToggle theme={theme} setTheme={setTheme} />
 
             <div className="relative" ref={menuRef}>
                 <button

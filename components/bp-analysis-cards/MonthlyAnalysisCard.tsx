@@ -33,15 +33,15 @@ const MonthlyAnalysisCard: React.FC<MonthlyAnalysisCardProps> = ({ payslips, tra
   return (
     <>
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-white">Análise Mensal Detalhada</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Análise Mensal Detalhada</h3>
             {availableMonths.length > 0 ? (
               <div className="flex items-center gap-2">
-                  <label htmlFor="month-select" className="text-sm font-medium text-gray-600 dark:text-gray-300">Mês:</label>
+                  <label htmlFor="month-select" className="text-sm font-medium text-[var(--color-text-muted)]">Mês:</label>
                   <select
                       id="month-select"
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)}
-                      className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-1 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-1 px-3 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] sm:text-sm"
                   >
                       {availableMonths.map(monthStr => {
                           const [year, month] = monthStr.split('-');
@@ -55,9 +55,9 @@ const MonthlyAnalysisCard: React.FC<MonthlyAnalysisCardProps> = ({ payslips, tra
       </div>
 
       {selectedPayslip && (
-        <div className="mb-8 text-center bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Salário Líquido Recebido</p>
-            <p className="text-3xl sm:text-4xl font-bold text-indigo-500">{selectedPayslip.netTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+        <div className="mb-8 text-center bg-[var(--surface)] p-4 rounded-lg">
+            <p className="text-sm text-[var(--color-text-muted)] font-medium">Salário Líquido Recebido</p>
+            <p className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">{selectedPayslip.netTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
         </div>
       )}
       

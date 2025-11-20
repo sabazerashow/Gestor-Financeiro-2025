@@ -29,8 +29,8 @@ const FilterButton: React.FC<{
     onClick={onClick}
     className={`px-3 py-1 text-sm rounded-full transition-colors ${
       isActive
-        ? 'bg-indigo-600 text-white font-semibold'
-        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+        ? 'bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold'
+        : 'bg-[var(--surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/60 hover:text-[var(--color-text)]'
     }`}
   >
     {label}
@@ -81,16 +81,16 @@ const TransactionList: React.FC<TransactionListProps> = ({
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+    <div className="bg-[var(--card)] p-6 rounded-xl shadow-lg">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Lançamentos</h2>
+        <h2 className="text-xl font-bold text-[var(--color-text)]">Lançamentos</h2>
         {showFilters && (
           <div className="flex flex-wrap items-center gap-2 w-full">
              {onMonthFilterChange && (
                  <select
                     value={monthFilter}
                     onChange={(e) => onMonthFilterChange(e.target.value)}
-                    className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm py-1 pl-3 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="bg-[var(--surface)] border border-[var(--border)] rounded-full shadow-sm py-1 pl-3 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 >
                     <option value="all">Todos os Meses</option>
                     {availableMonths.map(month => {
@@ -104,7 +104,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                  <select
                     value={paymentMethodFilter}
                     onChange={(e) => onPaymentMethodFilterChange(e.target.value as 'all' | PaymentMethod)}
-                    className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full shadow-sm py-1 pl-3 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="bg-[var(--surface)] border border-[var(--border)] rounded-full shadow-sm py-1 pl-3 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 >
                     <option value="all">Todos os Métodos</option>
                     {Object.values(PaymentMethod).map(method => (
@@ -112,7 +112,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     ))}
                 </select>
              )}
-            <div className="flex items-center space-x-2 border-l border-gray-300 dark:border-gray-600 pl-2">
+            <div className="flex items-center space-x-2 border-l border-[var(--border)] pl-2">
                 <FilterButton label="Todas" isActive={installmentFilter === 'all'} onClick={() => onInstallmentFilterChange?.('all')} />
                 <FilterButton label="À Vista" isActive={installmentFilter === 'single'} onClick={() => onInstallmentFilterChange?.('single')} />
                 <FilterButton label="Parceladas" isActive={installmentFilter === 'installments'} onClick={() => onInstallmentFilterChange?.('installments')} />
@@ -122,7 +122,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                 <button
                   onClick={onAnalyzePending}
                   disabled={isAnalyzingPending}
-                  className={`px-3 py-1 text-sm font-medium rounded-md text-white transition-colors flex items-center gap-2 ${isAnalyzingPending ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                  className={`px-3 py-1 text-sm font-medium rounded-md text-[var(--primary-foreground)] transition-colors flex items-center gap-2 ${isAnalyzingPending ? 'bg-[var(--primary)]/40 cursor-not-allowed' : 'bg-[var(--primary)] hover:bg-[var(--color-primary-hover)]'}`}
                   title="Analisar registros com categoria 'A verificar'"
                 >
                   {isAnalyzingPending ? (
@@ -143,12 +143,12 @@ const TransactionList: React.FC<TransactionListProps> = ({
         )}
       </div>
       {transactions.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum lançamento registrado para este filtro.</p>
+        <p className="text-[var(--color-text-muted)] text-center py-8">Nenhum lançamento registrado para este filtro.</p>
       ) : groupedTransactions ? (
         <div className="space-y-6">
             {Object.entries(groupedTransactions).map(([monthYear, monthTransactions]) => (
                 <div key={monthYear}>
-                    <h3 className="text-md font-semibold text-gray-600 dark:text-gray-400 mb-2 pb-1 border-b border-gray-200 dark:border-gray-700 capitalize">{monthYear}</h3>
+                    <h3 className="text-md font-semibold text-[var(--color-text-muted)] mb-2 pb-1 border-b border-[var(--border)] capitalize">{monthYear}</h3>
                     {renderTransactionList(monthTransactions)}
                 </div>
             ))}

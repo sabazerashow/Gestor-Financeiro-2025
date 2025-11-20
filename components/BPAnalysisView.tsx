@@ -138,29 +138,29 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
 
   return (
     <div className="space-y-8">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+      <div className="bg-[var(--card)] p-6 rounded-xl shadow-lg">
         <div className="flex flex-wrap justify-between items-center gap-4">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Análise de Contracheques</h2>
+          <h2 className="text-xl font-bold text-[var(--color-text)]">Análise de Contracheques</h2>
           {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
           <div className="flex items-center flex-wrap gap-2">
             <div className="flex items-center rounded-md shadow-sm">
                  <button
                     onClick={onManualAdd}
-                    className="relative inline-flex items-center px-3 py-1 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="relative inline-flex items-center px-3 py-1 rounded-l-md border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)]/60 focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
                     <i className="fas fa-keyboard mr-2"></i>
                     Lançar Manual
                 </button>
                 <button
                     onClick={handleImportOCRClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 bg-[var(--secondary)] text-sm font-medium text-[var(--secondary-foreground)] hover:bg-[var(--accent)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
+                    className="-ml-px relative inline-flex items-center px-3 py-1 border border-[var(--border)] bg-[var(--secondary)] text-sm font-medium text-[var(--secondary-foreground)] hover:bg-[var(--accent)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
                     <i className="fas fa-upload mr-2"></i>
                     Importar OCR
                 </button>
                 <button
                     onClick={handleImportAIClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-gray-300 dark:border-gray-600 bg-[var(--primary)] text-sm font-medium text-white hover:bg-[var(--primary-hover)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
+                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-[var(--border)] bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--color-primary-hover)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
                 >
                     <i className="fas fa-robot mr-2"></i>
                     Importar com IA
@@ -180,9 +180,9 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
               <i className="fas fa-question-circle"></i>
               <span>Entenda seu BP</span>
             </button>
-             <button
+            <button
                 onClick={() => setIsManageCardsModalOpen(true)}
-                className="px-3 py-1 text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors flex items-center gap-2"
+                className="px-3 py-1 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[var(--color-surface)]/60 border border-[var(--border)] transition-colors flex items-center gap-2"
             >
               <i className="fas fa-cogs"></i>
               <span>Gerenciar cartões</span>
@@ -192,16 +192,16 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
       </div>
 
       {payslips.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-          <i className="fas fa-file-pdf text-5xl text-gray-300 dark:text-gray-600"></i>
-          <p className="mt-4 text-gray-500 dark:text-gray-400">Nenhum contracheque importado ainda.</p>
-          <p className="text-sm text-gray-400">Use um dos botões acima para adicionar um.</p>
+        <div className="text-center py-12 bg-[var(--card)] rounded-xl shadow-lg">
+          <i className="fas fa-file-pdf text-5xl text-[var(--color-text-muted)]"></i>
+          <p className="mt-4 text-[var(--color-text-muted)]">Nenhum contracheque importado ainda.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">Use um dos botões acima para adicionar um.</p>
         </div>
       ) : visibleCards.length === 0 ? (
-         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-          <i className="fas fa-grip-horizontal text-5xl text-gray-300 dark:text-gray-600"></i>
-          <p className="mt-4 text-gray-500 dark:text-gray-400">Nenhum cartão visível.</p>
-          <p className="text-sm text-gray-400">Use o botão "Gerenciar cartões" para adicionar alguns ao seu painel.</p>
+         <div className="text-center py-12 bg-[var(--card)] rounded-xl shadow-lg">
+          <i className="fas fa-grip-horizontal text-5xl text-[var(--color-text-muted)]"></i>
+          <p className="mt-4 text-[var(--color-text-muted)]">Nenhum cartão visível.</p>
+          <p className="text-sm text-[var(--color-text-muted)]">Use o botão "Gerenciar cartões" para adicionar alguns ao seu painel.</p>
         </div>
       ) : (
         <div className="space-y-8">
@@ -209,7 +209,7 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
                 const CardComponent = card.component;
                 const props = componentProps[card.id as keyof typeof componentProps] || {};
                 return (
-                    <div key={card.id} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                    <div key={card.id} className="bg-[var(--card)] p-6 rounded-xl shadow-lg">
                         <CardComponent {...props} />
                     </div>
                 );

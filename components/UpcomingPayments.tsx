@@ -16,7 +16,7 @@ const UpcomingPaymentItem: React.FC<{ bill: Bill; dueDate: Date; onPayBill: (des
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   let dueDateText = '';
-  let textColor = 'text-gray-500 dark:text-gray-400';
+  let textColor = 'text-[var(--color-text-muted)]';
 
   if (diffDays < 0) {
     dueDateText = `Vencido há ${Math.abs(diffDays)} dia(s)`;
@@ -32,11 +32,11 @@ const UpcomingPaymentItem: React.FC<{ bill: Bill; dueDate: Date; onPayBill: (des
   }
 
   return (
-    <li className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+    <li className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-[var(--surface)] rounded-lg">
       <div className="flex items-center space-x-3 mb-2 sm:mb-0">
-        <i className="fas fa-bell text-indigo-400"></i>
+        <i className="fas fa-bell text-[var(--primary)]"></i>
         <div>
-          <p className="font-semibold text-gray-800 dark:text-gray-200">{bill.description}</p>
+          <p className="font-semibold text-[var(--color-text)]">{bill.description}</p>
           <p className={`text-sm ${textColor}`}>{dueDateText}</p>
         </div>
       </div>
@@ -86,10 +86,10 @@ const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ bills, onPayBill, t
     .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
   return (
-    <div className="p-6">
-        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Lembretes de Pagamentos</h2>
+    <div className="bg-[var(--card)] p-6 rounded-xl shadow-lg">
+        <h2 className="text-xl font-bold mb-4 text-[var(--color-text)]">Lembretes de Pagamentos</h2>
         {upcoming.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum pagamento manual pendente para os próximos 15 dias.</p>
+            <p className="text-[var(--color-text-muted)] text-center py-8">Nenhum pagamento manual pendente para os próximos 15 dias.</p>
         ) : (
             <ul className="space-y-3">
                 {upcoming.map(({bill, dueDate}) => (

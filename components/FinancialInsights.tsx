@@ -70,7 +70,7 @@ Responda em português do Brasil, usando markdown para os tópicos (* para bulle
   const renderContent = () => {
     if (isLoading) {
         return (
-            <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+            <div className="flex items-center space-x-2 text-[var(--color-text-muted)]">
                 <i className="fas fa-spinner fa-spin"></i>
                 <span>Analisando seus padrões de gastos...</span>
             </div>
@@ -78,12 +78,12 @@ Responda em português do Brasil, usando markdown para os tópicos (* para bulle
     }
 
     if (error) {
-        return <p className="text-red-500">{error}</p>;
+        return <p className="text-[var(--danger)]">{error}</p>;
     }
 
     if (insights) {
         return (
-            <div className="text-gray-700 dark:text-gray-300 space-y-2">
+            <div className="text-[var(--color-text)] space-y-2">
                 <div className={`prose prose-sm dark:prose-invert max-w-none transition-all duration-300 ${isExpanded ? 'max-h-full' : 'max-h-40 overflow-hidden'}`}>
                     {isExpanded ? (
                         insights.split('\n\n').map((paragraph, pIndex) => (
@@ -99,7 +99,7 @@ Responda em português do Brasil, usando markdown para os tópicos (* para bulle
                         <p className="text-sm">{renderMarkdownBold(summary)}</p>
                     )}
                 </div>
-                <button onClick={() => setIsExpanded(!isExpanded)} className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-semibold mt-2">
+                <button onClick={() => setIsExpanded(!isExpanded)} className="text-[var(--primary)] hover:underline text-sm font-semibold mt-2">
                     {isExpanded ? 'Mostrar menos' : 'Ver análise completa'}
                 </button>
             </div>
@@ -108,7 +108,7 @@ Responda em português do Brasil, usando markdown para os tópicos (* para bulle
 
     return (
         <div className="text-center py-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Obtenha insights automáticos sobre seus gastos no período selecionado.</p>
+            <p className="text-sm text-[var(--color-text-muted)]">Obtenha insights automáticos sobre seus gastos no período selecionado.</p>
         </div>
     );
   };
@@ -116,11 +116,11 @@ Responda em português do Brasil, usando markdown para os tópicos (* para bulle
   return (
     <div className="p-6">
         <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Análise Inteligente</h2>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Análise Inteligente</h2>
             <button
                 onClick={generateInsights}
                 disabled={isLoading}
-                className="px-3 py-1 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                className="px-3 py-1 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
                 {isLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-sync-alt"></i>}
                 <span>{analysisHasRun ? 'Atualizar' : 'Gerar Análise'}</span>

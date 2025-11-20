@@ -865,10 +865,10 @@ const defaultProfile = {
         case 'overview':
             return (
                 <div className="space-y-8">
-                    <h2 className="text-center text-lg font-semibold text-gray-500 dark:text-gray-400 tracking-wider">{monthYearDisplay}</h2>
+                    <h2 className="text-center text-lg font-semibold text-[var(--color-text-muted)] tracking-wider">{monthYearDisplay}</h2>
                     <Summary income={mainSummary.income} expense={mainSummary.expense} balance={mainSummary.balance} />
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-                        <div className="xl:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                        <div className="xl:col-span-1 bg-[var(--card)] rounded-xl shadow-lg">
                            <UpcomingPayments bills={bills} onPayBill={handlePayBill} transactions={currentMonthTransactions} />
                         </div>
                         <div className="xl:col-span-2">
@@ -1012,7 +1012,7 @@ ${availableCategories}`;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans flex flex-col">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-col">
       <Header 
         theme={theme} 
         setTheme={setTheme}
@@ -1040,7 +1040,7 @@ ${availableCategories}`;
       </main>
       
       <footer className="text-center py-4">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-[var(--color-text-muted)]">
             Construído por Diego Sabá. Versão 0.1
         </p>
       </footer>

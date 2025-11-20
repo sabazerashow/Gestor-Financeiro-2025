@@ -28,19 +28,19 @@ const Dashboard: React.FC<DashboardProps> = ({
     const visibleCards = allCards.filter(card => cardVisibility[card.id]);
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg space-y-6">
+        <div className="bg-[var(--card)] p-6 rounded-xl shadow-lg space-y-6">
              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h2>
-                <button onClick={() => setIsManageCardsModalOpen(true)} className="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 shadow-sm">
+                <h2 className="text-xl font-bold text-[var(--color-text)]">{title}</h2>
+                <button onClick={() => setIsManageCardsModalOpen(true)} className="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-[var(--surface)] text-[var(--color-text)] hover:bg-[var(--color-surface)]/60 border border-[var(--border)] shadow-sm">
                     Gerenciar cartões
                 </button>
             </div>
 
             {visibleCards.length === 0 ? (
                 <div className="text-center py-16">
-                    <i className="fas fa-grip-horizontal text-5xl text-gray-300 dark:text-gray-600"></i>
-                    <p className="mt-4 text-gray-500 dark:text-gray-400">Nenhum cartão visível.</p>
-                    <p className="text-sm text-gray-400">Use o botão "Gerenciar cartões" para adicionar alguns ao seu painel.</p>
+                    <i className="fas fa-grip-horizontal text-5xl text-[var(--color-text-muted)]"></i>
+                    <p className="mt-4 text-[var(--color-text-muted)]">Nenhum cartão visível.</p>
+                    <p className="text-sm text-[var(--color-text-muted)]">Use o botão "Gerenciar cartões" para adicionar alguns ao seu painel.</p>
                 </div>
             ) : (
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

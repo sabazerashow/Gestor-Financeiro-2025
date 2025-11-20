@@ -10,13 +10,13 @@ interface SummaryProps {
 const SummaryCard: React.FC<{ title: string; amount: number; icon: string; colorClass: string }> = ({ title, amount, icon, colorClass }) => {
     const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
     return (
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm flex items-center space-x-4 transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
+        <div className="bg-[var(--card)] p-6 rounded-xl shadow-sm flex items-center space-x-4 transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform">
             <div className={`text-3xl p-3 rounded-full ${colorClass}`}>
                 <i className={`fas ${icon}`}></i>
             </div>
             <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{title}</p>
-                <p className="text-2xl font-bold text-gray-800 dark:text-white whitespace-nowrap">{formattedAmount}</p>
+                <p className="text-sm text-[var(--color-text-muted)] font-medium">{title}</p>
+                <p className="text-2xl font-bold text-[var(--color-text)] whitespace-nowrap">{formattedAmount}</p>
             </div>
         </div>
     );
