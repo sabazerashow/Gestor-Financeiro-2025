@@ -33,7 +33,7 @@ import InviteModal from './components/InviteModal';
 // Removidos: ExportModal e ImportTransactionsModal (lançamentos manuais)
 import { generateContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
-import supabase, { isSupabaseEnabled } from '@/lib/supabase';
+import supabase, { isSupabaseEnabled, isAuthActive, isAuthDisabled } from '@/lib/supabase';
 import db, { getSession, signOut, ensureDefaultAccount, purgeAccountData } from '@/lib/db';
 
 
@@ -184,9 +184,9 @@ const defaultProfile = {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Supabase Auth: obter sessão e escutar mudanças
+  // Supabase Auth: obter sessão e escutar mudanças (apenas quando auth está ativa)
   useEffect(() => {
-    if (!isSupabaseEnabled) return;
+    if (!isAuthActive) return;
     let mounted = true;
     (async () => {
       const s = await getSession();
@@ -198,9 +198,9 @@ const defaultProfile = {
     return () => { mounted = false; sub?.subscription?.unsubscribe(); };
   }, []);
 
-  // Após autenticar, garantir accountId (workspace) e armazenar
+  // Após autenticar, garantir accountId (workspace) e armazenar (apenas quando auth está ativa)
   useEffect(() => {
-    if (!isSupabaseEnabled || !session?.user?.id) return;
+    if (!isAuthActive || !session?.user?.id) return;
     let mounted = true;
     (async () => {
       try {
@@ -217,9 +217,9 @@ const defaultProfile = {
     return () => { mounted = false; };
   }, [session]);
 
-  // Ao autenticar, buscar dados do Supabase e preencher estados
+  // Ao autenticar, buscar dados do Supabase e preencher estados (apenas quando auth está ativa)
   useEffect(() => {
-    if (!isSupabaseEnabled || !session || !accountId) return;
+    if (!isAuthActive || !session || !accountId) return;
     (async () => {
       try {
         const [tx, rec, bl, ps] = await Promise.all([
@@ -240,9 +240,9 @@ const defaultProfile = {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, accountId]);
 
-  // Sincronizar alterações locais com Supabase
+  // Sincronizar alterações locais com Supabase (apenas quando auth está ativa)
   useEffect(() => {
-    if (!isSupabaseEnabled || !session || !accountId) return;
+    if (!isAuthActive || !session || !accountId) return;
     (async () => {
       try {
         await db.upsertTransactions(transactions as any, accountId);
@@ -1006,8 +1006,8 @@ ${availableCategories}`;
     }
   };
 
-  // Gate de autenticação: com Supabase ativo e sem sessão, mostrar tela de login
-  if (isSupabaseEnabled && !session) {
+  // Gate de autenticação: só exibe login quando auth está ativa
+  if (isAuthActive && !session) {
     return <AuthGate onSignedIn={() => { /* sessão será atualizada via listener */ }} />;
   }
 
@@ -1024,6 +1024,7 @@ ${availableCategories}`;
         onOpenInvite={() => setIsInviteModalOpen(true)}
         accountName={accountName || undefined}
         onLogoutClick={async () => {
+          if (!isAuthActive) return; // no-op em modo sem autenticação
           try {
             await signOut();
           } catch (e) {
@@ -1147,12 +1148,21 @@ ${availableCategories}`;
         onClose={() => setIsPurgeAllOpen(false)}
         onConfirm={async () => {
           try {
-            if (!accountId) throw new Error('Conta não definida');
-            await purgeAccountData(accountId);
+            if (isAuthActive) {
+              if (!accountId) throw new Error('Conta não definida');
+              await purgeAccountData(accountId);
+            }
+            // Em modo sem autenticação, apenas limpa localmente
             setTransactions([]);
             setRecurringTransactions([]);
             setBills([]);
             setPayslips([]);
+            try {
+              localStorage.removeItem('transactions');
+              localStorage.removeItem('recurringTransactions');
+              localStorage.removeItem('bills');
+              localStorage.removeItem('payslips');
+            } catch {}
             setIsPurgeAllOpen(false);
           } catch (e) {
             console.error('Falha ao apagar dados', e);
