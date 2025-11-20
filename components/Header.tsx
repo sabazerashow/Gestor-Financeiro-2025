@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ProfileMenu from './ProfileMenu';
 import ThemeToggle from './ThemeToggle';
-import Logo from './Logo';
 
 interface ProfileData {
     name: string;
@@ -61,12 +60,9 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
     <header className="bg-[var(--background)] shadow-lg sticky top-0 z-30">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         
-        {/* Left Side: Logo and Title */}
+        {/* Left Side: Title */}
         <div className="flex items-center">
-            <div className="text-white mr-3">
-              <Logo size={28} />
-            </div>
-            <h1 className="text-2xl font-bold font-oswald tracking-wider uppercase text-white">
+            <h1 className="text-2xl font-bold font-oswald tracking-wider uppercase text-[var(--color-text)]">
               <span className="hidden md:inline">FINANCE PILOT</span>
               <span className="md:hidden">FP</span>
             </h1>
