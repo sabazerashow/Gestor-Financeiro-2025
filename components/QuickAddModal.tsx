@@ -237,41 +237,41 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
         return (
             <div className="space-y-3 animate-fade-in">
                  <div>
-                    <label className="text-xs text-gray-500">Descrição</label>
-                    <input type="text" value={parsedTransaction.description} onChange={e => handleEditChange('description', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2"/>
+                    <label className="text-xs text-[var(--color-text-muted)]">Descrição</label>
+                    <input type="text" value={parsedTransaction.description} onChange={e => handleEditChange('description', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
                  </div>
                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-xs text-gray-500">Valor Total</label>
-                        <input type="number" placeholder="0,00" value={parsedTransaction.amount || ''} onChange={e => handleEditChange('amount', parseFloat(e.target.value) || 0)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2"/>
+                        <label className="text-xs text-[var(--color-text-muted)]">Valor Total</label>
+                        <input type="number" placeholder="0,00" value={parsedTransaction.amount || ''} onChange={e => handleEditChange('amount', parseFloat(e.target.value) || 0)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
                     </div>
                      <div>
-                        <label className="text-xs text-gray-500">Data</label>
-                        <input type="date" value={parsedTransaction.date} onChange={e => handleEditChange('date', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2"/>
+                        <label className="text-xs text-[var(--color-text-muted)]">Data</label>
+                        <input type="date" value={parsedTransaction.date} onChange={e => handleEditChange('date', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
                     </div>
                  </div>
                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-xs text-gray-500">Categoria</label>
-                        <select value={parsedTransaction.category} onChange={e => handleEditChange('category', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2">
+                        <label className="text-xs text-[var(--color-text-muted)]">Categoria</label>
+                        <select value={parsedTransaction.category} onChange={e => handleEditChange('category', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
                             {expenseCategoryList.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                      <div>
-                        <label className="text-xs text-gray-500">Subcategoria</label>
-                        <select value={parsedTransaction.subcategory} onChange={e => handleEditChange('subcategory', e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2">
+                        <label className="text-xs text-[var(--color-text-muted)]">Subcategoria</label>
+                        <select value={parsedTransaction.subcategory} onChange={e => handleEditChange('subcategory', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
                             {categories[parsedTransaction.category]?.subcategories.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                     </div>
                  </div>
                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-xs text-gray-500">Nº de Parcelas</label>
-                        <input type="number" value={parsedTransaction.installments} min="1" onChange={e => handleEditChange('installments', parseInt(e.target.value) || 1)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2"/>
+                        <label className="text-xs text-[var(--color-text-muted)]">Nº de Parcelas</label>
+                        <input type="number" value={parsedTransaction.installments} min="1" onChange={e => handleEditChange('installments', parseInt(e.target.value) || 1)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
                     </div>
                     <div>
-                        <label className="text-xs text-gray-500">Método de Pagamento</label>
-                        <select value={parsedTransaction.paymentMethod} onChange={e => handleEditChange('paymentMethod', e.target.value as PaymentMethod)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2">
+                        <label className="text-xs text-[var(--color-text-muted)]">Método de Pagamento</label>
+                        <select value={parsedTransaction.paymentMethod} onChange={e => handleEditChange('paymentMethod', e.target.value as PaymentMethod)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
                             {paymentMethods.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
                     </div>
@@ -285,32 +285,32 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
         const installmentAmount = isInstallment ? parsedTransaction.amount / parsedTransaction.installments : parsedTransaction.amount;
         return (
             <div className="space-y-4 animate-fade-in">
-                <h3 className="text-lg font-medium text-gray-800 dark:text-white">Confirme os detalhes:</h3>
-                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-3">
+                <h3 className="text-lg font-medium text-[var(--color-text)]">Confirme os detalhes:</h3>
+                <div className="p-4 bg-[var(--surface)] rounded-lg space-y-3">
                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Descrição</span>
-                        <span className="font-semibold text-gray-800 dark:text-gray-200">{parsedTransaction.description}</span>
+                        <span className="text-sm text-[var(--color-text-muted)]">Descrição</span>
+                        <span className="font-semibold text-[var(--color-text)]">{parsedTransaction.description}</span>
                     </div>
                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Valor</span>
+                        <span className="text-sm text-[var(--color-text-muted)]">Valor</span>
                         <div className="text-right">
                            <span className="font-bold text-expense">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parsedTransaction.amount)}
                                 {isInstallment && ` (Total)`}
                             </span>
                             {isInstallment && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="text-xs text-[var(--color-text-muted)]">
                                     {parsedTransaction.installments}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(installmentAmount)}
                                 </p>
                             )}
                         </div>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Data da Compra</span>
-                        <span className="font-semibold text-gray-800 dark:text-gray-200">{new Date(parsedTransaction.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                        <span className="text-sm text-[var(--color-text-muted)]">Data da Compra</span>
+                        <span className="font-semibold text-[var(--color-text)]">{new Date(parsedTransaction.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Categoria</span>
+                        <span className="text-sm text-[var(--color-text-muted)]">Categoria</span>
                         {categoryInfo && (
                             <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]`}>
                                 <i className={`fas ${categoryInfo.icon} mr-1`}></i>
@@ -319,7 +319,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
                         )}
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">Pagamento</span>
+                        <span className="text-sm text-[var(--color-text-muted)]">Pagamento</span>
                         {paymentInfo && (
                             <span className={`text-xs font-medium flex items-center ${paymentInfo.color}`}>
                                 <i className={`fas ${paymentInfo.icon} mr-1`}></i>
@@ -334,7 +334,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
 
     return (
         <div className="space-y-4">
-            <label htmlFor="quick-add-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="quick-add-input" className="block text-sm font-medium text-[var(--color-text)]">
                 O que você pagou? (Ex: Tênis 600 em 6x no crédito)
             </label>
             <input
@@ -343,21 +343,21 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ex: cinema 45 reais no crédito dia 15"
-                className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-3 px-4 text-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-3 px-4 text-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                 disabled={isProcessing}
                 autoFocus
             />
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
         </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col transition-all duration-300">
-        <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">{initialMode === 'manual' && isEditing ? 'Lançar Pagamento Manual' : 'Lançamento Rápido'}</h2>
-           <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+    <div className="fixed inset-0 bg-[var(--overlay)] z-50 flex justify-center items-center p-4">
+      <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col transition-all duration-300">
+        <div className="p-5 border-b border-[var(--border)] flex justify-between items-center">
+          <h2 className="text-xl font-bold text-[var(--color-text)]">{initialMode === 'manual' && isEditing ? 'Lançar Pagamento Manual' : 'Lançamento Rápido'}</h2>
+           <button onClick={handleClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
                 <i className="fas fa-times"></i>
             </button>
         </div>
@@ -366,10 +366,10 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
             {renderContent()}
         </div>
         
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
+        <div className="p-4 bg-[var(--surface)] border-t border-[var(--border)] flex justify-end space-x-3">
             <button
                 onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+                className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[color-mix(in oklab, var(--surface) 85%, black)] border border-[var(--border)] transition-colors"
             >
                 Cancelar
             </button>
@@ -378,14 +378,14 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
               <button
                 onClick={handleProcessInput}
                 disabled={isProcessing}
-                className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors w-32"
+                className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] disabled:bg-[color-mix(in oklab, var(--primary) 60%, transparent)] disabled:cursor-not-allowed transition-colors w-32"
               >
                 {isProcessing ? <i className="fas fa-spinner fa-spin"></i> : 'Analisar Gasto'}
               </button>
             ) : isEditing ? (
                  <button
                     onClick={handleConfirm}
-                    className="px-4 py-2 text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
+                    className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
                   >
                     Salvar
                   </button>
@@ -393,13 +393,13 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
                 <div className="flex space-x-3">
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[color-mix(in oklab, var(--surface) 85%, black)] border border-[var(--border)] transition-colors"
                     >
                         <i className="fas fa-pencil-alt mr-2"></i>Editar
                     </button>
                     <button
                         onClick={handleConfirm}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] transition-colors"
                     >
                         Confirmar e Adicionar
                     </button>

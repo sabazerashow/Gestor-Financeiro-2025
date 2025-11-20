@@ -55,19 +55,19 @@ const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transac
   return (
     <div className="p-6 col-span-1 h-full flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h2>
-        <i className={`fas ${icon} text-2xl text-gray-400 dark:text-gray-500`}></i>
+        <h2 className="text-xl font-bold text-[var(--color-text)]">{title}</h2>
+        <i className={`fas ${icon} text-2xl text-[var(--color-text-muted)]`}></i>
       </div>
       {data.total === 0 ? (
-          <div className="flex-grow flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
+          <div className="flex-grow flex flex-col items-center justify-center text-center text-[var(--color-text-muted)]">
             <i className="fas fa-inbox text-4xl mb-3"></i>
             <p>Nenhuma despesa no período.</p>
           </div>
         ) : (
           <>
             <div className="text-center mb-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Gasto no Período</p>
-              <p className="text-3xl font-bold text-expense">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total)}</p>
+              <p className="text-sm text-[var(--color-text-muted)]">Total Gasto no Período</p>
+              <p className="text-3xl font-bold text-[var(--expense)]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total)}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
@@ -79,17 +79,17 @@ const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transac
                   <li key={item.category} className="flex items-center justify-between p-1 rounded">
                       <div className="flex items-center space-x-2">
                           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
-                          <span className="text-gray-600 dark:text-gray-300">{item.category}</span>
+                          <span className="text-[var(--color-text-muted)]">{item.category}</span>
                       </div>
-                      <span className="font-medium text-gray-700 dark:text-gray-200">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount)}</span>
+                      <span className="font-medium text-[var(--color-text)]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount)}</span>
                   </li>
                 ))}
                 {data.categoryBreakdown.length > 5 && (
-                  <li className="text-center text-xs text-gray-400 pt-1">...e mais {data.categoryBreakdown.length - 5} categorias</li>
+                  <li className="text-center text-xs text-[var(--color-text-muted)] pt-1">...e mais {data.categoryBreakdown.length - 5} categorias</li>
                 )}
               </ul>
             </div>
-            {footer && <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-2">{footer}</div>}
+            {footer && <div className="mt-4 border-t border-[var(--border)] pt-2">{footer}</div>}
           </>
       )}
     </div>

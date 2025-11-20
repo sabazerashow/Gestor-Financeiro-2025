@@ -218,7 +218,7 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
           <button
             onClick={handleConfirm}
             disabled={isLoading || error !== null || transactionsToReview.length === 0}
-            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:bg-[var(--primary)]/50 disabled:cursor-not-allowed transition-colors"
           >
             Confirmar e Importar
           </button>

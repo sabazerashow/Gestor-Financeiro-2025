@@ -30,10 +30,10 @@ const RecurringTransactionItem: React.FC<{ transaction: RecurringTransaction; on
         </div>
       </div>
       <div className="flex items-center space-x-4 ml-4">
-        <span className="font-bold whitespace-nowrap text-expense">{formattedAmount}</span>
+        <span className="font-bold whitespace-nowrap text-[var(--expense)]">{formattedAmount}</span>
         <button
           onClick={() => onDelete(transaction.id)}
-          className="text-[var(--color-text-muted)] hover:text-[var(--danger)] transition-colors"
+          className="text-[var(--color-text-muted)] hover:text-[var(--destructive)] transition-colors"
           aria-label={`Deletar débito automático ${transaction.description}`}
         >
           <i className="fas fa-trash-alt"></i>

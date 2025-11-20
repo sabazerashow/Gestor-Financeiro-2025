@@ -51,31 +51,31 @@ const PendingInstallmentsCard: React.FC<PendingInstallmentsCardProps> = ({ allTr
   return (
     <div className="p-6 col-span-1 h-full flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Parcelas Pendentes</h2>
-        <i className="fas fa-calendar-alt text-2xl text-gray-400 dark:text-gray-500"></i>
+        <h2 className="text-xl font-bold text-[var(--color-text)]">Parcelas Pendentes</h2>
+        <i className="fas fa-calendar-alt text-2xl text-[var(--color-text-muted)]"></i>
       </div>
       {!pendingData ? (
-        <div className="flex-grow flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
+        <div className="flex-grow flex flex-col items-center justify-center text-center text-[var(--color-text-muted)]">
             <i className="fas fa-calendar-check text-4xl mb-3"></i>
             <p>Nenhuma parcela pendente encontrada.</p>
         </div>
       ) : (
         <>
             <div className="text-center mb-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Valor Total a Pagar</p>
-                <p className="text-3xl font-bold text-orange-500">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingData.totalRemaining)}</p>
-                <p className="text-xs text-gray-400">em {pendingData.purchaseCount} compra(s) com {pendingData.totalInstallmentsLeft} parcelas restantes</p>
+                <p className="text-sm text-[var(--color-text-muted)]">Valor Total a Pagar</p>
+                <p className="text-3xl font-bold text-[var(--warning)]">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingData.totalRemaining)}</p>
+                <p className="text-xs text-[var(--color-text-muted)]">em {pendingData.purchaseCount} compra(s) com {pendingData.totalInstallmentsLeft} parcelas restantes</p>
             </div>
 
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Próximos Lançamentos:</h3>
+            <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-2">Próximos Lançamentos:</h3>
             <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
                 {pendingData.purchaseDetails.map((p, index) => (
-                <li key={index} className="flex justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+                <li key={index} className="flex justify-between p-2 bg-[var(--surface)] rounded-md">
                     <div className="truncate pr-2">
-                    <p className="font-medium text-gray-800 dark:text-gray-200 truncate" title={p.description}>{p.description}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{p.remainingCount} de {p.total} parcelas restantes</p>
+                    <p className="font-medium text-[var(--color-text)] truncate" title={p.description}>{p.description}</p>
+                    <p className="text-xs text-[var(--color-text-muted)]">{p.remainingCount} de {p.total} parcelas restantes</p>
                     </div>
-                    <div className="text-right whitespace-nowrap font-semibold text-gray-700 dark:text-gray-200">
+                    <div className="text-right whitespace-nowrap font-semibold text-[var(--color-text)]">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.remainingAmount)}
                     </div>
                 </li>

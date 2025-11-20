@@ -17,16 +17,27 @@ const SimplePieChart: React.FC<SimplePieChartProps> = ({ data }) => {
 
   const generateColors = (numColors: number) => {
     const colors: string[] = [];
+    const chartColors = [
+      'var(--chart-1)',
+      'var(--chart-2)',
+      'var(--chart-3)',
+      'var(--chart-4)',
+      'var(--chart-5)',
+      'var(--chart-6)',
+      'var(--chart-7)',
+      'var(--chart-8)',
+      'var(--chart-9)',
+      'var(--chart-10)'
+    ];
+    
     for (let i = 0; i < numColors; i++) {
-      const hue = (360 * (i * 0.61803398875)) % 360;
-      colors.push(`hsla(${hue}, 65%, 60%, 0.8)`);
+      colors.push(chartColors[i % chartColors.length]);
     }
     return colors;
   };
   const colors = useMemo(() => generateColors(chartData.length), [chartData.length]);
 
-  const isDarkMode = typeof document !== 'undefined' && document.body.classList.contains('dark');
-  const legendColor = isDarkMode ? '#d1d5db' : '#374151';
+  const legendColor = 'var(--color-text)';
 
   return (
     <div className="h-full w-full min-h-[250px]">
@@ -43,7 +54,7 @@ const SimplePieChart: React.FC<SimplePieChartProps> = ({ data }) => {
             paddingAngle={2}
           >
             {chartData.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke={isDarkMode ? '#1f2937' : '#ffffff'} strokeWidth={2} />
+              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke={'var(--surface)'} strokeWidth={2} />
             ))}
           </Pie>
           <Legend wrapperStyle={{ color: legendColor }} />

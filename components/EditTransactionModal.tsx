@@ -64,54 +64,54 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Editar Transação</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+      <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="p-5 border-b border-[var(--border)] flex justify-between items-center">
+          <h2 className="text-xl font-bold text-[var(--color-text)]">Editar Transação</h2>
+          <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
             <i className="fas fa-times"></i>
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
           <div>
-            <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
+            <label htmlFor="edit-description" className="block text-sm font-medium text-[var(--color-text)]">Descrição</label>
             <input
               type="text"
               id="edit-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
               disabled={!!transaction.installmentDetails}
             />
-             {transaction.installmentDetails && <p className="text-xs text-gray-400 mt-1">A descrição de transações parceladas não pode ser editada individualmente.</p>}
+             {transaction.installmentDetails && <p className="text-xs text-[var(--color-text-muted)] mt-1">A descrição de transações parceladas não pode ser editada individualmente.</p>}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor (R$)</label>
+              <label htmlFor="edit-amount" className="block text-sm font-medium text-[var(--color-text)]">Valor (R$)</label>
               <input
                 type="number"
                 id="edit-amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
                 step="0.01"
                 min="0"
               />
             </div>
             <div>
-              <label htmlFor="edit-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
+              <label htmlFor="edit-date" className="block text-sm font-medium text-[var(--color-text)]">Data</label>
               <input
                 type="date"
                 id="edit-date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label htmlFor="edit-category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</label>
+                <label htmlFor="edit-category" className="block text-sm font-medium text-[var(--color-text)]">Categoria</label>
                 <select
                 id="edit-category"
                 value={category}
@@ -119,7 +119,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
                     setCategory(e.target.value)
                     setSubcategory(categories[e.target.value]?.subcategories[0] || '')
                 }}
-                className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
                 >
                 <option value="" disabled>Selecione</option>
                 {currentCategoryList.map(cat => (
@@ -128,12 +128,12 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
                 </select>
             </div>
             <div>
-                <label htmlFor="edit-subcategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subcategoria</label>
+                <label htmlFor="edit-subcategory" className="block text-sm font-medium text-[var(--color-text)]">Subcategoria</label>
                 <select
                 id="edit-subcategory"
                 value={subcategory}
                 onChange={(e) => setSubcategory(e.target.value)}
-                className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
                 disabled={!category}
                 >
                 <option value="" disabled>Selecione</option>
@@ -144,12 +144,12 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
             </div>
           </div>
           <div>
-            <label htmlFor="edit-paymentMethod" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Método de Pagamento</label>
+            <label htmlFor="edit-paymentMethod" className="block text-sm font-medium text-[var(--color-text)]">Método de Pagamento</label>
             <select
               id="edit-paymentMethod"
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-              className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
             >
               {Object.values(PaymentMethod).map(method => (
                 <option key={method} value={method}>{method}</option>
@@ -157,7 +157,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
             </select>
           </div>
           <div>
-            <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</span>
+            <span className="block text-sm font-medium text-[var(--color-text)]">Tipo</span>
             <div className="mt-2 flex space-x-4">
               <label className="flex items-center">
                 <input
@@ -166,7 +166,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
                   value={TransactionType.INCOME}
                   checked={type === TransactionType.INCOME}
                   onChange={() => setType(TransactionType.INCOME)}
-                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)]"
                 />
                 <span className="ml-2 text-sm text-income">Receita</span>
               </label>
@@ -177,27 +177,27 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
                   value={TransactionType.EXPENSE}
                   checked={type === TransactionType.EXPENSE}
                   onChange={() => setType(TransactionType.EXPENSE)}
-                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)]"
                 />
                 <span className="ml-2 text-sm text-expense">Despesa</span>
               </label>
             </div>
           </div>
-          {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+          {error && <p className="text-sm text-[var(--destructive)] mt-2">{error}</p>}
         </form>
 
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
+        <div className="p-4 bg-[var(--surface)] border-t border-[var(--border)] flex justify-end space-x-3">
           <button
             onClick={onClose}
             type="button"
-            className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--card)] hover:bg-[var(--color-surface-hover)] border border-[var(--border)] transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             type="button"
-            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
           >
             Salvar Alterações
           </button>

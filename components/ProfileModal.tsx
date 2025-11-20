@@ -74,11 +74,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Editar Perfil</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+    <div className="fixed inset-0 bg-[var(--overlay)] z-50 flex justify-center items-center p-4">
+      <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="p-5 border-b border-[var(--border)] flex justify-between items-center">
+          <h2 className="text-xl font-bold text-[var(--color-text)]">Editar Perfil</h2>
+          <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
             <i className="fas fa-times"></i>
           </button>
         </div>
@@ -90,7 +90,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
                     <img 
                         src={editableProfile.photo}
                         alt="Foto do Perfil" 
-                        className="w-24 h-24 rounded-full object-cover ring-4 ring-indigo-300 dark:ring-indigo-700"
+                        className="w-24 h-24 rounded-full object-cover ring-4 ring-[var(--primary)]/30"
                     />
                      <input
                         type="file"
@@ -99,55 +99,55 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
                         className="hidden"
                         accept="image/png,image/jpeg,image/webp"
                     />
-                    <button onClick={handlePhotoUploadClick} className="absolute bottom-0 right-0 bg-indigo-500 text-white rounded-full h-8 w-8 flex items-center justify-center hover:bg-indigo-600 ring-2 ring-white dark:ring-gray-800" title="Alterar foto">
+                    <button onClick={handlePhotoUploadClick} className="absolute bottom-0 right-0 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-full h-8 w-8 flex items-center justify-center hover:bg-[var(--primary-hover)] ring-2 ring-[var(--primary-foreground)]" title="Alterar foto">
                        <i className="fas fa-camera text-sm"></i>
                     </button>
                 </div>
                 <div>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white">{editableProfile.name}</h3>
-                    <p className="text-gray-500 dark:text-gray-400">{editableProfile.title}</p>
+                    <h3 className="text-2xl font-bold text-[var(--color-text)]">{editableProfile.name}</h3>
+                    <p className="text-[var(--color-text-muted)]">{editableProfile.title}</p>
                 </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-500 dark:text-gray-400">Nome Completo</label>
-                    <input type="text" id="name" name="name" value={editableProfile.name} onChange={handleInputChange} className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                    <label htmlFor="name" className="block text-sm font-medium text-[var(--color-text-muted)]">Nome Completo</label>
+                    <input type="text" id="name" name="name" value={editableProfile.name} onChange={handleInputChange} className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"/>
                 </div>
                  <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-500 dark:text-gray-400">Posto/Graduação</label>
-                    <input type="text" id="title" name="title" value={editableProfile.title} onChange={handleInputChange} className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                    <label htmlFor="title" className="block text-sm font-medium text-[var(--color-text-muted)]">Posto/Graduação</label>
+                    <input type="text" id="title" name="title" value={editableProfile.title} onChange={handleInputChange} className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"/>
                 </div>
                 <div>
-                    <label htmlFor="dob" className="block text-sm font-medium text-gray-500 dark:text-gray-400">Data de Nascimento</label>
-                    <input type="date" id="dob" name="dob" value={editableProfile.dob} onChange={handleInputChange} className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                    <label htmlFor="dob" className="block text-sm font-medium text-[var(--color-text-muted)]">Data de Nascimento</label>
+                    <input type="date" id="dob" name="dob" value={editableProfile.dob} onChange={handleInputChange} className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"/>
                 </div>
                  <div>
-                    <label htmlFor="gender" className="block text-sm font-medium text-gray-500 dark:text-gray-400">Sexo</label>
-                    <select id="gender" name="gender" value={editableProfile.gender} onChange={handleInputChange} className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <label htmlFor="gender" className="block text-sm font-medium text-[var(--color-text-muted)]">Sexo</label>
+                    <select id="gender" name="gender" value={editableProfile.gender} onChange={handleInputChange} className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm">
                         <option>Masculino</option>
                         <option>Feminino</option>
                         <option>Outro</option>
                     </select>
                 </div>
                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">E-mail</label>
-                    <input type="email" value={editableProfile.email} readOnly className="mt-1 block w-full bg-gray-100 dark:bg-gray-900/50 border-gray-200 dark:border-gray-600 rounded-md p-2 text-sm text-gray-400 cursor-not-allowed"/>
+                    <label className="block text-sm font-medium text-[var(--color-text-muted)]">E-mail</label>
+                    <input type="email" value={editableProfile.email} readOnly className="mt-1 block w-full bg-[var(--surface)]/50 border-[var(--border)] rounded-md p-2 text-sm text-[var(--color-text-muted)] cursor-not-allowed"/>
                 </div>
             </div>
 
         </div>
         
-        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
+        <div className="p-4 bg-[var(--surface)]/50 border-t border-[var(--border)] flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--card)] hover:bg-[var(--surface)] border border-[var(--border)] transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-500 hover:bg-indigo-600 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
           >
             Salvar Alterações
           </button>

@@ -123,38 +123,38 @@ const PurchasingPowerCard: React.FC<PurchasingPowerCardProps> = ({ payslips }) =
   return (
     <>
       <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-white">Análise do Poder de Compra (vs IPCA)</h3>
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Análise do Poder de Compra (vs IPCA)</h3>
           {/* Botão de exportar gráfico removido */}
       </div>
-      <div className="flex flex-wrap items-end gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-4 text-sm">
+      <div className="flex flex-wrap items-end gap-4 p-4 bg-[var(--surface)] rounded-lg mb-4 text-sm">
           <div>
-              <label htmlFor="ref-date" className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Mês de Referência</label>
-              <input type="month" id="ref-date" value={referenceDate} onChange={e => setReferenceDate(e.target.value)} className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2 focus:outline-none focus:ring-indigo-500"/>
+              <label htmlFor="ref-date" className="block text-xs font-medium text-[var(--color-text-muted)] mb-1">Mês de Referência</label>
+              <input type="month" id="ref-date" value={referenceDate} onChange={e => setReferenceDate(e.target.value)} className="bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2 focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"/>
           </div>
           <div>
-              <label htmlFor="start-date-analysis" className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Início da Análise</label>
-              <input type="month" id="start-date-analysis" value={analysisStartDate} onChange={e => setAnalysisStartDate(e.target.value)} className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2 focus:outline-none focus:ring-indigo-500"/>
+              <label htmlFor="start-date-analysis" className="block text-xs font-medium text-[var(--color-text-muted)] mb-1">Início da Análise</label>
+              <input type="month" id="start-date-analysis" value={analysisStartDate} onChange={e => setAnalysisStartDate(e.target.value)} className="bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2 focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"/>
           </div>
           <div>
-              <label htmlFor="end-date-analysis" className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Fim da Análise</label>
-              <input type="month" id="end-date-analysis" value={analysisEndDate} onChange={e => setAnalysisEndDate(e.target.value)} className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md py-1 px-2 focus:outline-none focus:ring-indigo-500"/>
+              <label htmlFor="end-date-analysis" className="block text-xs font-medium text-[var(--color-text-muted)] mb-1">Fim da Análise</label>
+              <input type="month" id="end-date-analysis" value={analysisEndDate} onChange={e => setAnalysisEndDate(e.target.value)} className="bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2 focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"/>
           </div>
-          <button onClick={handleGeneratePurchasingPowerChart} disabled={isCalculating || !analysisStartDate || !analysisEndDate || !referenceDate} className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors w-36">
+          <button onClick={handleGeneratePurchasingPowerChart} disabled={isCalculating || !analysisStartDate || !analysisEndDate || !referenceDate} className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] disabled:bg-[color-mix(in oklab, var(--primary) 60%, transparent)] disabled:cursor-not-allowed transition-colors w-36">
             {isCalculating ? <i className="fas fa-spinner fa-spin"></i> : 'Gerar Gráfico'}
           </button>
       </div>
       
       <div className="mt-4 min-h-[24rem]">
-        {calculationError && <p className="text-red-500 text-center p-4">{calculationError}</p>}
+        {calculationError && <p className="text-[var(--destructive)] text-center p-4">{calculationError}</p>}
         {isCalculating && (
           <div className="flex flex-col items-center justify-center text-center h-full">
-            <i className="fas fa-chart-line text-4xl text-indigo-400 animate-pulse"></i>
-            <p className="mt-4 text-gray-600 dark:text-gray-300">Buscando dados do IPCA e calculando...</p>
+            <i className="fas fa-chart-line text-4xl text-[var(--primary)] animate-pulse"></i>
+            <p className="mt-4 text-[var(--color-text-muted)]">Buscando dados do IPCA e calculando...</p>
           </div>
         )}
         {purchasingPowerData && !isCalculating && <PurchasingPowerChart data={purchasingPowerData} />}
         {!purchasingPowerData && !isCalculating && !calculationError && (
-          <div className="flex flex-col items-center justify-center text-center h-full text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col items-center justify-center text-center h-full text-[var(--color-text-muted)]">
             <i className="fas fa-search-dollar text-4xl mb-4"></i>
             <p>Selecione o período e clique em "Gerar Gráfico" para ver sua análise de poder de compra.</p>
           </div>

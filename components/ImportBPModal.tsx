@@ -299,7 +299,7 @@ Texto OCR:\n\n${ocrText}`;
              <div className="flex justify-end">
                 <button
                     onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                    className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
                 >
                     Concluir Edição
                 </button>
@@ -309,14 +309,14 @@ Texto OCR:\n\n${ocrText}`;
                 <div className="flex items-center gap-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--secondary-foreground)] bg-[var(--secondary)] hover:bg-[var(--secondary-hover)] border border-[var(--border)] transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={() => setIsEditing(true)}
                         disabled={isLoading || error !== null || !extractedData}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--secondary-foreground)] bg-[var(--secondary)] hover:bg-[var(--secondary-hover)] border border-[var(--border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Editar
                     </button>
@@ -325,14 +325,14 @@ Texto OCR:\n\n${ocrText}`;
                      <button
                         onClick={() => handleConfirm(false)}
                         disabled={isLoading || error !== null || !extractedData}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-white bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--secondary-foreground)] bg-[var(--secondary)] hover:bg-[var(--secondary-hover)] disabled:bg-[var(--muted)] disabled:cursor-not-allowed transition-colors"
                     >
                         Confirmar e não lançar
                     </button>
                     <button
                         onClick={() => handleConfirm(true)}
                         disabled={isLoading || error !== null || !extractedData}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:bg-[var(--muted)] disabled:cursor-not-allowed transition-colors"
                     >
                         Confirmar e Lançar Transação
                     </button>

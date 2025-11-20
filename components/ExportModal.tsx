@@ -22,46 +22,46 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onExport }) 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
+      <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-md">
         <div className="p-6">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Exportar Lançamentos</h3>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <h3 className="text-lg font-bold text-[var(--color-text)]">Exportar Lançamentos</h3>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
             Selecione o período que deseja exportar para um arquivo CSV.
           </p>
           <div className="mt-4 flex flex-col sm:flex-row gap-4">
              <div>
-                <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Início</label>
+                <label htmlFor="start-date" className="block text-sm font-medium text-[var(--color-text-muted)]">Data de Início</label>
                 <input
                     type="date"
                     id="start-date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] sm:text-sm"
                 />
              </div>
              <div>
-                <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data Final</label>
+                <label htmlFor="end-date" className="block text-sm font-medium text-[var(--color-text-muted)]">Data Final</label>
                 <input
                     type="date"
                     id="end-date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] sm:text-sm"
                 />
              </div>
           </div>
         </div>
         
-        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-600 flex justify-end space-x-3">
+        <div className="p-4 bg-[var(--surface)] border-t border-[var(--border)] flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-300 dark:border-gray-500 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--card)] hover:bg-[var(--color-surface-hover)] border border-[var(--border)] transition-colors"
           >
             Cancelar
           </button>
            <button
             onClick={handleExportClick}
-            className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
           >
             Exportar
           </button>

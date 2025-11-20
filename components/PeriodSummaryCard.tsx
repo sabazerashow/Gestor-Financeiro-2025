@@ -6,13 +6,13 @@ interface PeriodSummaryCardProps {
   transactions: Transaction[];
 }
 
-const StatCard: React.FC<{ title: string; value: string; icon: string; colorClass?: string; helpText?: string }> = ({ title, value, icon, colorClass = 'text-gray-800 dark:text-white', helpText }) => (
-    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg flex flex-col justify-between transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform" title={helpText}>
-        <div className="flex items-center text-gray-500 dark:text-gray-400">
+const StatCard: React.FC<{ title: string; value: string; icon: string; colorClass?: string; helpText?: string }> = ({ title, value, icon, colorClass = 'text-[var(--color-text)]', helpText }) => (
+    <div className="bg-[var(--surface)] p-4 rounded-lg flex flex-col justify-between transition-all hover:shadow-md hover:-translate-y-0.5 will-change-transform overflow-hidden" title={helpText}>
+        <div className="flex items-center text-[var(--color-text-muted)] overflow-hidden">
             <i className={`fas ${icon} fa-fw mr-2`}></i>
-            <h3 className="text-sm font-medium">{title}</h3>
+            <h3 className="text-sm font-medium truncate">{title}</h3>
         </div>
-        <p className={`text-xl sm:text-2xl font-bold mt-1 ${colorClass} whitespace-nowrap tabular-nums`}>{value}</p>
+        <p className={`text-xl sm:text-2xl font-bold mt-1 ${colorClass} whitespace-nowrap tabular-nums truncate`}>{value}</p>
     </div>
 );
 
@@ -59,7 +59,7 @@ const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({ transactions }) =
 
   return (
     <div className="p-6 col-span-1 lg:col-span-2">
-        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Resumo do Período</h2>
+        <h2 className="text-xl font-bold mb-4 text-[var(--color-text)]">Resumo do Período</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <StatCard 
                 title="Receitas"
@@ -83,21 +83,21 @@ const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({ transactions }) =
                 title="Taxa de Poupança"
                 value={formatPercentage(summary.savingsRate)}
                 icon="fa-piggy-bank"
-                colorClass="text-indigo-500"
+                colorClass="text-[var(--primary)]"
                 helpText="Percentual da sua receita que foi economizado."
             />
             <StatCard 
                 title="Taxa de Gasto"
                 value={formatPercentage(summary.spendingRate)}
                 icon="fa-credit-card"
-                colorClass="text-orange-500"
+                colorClass="text-[var(--warning)]"
                 helpText="Percentual da sua receita que foi gasto."
             />
             <StatCard 
                 title="Gastos Comprometidos"
                 value={formatCurrency(summary.committedSpending)}
                 icon="fa-lock"
-                colorClass="text-yellow-600 dark:text-yellow-400"
+                colorClass="text-[var(--warning)]"
                 helpText="Soma de gastos à vista e o valor total de novas compras parceladas."
             />
         </div>

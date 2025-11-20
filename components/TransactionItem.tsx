@@ -10,7 +10,7 @@ interface TransactionItemProps {
 
 const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, onDelete }) => {
   const isIncome = transaction.type === TransactionType.INCOME;
-  const amountColor = isIncome ? 'text-income' : 'text-expense';
+  const amountColor = isIncome ? 'text-[var(--income)]' : 'text-[var(--expense)]';
   const borderColor = isIncome ? 'border-[var(--chart-2)]' : 'border-[var(--destructive)]';
 
   const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(transaction.amount);
@@ -76,7 +76,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
         </button>
         <button
           onClick={() => onDelete(transaction)}
-          className="text-[var(--color-text-muted)] hover:text-[var(--danger)] transition-colors"
+          className="text-[var(--color-text-muted)] hover:text-[var(--destructive)] transition-colors"
           aria-label={`Deletar transação ${transaction.description}`}
         >
           <i className="fas fa-trash-alt"></i>

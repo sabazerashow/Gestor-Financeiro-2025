@@ -102,7 +102,7 @@ const AddRecurringTransactionForm: React.FC<AddRecurringTransactionFormProps> = 
               onChange={(e) => setStartDate(e.target.value)}
             />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
           <Button type="submit" className="w-full">Agendar Débito</Button>
         </form>
       </CardContent>

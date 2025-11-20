@@ -20,13 +20,13 @@ const UpcomingPaymentItem: React.FC<{ bill: Bill; dueDate: Date; onPayBill: (des
 
   if (diffDays < 0) {
     dueDateText = `Vencido há ${Math.abs(diffDays)} dia(s)`;
-    textColor = 'text-red-500 font-bold';
+    textColor = 'text-[var(--destructive)] font-bold';
   } else if (diffDays === 0) {
     dueDateText = 'Vence hoje';
-    textColor = 'text-orange-500 font-bold';
+    textColor = 'text-[var(--warning)] font-bold';
   } else if (diffDays <= 3) {
     dueDateText = `Vence em ${diffDays} dia(s)`;
-    textColor = 'text-yellow-500';
+    textColor = 'text-[var(--warning-muted)]';
   } else {
     dueDateText = `Vence em ${diffDays} dia(s)`;
   }

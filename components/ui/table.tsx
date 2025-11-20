@@ -6,7 +6,7 @@ const Table = ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) 
 );
 
 const TableHeader = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
-  <thead className={cn('bg-gray-100 dark:bg-gray-700', className)} {...props} />
+  <thead className={cn('bg-muted', className)} {...props} />
 );
 
 const TableBody = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
@@ -14,15 +14,15 @@ const TableBody = ({ className, ...props }: React.HTMLAttributes<HTMLTableSectio
 );
 
 const TableRow = ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
-  <tr className={cn('border-b border-gray-200 dark:border-gray-700', className)} {...props} />
+  <tr className={cn('border-b border-border', className)} {...props} />
 );
 
 const TableHead = ({ className, ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
-  <th className={cn('px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300', className)} {...props} />
+  <th className={cn('px-4 py-2 text-sm font-medium text-foreground', className)} {...props} />
 );
 
 const TableCell = ({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
-  <td className={cn('px-4 py-2 text-sm text-gray-800 dark:text-gray-200', className)} {...props} />
+  <td className={cn('px-4 py-2 text-sm text-foreground', className)} {...props} />
 );
 
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };

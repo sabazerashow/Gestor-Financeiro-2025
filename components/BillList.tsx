@@ -11,9 +11,9 @@ const BillItem: React.FC<{ bill: Bill; onDelete: (id: string) => void }> = ({ bi
     <li className="flex items-center justify-between p-3 bg-[var(--surface)] rounded-lg transition-shadow hover:shadow-md">
       <div className="flex-grow min-w-0 flex items-center space-x-3">
         {bill.isAutoDebit ? (
-            <i className="fas fa-check-circle text-green-500" title="Em Débito Automático"></i>
+            <i className="fas fa-check-circle text-[var(--success)]" title="Em Débito Automático"></i>
         ) : (
-            <i className="fas fa-exclamation-circle text-yellow-500" title="Pagamento Manual"></i>
+            <i className="fas fa-exclamation-circle text-[var(--warning)]" title="Pagamento Manual"></i>
         )}
         <div>
             <p className="font-semibold text-[var(--color-text)] truncate">{bill.description}</p>

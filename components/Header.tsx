@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, activeTab, setActiveTa
             {accountName && (
               <button
                 onClick={() => (onOpenAccountSwitch ? onOpenAccountSwitch() : onOpenInvite())}
-                className="ml-3 px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-sm flex items-center"
+                className="ml-3 px-3 py-1 rounded-md bg-[var(--secondary)]/10 hover:bg-[var(--secondary)]/20 text-[var(--secondary-foreground)] text-sm flex items-center"
                 title="Selecionar conta"
               >
                 <i className="fas fa-building mr-2"></i>

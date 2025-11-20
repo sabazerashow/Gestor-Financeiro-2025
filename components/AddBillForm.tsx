@@ -112,8 +112,8 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
           </div>
 
           {isAutoDebit && (
-            <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Ao preencher, um lançamento recorrente será criado automaticamente.</p>
+            <div className="space-y-4 p-4 bg-[var(--surface)] rounded-lg border border-[var(--border)]">
+              <p className="text-xs text-[var(--color-text-muted)]">Ao preencher, um lançamento recorrente será criado automaticamente.</p>
               <div className="grid gap-2">
                 <Label htmlFor="bill-amount">Valor Fixo Mensal (R$)</Label>
                 <Input
@@ -153,7 +153,7 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
             </div>
           )}
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
           <Button type="submit" className="w-full">Salvar Conta</Button>
         </form>
       </CardContent>

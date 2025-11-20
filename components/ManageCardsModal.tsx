@@ -53,10 +53,10 @@ const ManageCardsModal: React.FC<ManageCardsModalProps> = ({ isOpen, onClose, al
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-start p-4 pt-20">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col transition-all duration-300">
-        <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Gerenciar e Ordenar Cartões</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+      <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col transition-all duration-300">
+        <div className="p-5 border-b border-[var(--border)] flex justify-between items-center">
+          <h2 className="text-xl font-bold text-[var(--color-text)]">Gerenciar e Ordenar Cartões</h2>
+          <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
             <i className="fas fa-times"></i>
           </button>
         </div>
@@ -74,26 +74,26 @@ const ManageCardsModal: React.FC<ManageCardsModalProps> = ({ isOpen, onClose, al
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, card.id)}
                     onDragEnd={handleDragEnd}
-                    className={`flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg transition-all ${isDragging ? 'opacity-40 border-2 border-dashed border-indigo-400' : 'border-2 border-transparent'}`}
+                    className={`flex items-center justify-between p-3 bg-[var(--surface)] rounded-lg transition-all ${isDragging ? 'opacity-40 border-2 border-dashed border-[var(--primary)]' : 'border-2 border-transparent'}`}
                 >
                   <div className="flex items-center space-x-4">
-                     <span className="cursor-move text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" title="Arraste para reordenar">
+                     <span className="cursor-move text-[var(--color-text-muted)] hover:text-[var(--color-text)]" title="Arraste para reordenar">
                         <i className="fas fa-grip-vertical"></i>
                     </span>
-                    <div className="text-xl text-indigo-500 w-6 text-center">
+                    <div className="text-xl text-[var(--primary)] w-6 text-center">
                         <i className={`fas ${card.icon}`}></i>
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-800 dark:text-gray-200">{card.title}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{card.description}</p>
+                      <p className="font-semibold text-[var(--color-text)]">{card.title}</p>
+                      <p className="text-sm text-[var(--color-text-muted)]">{card.description}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => onToggle(card.id)}
                     className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-colors w-32 ${
                       isVisible
-                        ? 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-[var(--surface)] text-[var(--color-text)] hover:bg-[color-mix(in oklab, var(--surface) 85%, black)] border border-[var(--border)]'
+                        : 'bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--color-primary-hover)]'
                     }`}
                   >
                     {isVisible ? (

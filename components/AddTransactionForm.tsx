@@ -167,11 +167,11 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
 
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform">
-      <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Adicionar Lançamento</h2>
+    <div className="bg-[var(--card)] p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform">
+      <h2 className="text-xl font-bold mb-4 text-[var(--color-text)]">Adicionar Lançamento</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
+          <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text)]">Descrição</label>
           <Input
             type="text"
             id="description"
@@ -183,7 +183,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="amount" className="block text-sm font-medium text-[var(--color-text)]">
                 Valor {isInstallment ? 'Total' : ''} (R$)
             </label>
             <Input
@@ -198,7 +198,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
             />
           </div>
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="date" className="block text-sm font-medium text-[var(--color-text)]">
                 Data {isInstallment ? 'da Compra' : ''}
             </label>
             <Input
@@ -213,7 +213,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-            <label htmlFor="category" className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="category" className="flex items-center text-sm font-medium text-[var(--color-text)]">
                 Categoria
                 {isSuggesting && <i className="fas fa-spinner fa-spin ml-2"></i>}
             </label>
@@ -221,7 +221,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                 id="category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
             >
                 <option value="" disabled>Selecione</option>
                 {currentCategoryList.map(cat => (
@@ -230,12 +230,12 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
             </select>
             </div>
             <div>
-                <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subcategoria</label>
+                <label htmlFor="subcategory" className="block text-sm font-medium text-[var(--color-text)]">Subcategoria</label>
                 <select
                     id="subcategory"
                     value={subcategory}
                     onChange={(e) => setSubcategory(e.target.value)}
-                    className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
                     disabled={!category}
                 >
                     <option value="" disabled>Selecione</option>
@@ -248,14 +248,14 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-            <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="paymentMethod" className="block text-sm font-medium text-[var(--color-text)]">
                 Método de Pagamento
             </label>
             <select
                 id="paymentMethod"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
             >
                 {Object.values(PaymentMethod).map(method => (
                 <option key={method} value={method}>{method}</option>
@@ -264,7 +264,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
             </div>
              {isInstallment && (
                 <div>
-                    <label htmlFor="installments" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nº de Parcelas</label>
+                    <label htmlFor="installments" className="block text-sm font-medium text-[var(--color-text)]">Nº de Parcelas</label>
                     <Input
                       type="number"
                       id="installments"
@@ -280,7 +280,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         
         <div className="flex justify-between items-center">
             <div>
-            <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</span>
+            <span className="block text-sm font-medium text-[var(--color-text)]">Tipo</span>
             <div className="mt-2 flex space-x-4">
                 <label className="flex items-center">
                 <input
@@ -314,9 +314,9 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                     type="checkbox"
                     checked={isInstallment}
                     onChange={(e) => setIsInstallment(e.target.checked)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)] rounded"
                     />
-                    <label htmlFor="is-installment" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                    <label htmlFor="is-installment" className="ml-2 block text-sm text-[var(--color-text)]">
                         É uma compra parcelada?
                     </label>
                 </div>
@@ -324,7 +324,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         </div>
 
         {error && <ErrorBanner message={error} onClose={() => setError('')} />}
-        <div className="flex flex-col space-y-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col space-y-2 pt-4 border-t border-[var(--border)]">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Adicionando...' : 'Adicionar'}
             </Button>

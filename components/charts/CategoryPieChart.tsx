@@ -36,7 +36,7 @@ const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data }) => {
             paddingAngle={2}
           >
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} stroke={isDarkMode ? '#1f2937' : '#ffffff'} strokeWidth={2} />
+              <Cell key={`cell-${index}`} fill={entry.color} stroke="var(--card)" strokeWidth={2} />
             ))}
           </Pie>
           <Tooltip

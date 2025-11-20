@@ -9,9 +9,9 @@ interface AnnualAnalysisCardProps {
   transactions: Transaction[];
 }
 
-const StatCard: React.FC<{ title: string; value: string; colorClass?: string }> = ({ title, value, colorClass = 'text-gray-800 dark:text-white' }) => (
-    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg text-center">
-        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{title}</p>
+const StatCard: React.FC<{ title: string; value: string; colorClass?: string }> = ({ title, value, colorClass = 'text-[var(--color-text)]' }) => (
+    <div className="bg-[var(--surface)] p-3 rounded-lg text-center">
+        <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{title}</p>
         <p className={`text-xl font-bold ${colorClass}`}>{value}</p>
     </div>
 );
@@ -54,15 +54,15 @@ const AnnualAnalysisCard: React.FC<AnnualAnalysisCardProps> = ({ payslips, trans
   return (
     <>
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-white">Análise Anual</h3>
+        <h3 className="text-lg font-bold text-[var(--color-text)]">Análise Anual</h3>
           {availableYears.length > 0 && (
             <div className="flex items-center gap-2">
-                <label htmlFor="year-select" className="text-sm font-medium text-gray-600 dark:text-gray-300">Ano:</label>
+                <label htmlFor="year-select" className="text-sm font-medium text-[var(--color-text-muted)]">Ano:</label>
                 <select
                     id="year-select"
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(Number(e.target.value))}
-                    className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-1 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-1 px-3 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] sm:text-sm"
                 >
                     {availableYears.map(year => (
                         <option key={year} value={year}>{year}</option>
@@ -76,31 +76,31 @@ const AnnualAnalysisCard: React.FC<AnnualAnalysisCardProps> = ({ payslips, trans
         <div className="space-y-8">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <StatCard title="Total Bruto" value={formatCurrency(yearSummary.totalGross)} colorClass="text-income" />
-            <StatCard title="Total Descontos" value={formatCurrency(yearSummary.totalDeductions)} colorClass="text-expense" />
-            <StatCard title="Média Líquida Mensal" value={formatCurrency(yearSummary.averageNet)} colorClass="text-primary" />
+            <StatCard title="Total Bruto" value={formatCurrency(yearSummary.totalGross)} colorClass="text-[var(--income)]" />
+            <StatCard title="Total Descontos" value={formatCurrency(yearSummary.totalDeductions)} colorClass="text-[var(--expense)]" />
+            <StatCard title="Média Líquida Mensal" value={formatCurrency(yearSummary.averageNet)} colorClass="text-[var(--primary)]" />
           </div>
 
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
               <div className="lg:col-span-2">
-                  <h4 className="text-md font-semibold text-center text-gray-700 dark:text-gray-300 mb-2">Rendimentos vs Descontos (Ano)</h4>
+                  <h4 className="text-md font-semibold text-center text-[var(--color-text-muted)] mb-2">Rendimentos vs Descontos (Ano)</h4>
                   <IncomeVsDeductionsChart gross={yearSummary.totalGross} deductions={yearSummary.totalDeductions} />
               </div>
               <div className="lg:col-span-3">
-                  <h4 className="text-md font-semibold text-center text-gray-700 dark:text-gray-300 mb-2">Evolução Salário Líquido</h4>
+                  <h4 className="text-md font-semibold text-center text-[var(--color-text-muted)] mb-2">Evolução Salário Líquido</h4>
                   <NetSalaryChart payslips={filteredPayslips} />
               </div>
           </div>
 
           {/* Committed Spending Section */}
           <div>
-            <h4 className="text-md font-semibold text-gray-700 dark:text-gray-300 mb-4">Análise de Gastos Comprometidos</h4>
+            <h4 className="text-md font-semibold text-[var(--color-text-muted)] mb-4">Análise de Gastos Comprometidos</h4>
             <CommittedSpending transactions={transactions} payslips={filteredPayslips} year={selectedYear} />
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-12 text-[var(--color-text-muted)]">
           <i className="fas fa-calendar-times text-4xl mb-3"></i>
           <p>Nenhum dado de contracheque encontrado para o ano de {selectedYear}.</p>
         </div>
