@@ -35,6 +35,7 @@ import { generateContent, generateGLMContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
 import supabase, { isSupabaseEnabled, isAuthActive, isAuthDisabled } from '@/lib/supabase';
 import db, { getSession, signOut, ensureDefaultAccount, purgeAccountData } from '@/lib/db';
+import IntelligentAnalysisCards from './components/IntelligentAnalysisCards';
 
 
 // Define the shape of a dashboard card configuration
@@ -257,6 +258,13 @@ const defaultProfile = {
   
   const allDashboardCards: DashboardCardConfig[] = useMemo(() => [
      {
+      id: 'aiInsightsCards',
+      title: 'Análises Inteligentes (Cards)',
+      description: 'Insights curtos gerados pela IA em formato de cartões.',
+      icon: 'fa-wand-magic-sparkles',
+      component: IntelligentAnalysisCards,
+    },
+     {
       id: 'financialInsights',
       title: 'Análise Inteligente',
       description: 'Receba insights gerados por IA sobre seus padrões de gastos.',
@@ -317,6 +325,7 @@ const defaultProfile = {
     }
     // Default visibility
     return {
+        aiInsightsCards: true,
         financialInsights: true,
         periodSummary: true,
         expenseBreakdown: true,

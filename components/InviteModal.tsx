@@ -49,6 +49,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, accountId })
       await createInvite(accountId, email, role);
       setEmail('');
       await refresh();
+      alert('Convite enviado com sucesso!');
     } catch (e: any) {
       setError(e?.message || 'Falha ao criar convite');
     } finally {
@@ -70,99 +71,147 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, accountId })
   };
 
   return (
-    <div className="fixed inset-0 bg-[var(--background)]/60 z-50 flex justify-center items-center p-4">
-      <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-2xl">
-        <div className="p-6">
-          <div className="flex items-center mb-4">
-            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-[var(--surface)] mr-3">
-              <i className="fas fa-users text-[var(--primary)]"></i>
+    <div className="fixed inset-0 bg-[var(--overlay)] z-[60] flex justify-center items-center p-4 backdrop-blur-sm">
+      <div className="bg-[var(--card)] rounded-2xl shadow-2xl w-full max-w-2xl border border-[var(--border)] overflow-hidden">
+        <div className="p-6 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface)]">
+          <div className="flex items-center">
+            <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] mr-4 shadow-lg shadow-[var(--primary)]/20">
+              <i className="fas fa-user-plus text-lg"></i>
             </div>
-            <h3 className="text-lg font-bold text-[var(--color-text)]">Gerenciar Membros</h3>
+            <div>
+              <h3 className="text-xl font-bold text-[var(--color-text)]">Compartilhar Conta</h3>
+              <p className="text-xs text-[var(--color-text-muted)]">Convide seu parceiro(a) para gerenciar as finanças juntos.</p>
+            </div>
           </div>
+          <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors">
+            <i className="fas fa-times text-xl"></i>
+          </button>
+        </div>
 
+        <div className="p-8">
           {!accountId && (
-            <div className="mb-3 text-sm text-[var(--warning-foreground)] bg-[var(--warning)]/20 p-2 rounded">
-              Autentique-se para habilitar convites e membros.
+            <div className="mb-6 p-4 rounded-xl bg-[var(--warning)]/10 text-[var(--warning-foreground)] border border-[var(--warning)]/20 flex items-start gap-3">
+              <i className="fas fa-exclamation-triangle mt-1"></i>
+              <p className="text-sm font-medium">Você precisa estar autenticado para habilitar o compartilhamento de conta.</p>
             </div>
           )}
+
           {error && (
-            <div className="mb-3 text-sm text-[var(--danger-foreground)] bg-[var(--danger)]/20 p-2 rounded">
-              {error}
+            <div className="mb-6 p-4 rounded-xl bg-[var(--danger)]/10 text-[var(--danger-foreground)] border border-[var(--danger)]/20 flex items-start gap-3">
+              <i className="fas fa-times-circle mt-1"></i>
+              <p className="text-sm font-medium">{error}</p>
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-[var(--color-text)] mb-2">Convidar Usuário</h4>
-              <div className="space-y-3">
-                <input
-                  type="email"
-                  placeholder="email@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-2 px-3 text-sm"
-                />
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-2 px-3 text-sm"
-                >
-                  <option value="member">Membro</option>
-                  <option value="admin">Admin</option>
-                  <option value="viewer">Leitor</option>
-                </select>
-                <button
-                  disabled={!accountId || loading || !email}
-                  onClick={handleInvite}
-                  className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
-                >
-                  Enviar Convite
-                </button>
+          <div className="grid md:grid-cols-2 gap-10">
+            <div className="space-y-6">
+              <div>
+                <h4 className="flex items-center text-sm font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
+                  <i className="fas fa-envelope-open-text mr-2 text-[var(--primary)]"></i> Novo Convite
+                </h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5 opacity-70">E-mail da pessoa</label>
+                    <input
+                      type="email"
+                      placeholder="ex: geovanna@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all shadow-inner"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5 opacity-70">Nível de Acesso</label>
+                    <select
+                      value={role}
+                      onChange={(e) => setRole(e.target.value as any)}
+                      className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-[var(--primary)] outline-none transition-all shadow-inner appearance-none cursor-pointer"
+                    >
+                      <option value="member">Membro (Editor)</option>
+                      <option value="admin">Administrador (Total)</option>
+                      <option value="viewer">Leitor (Apenas Visualização)</option>
+                    </select>
+                  </div>
+                  <button
+                    disabled={!accountId || loading || !email}
+                    onClick={handleInvite}
+                    className="w-full px-5 py-3 text-sm font-bold rounded-xl text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 active:scale-[0.98] transition-all shadow-lg shadow-[var(--primary)]/20 flex items-center justify-center gap-2"
+                  >
+                    {loading ? <i className="fas fa-spinner animate-spin"></i> : <i className="fas fa-paper-plane"></i>}
+                    Enviar Convite
+                  </button>
+                </div>
               </div>
 
-              <h4 className="font-semibold text-[var(--color-text)] mt-6 mb-2">Convites Pendentes</h4>
-              <div className="space-y-2 max-h-48 overflow-auto">
-                {invites.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-muted)]">Nenhum convite pendente.</p>
-                ) : invites.map(inv => (
-                  <div key={inv.id} className="flex items-center justify-between bg-[var(--surface)] rounded-md px-3 py-2">
-                    <div className="text-sm">
-                      <div className="font-medium text-[var(--color-text)]">{inv.email}</div>
-                      <div className="text-[var(--color-text-muted)]">{inv.role}</div>
+              <div>
+                <h4 className="flex items-center text-sm font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
+                  <i className="fas fa-hourglass-half mr-2 text-orange-500"></i> Pendentes
+                </h4>
+                <div className="space-y-2 max-h-40 overflow-auto pr-2 custom-scrollbar">
+                  {invites.length === 0 ? (
+                    <div className="text-center py-6 bg-[var(--surface)] rounded-xl border border-dashed border-[var(--border)]">
+                      <p className="text-xs text-[var(--color-text-muted)] italic">Nenhum convite em aberto.</p>
                     </div>
-                    <button
-                      className="text-[var(--danger)] text-sm hover:underline"
-                      onClick={() => handleRevoke(inv.id)}
-                    >
-                      Revogar
-                    </button>
-                  </div>
-                ))}
+                  ) : invites.map(inv => (
+                    <div key={inv.id} className="flex items-center justify-between bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3 hover:shadow-md transition-all group">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-[var(--color-text)] truncate max-w-[150px]">{inv.email}</span>
+                        <span className="text-[10px] uppercase font-black text-[var(--color-text-muted)] tracking-tighter">{inv.role}</span>
+                      </div>
+                      <button
+                        className="p-2 text-[var(--destructive)] hover:bg-[var(--destructive)]/10 rounded-lg transition-all"
+                        onClick={() => handleRevoke(inv.id)}
+                        title="Revogar convite"
+                      >
+                        <i className="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div>
-              <h4 className="font-semibold text-[var(--color-text)] mb-2">Membros</h4>
-              <div className="space-y-2 max-h-64 overflow-auto">
+              <h4 className="flex items-center text-sm font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-4">
+                <i className="fas fa-users-cog mr-2 text-[var(--primary)]"></i> Membros Ativos
+              </h4>
+              <div className="space-y-3 max-h-[400px] overflow-auto pr-2 custom-scrollbar">
                 {members.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-muted)]">Nenhum membro.</p>
+                  <p className="text-sm text-[var(--color-text-muted)]">Nenhum membro ativo.</p>
                 ) : members.map(m => (
-                  <div key={m.id} className="bg-[var(--surface)] rounded-md px-3 py-2">
-                    <div className="text-sm font-medium text-[var(--color-text)]">{m.user_id}</div>
-                    <div className="text-[var(--color-text-muted)]">{m.role}</div>
+                  <div key={m.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl px-5 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
+                        {m.user_id.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-[var(--color-text)] truncate max-w-[120px]">{m.user_id}</div>
+                        <div className="text-[10px] uppercase font-black text-[var(--primary)] tracking-widest">{m.role}</div>
+                      </div>
+                    </div>
+                    {m.role === 'owner' && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] font-bold">Dono</span>
+                    )}
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-8 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                <p className="text-[11px] text-blue-500/80 leading-relaxed italic">
+                  <i className="fas fa-info-circle mr-1"></i>
+                  Para que outra pessoa veja seus dados, ela deve criar uma conta com o e-mail convidado e aceitar o vínculo.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-[var(--surface)] border-t border-[var(--border)] flex justify-end">
+        <div className="p-5 bg-[var(--surface)] border-t border-[var(--border)] flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] transition-colors"
+            className="px-6 py-2.5 text-sm font-bold rounded-xl text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] shadow-lg shadow-[var(--primary)]/10 transition-all active:scale-[0.95]"
           >
-            Fechar
+            Concluído
           </button>
         </div>
       </div>

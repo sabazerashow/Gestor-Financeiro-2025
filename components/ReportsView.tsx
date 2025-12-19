@@ -180,6 +180,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
             allCards={allDashboardCards}
             cardVisibility={cardVisibility}
             componentProps={{
+                aiInsightsCards: { transactions: analysisTransactions },
                 financialInsights: { transactions: analysisTransactions },
                 periodSummary: { transactions: analysisTransactions },
                 expenseBreakdown: { data: expenseData, title: 'Despesas por Categoria' },

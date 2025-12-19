@@ -21,6 +21,22 @@ export async function signInWithEmailLink(email: string) {
   });
 }
 
+export async function signUpWithEmail(email: string, password: string) {
+  return withSupabase(async () => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;
+  });
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  return withSupabase(async () => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  });
+}
+
 export async function signOut() {
   return withSupabase(async () => {
     const { error } = await supabase.auth.signOut();
@@ -57,16 +73,16 @@ export async function signInWithGithub() {
 // Accounts helpers (workspaces)
 export async function ensureDefaultAccount(userId: string): Promise<{ accountId: string; name: string }> {
   return withSupabase(async () => {
-    // Tenta encontrar uma conta já vinculada ao usuário
+    // 1. Verifica se já existe um vínculo de membro
     const { data: memberships, error: memErr } = await supabase
       .from('account_members')
       .select('account_id, role')
       .eq('user_id', userId)
       .limit(1);
     if (memErr) throw memErr;
+
     if (memberships && memberships.length > 0) {
       const accountId = memberships[0].account_id as string;
-      // Busca nome da conta
       const { data: acc, error: accErr } = await supabase
         .from('accounts')
         .select('id, name')
@@ -76,7 +92,39 @@ export async function ensureDefaultAccount(userId: string): Promise<{ accountId:
       return { accountId: acc.id as string, name: (acc as any).name as string };
     }
 
-    // Caso não exista, cria uma conta pessoal e vincula como owner
+    // 2. Se não for membro, verifica se tem um convite pendente pelo e-mail
+    const { data: user } = await supabase.auth.getUser();
+    const userEmail = user?.user?.email;
+
+    if (userEmail) {
+      const { data: invite, error: inviteErr } = await supabase
+        .from('pending_invites')
+        .select('account_id, role, id')
+        .eq('email', userEmail)
+        .limit(1)
+        .maybeSingle();
+
+      if (!inviteErr && invite) {
+        // Aceita o convite: cria o vínculo e remove o convite
+        const { error: linkErr } = await supabase
+          .from('account_members')
+          .insert({ account_id: invite.account_id, user_id: userId, role: invite.role });
+
+        if (!linkErr) {
+          await supabase.from('pending_invites').delete().eq('id', invite.id);
+
+          const { data: acc } = await supabase
+            .from('accounts')
+            .select('id, name')
+            .eq('id', invite.account_id)
+            .single();
+
+          return { accountId: invite.account_id, name: (acc as any).name || 'Conta Compartilhada' };
+        }
+      }
+    }
+
+    // 3. Caso não exista vínculo nem convite, cria uma conta pessoal
     const { data: createdAcc, error: createErr } = await supabase
       .from('accounts')
       .insert({ name: 'Meu Financeiro', type: 'personal', created_by: userId })

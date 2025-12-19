@@ -114,3 +114,19 @@ export interface Payslip {
   grossTotal: number;
   deductionsTotal: number;
 }
+
+export interface Account {
+  id: string;
+  name: string;
+  type: 'personal' | 'couple';
+  created_at?: string;
+  created_by?: string;
+}
+
+export interface AccountMember {
+  id: string;
+  account_id: string;
+  user_id: string;
+  role: 'owner' | 'member' | 'viewer';
+  created_at?: string;
+}
