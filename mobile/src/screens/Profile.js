@@ -1,22 +1,72 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { User, LogOut, Share2, Shield, ChevronRight } from 'lucide-react-native';
+import InviteModal from '../components/InviteModal';
+import EditProfileModal from '../components/EditProfileModal';
+import { db } from '../lib/db';
 
-export default function Profile({ session, accountName }) {
+export default function Profile({ session, accountName, accountId }) {
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [profile, setProfile] = useState(null);
+
+    const fetchProfile = async () => {
+        if (!session?.user?.id) return;
+        try {
+            const data = await db.fetchProfile(session.user.id);
+            setProfile(data);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    useEffect(() => {
+        fetchProfile();
+    }, [session?.user?.id]);
+
     const handleSignOut = async () => {
         const { error } = await supabase.auth.signOut();
         if (error) Alert.alert('Erro', error.message);
     };
 
+    const handleSecurity = () => {
+        Alert.alert(
+            "Segurança",
+            "Deseja receber um e-mail para redefinir sua senha?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                {
+                    text: "Enviar E-mail",
+                    onPress: async () => {
+                        const { error } = await supabase.auth.resetPasswordForEmail(session?.user?.email);
+                        if (error) Alert.alert("Erro", error.message);
+                        else Alert.alert("Sucesso", "Link de redefinição enviado!");
+                    }
+                }
+            ]
+        );
+    };
+
+    const userName = profile?.full_name || session?.user?.email?.split('@')[0];
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{session?.user?.email?.substring(0, 2).toUpperCase()}</Text>
+                    <Text style={styles.avatarText}>{userName.substring(0, 1).toUpperCase()}</Text>
                 </View>
-                <Text style={styles.email}>{session?.user?.email}</Text>
+                <Text style={styles.email}>{userName}</Text>
+                {profile?.rank && <Text style={styles.rankText}>{profile.rank}</Text>}
+                <Text style={styles.subEmail}>{session?.user?.email}</Text>
+
+                {profile?.birth_date && (
+                    <View style={styles.infoRow}>
+                        <Calendar size={12} color="#666" />
+                        <Text style={styles.infoText}>{new Date(profile.birth_date).toLocaleDateString('pt-BR')}</Text>
+                    </View>
+                )}
+
                 <View style={styles.badge}>
                     <Text style={styles.badgeText}>{accountName || 'Conta Pessoal'}</Text>
                 </View>
@@ -25,7 +75,7 @@ export default function Profile({ session, accountName }) {
             <View style={styles.menu}>
                 <Text style={styles.menuLabel}>Configurações</Text>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => setIsEditOpen(true)}>
                     <View style={[styles.iconBox, { backgroundColor: '#e8f0fe' }]}>
                         <User size={20} color="#1a73e8" />
                     </View>
@@ -33,7 +83,7 @@ export default function Profile({ session, accountName }) {
                     <ChevronRight size={20} color="#ccc" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => setIsInviteOpen(true)}>
                     <View style={[styles.iconBox, { backgroundColor: '#e6f4ea' }]}>
                         <Share2 size={20} color="#1e8e3e" />
                     </View>
@@ -41,7 +91,7 @@ export default function Profile({ session, accountName }) {
                     <ChevronRight size={20} color="#ccc" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={handleSecurity}>
                     <View style={[styles.iconBox, { backgroundColor: '#fef7e0' }]}>
                         <Shield size={20} color="#f9ab00" />
                     </View>
@@ -56,6 +106,20 @@ export default function Profile({ session, accountName }) {
                     <Text style={styles.signOutText}>Sair da Conta</Text>
                 </TouchableOpacity>
             </View>
+
+            <InviteModal
+                isOpen={isInviteOpen}
+                onClose={() => setIsInviteOpen(false)}
+                accountId={accountId}
+            />
+
+            <EditProfileModal
+                isOpen={isEditOpen}
+                onClose={() => setIsEditOpen(false)}
+                userId={session?.user?.id}
+                initialName={profile?.full_name}
+                onUpdated={fetchProfile}
+            />
 
             <Text style={styles.version}>Versão 1.0.0 (Paridade Web)</Text>
         </View>
@@ -97,6 +161,26 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#1a1a1a',
+    },
+    rankText: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 2,
+    },
+    subEmail: {
+        fontSize: 12,
+        color: '#999',
+        marginTop: 2,
+    },
+    infoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 8,
+    },
+    infoText: {
+        fontSize: 12,
+        color: '#666',
     },
     badge: {
         marginTop: 8,

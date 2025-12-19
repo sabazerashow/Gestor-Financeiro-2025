@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, RefreshControl, TouchableOpacity, Platform } from 'react-native';
 import { db } from '../lib/db';
-import { TrendingUp, TrendingDown, Bell, ChevronRight, Wallet } from 'lucide-react-native';
+import { TrendingUp, TrendingDown, Bell, ChevronRight, Wallet, Plus, Minus } from 'lucide-react-native';
+import AddTransactionModal from '../components/AddTransactionModal';
 
 export default function Dashboard({ accountId }) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ transactions: [], bills: [] });
     const [refreshing, setRefreshing] = useState(false);
+    const [modalType, setModalType] = useState(null); // 'income' or 'expense'
 
     const fetchData = async () => {
         if (!accountId) return;
@@ -34,7 +36,6 @@ export default function Dashboard({ accountId }) {
         fetchData();
     };
 
-    // Lógica de Lembretes (Reminders) - Igual ao PC
     const upcomingReminders = (() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -57,7 +58,7 @@ export default function Dashboard({ accountId }) {
             })
             .filter(({ dueDate }) => {
                 const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-                return diffDays <= 15; // Próximos 15 dias
+                return diffDays <= 15;
             })
             .sort((a, b) => a.dueDate - b.dueDate);
     })();
@@ -73,77 +74,103 @@ export default function Dashboard({ accountId }) {
     const balance = totalIncome - totalExpense;
 
     return (
-        <ScrollView
-            style={styles.container}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-            <View style={styles.header}>
-                <Text style={styles.title}>Visão Geral</Text>
-                <Text style={styles.subtitle}>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
-            </View>
-
-            <View style={styles.balanceCard}>
-                <View style={styles.balanceHeader}>
-                    <Text style={styles.balanceLabel}>Saldo Disponível</Text>
-                    <Wallet size={20} color="rgba(255,255,255,0.4)" />
+        <View style={{ flex: 1 }}>
+            <ScrollView
+                style={styles.container}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            >
+                <View style={styles.header}>
+                    <Text style={styles.title}>Visão Geral</Text>
+                    <Text style={styles.subtitle}>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
                 </View>
-                <Text style={styles.balanceValue}>R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
 
-                <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                        <TrendingUp size={16} color="#4ade80" />
-                        <Text style={styles.statText}>+ R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                <View style={styles.balanceCard}>
+                    <View style={styles.balanceHeader}>
+                        <Text style={styles.balanceLabel}>Saldo Disponível</Text>
+                        <Wallet size={20} color="rgba(255,255,255,0.4)" />
                     </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <TrendingDown size={16} color="#f87171" />
-                        <Text style={styles.statText}>- R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                    <Text style={styles.balanceValue}>R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+
+                    <View style={styles.statsRow}>
+                        <View style={styles.statItem}>
+                            <TrendingUp size={16} color="#4ade80" />
+                            <Text style={styles.statText}>+ R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                        </View>
+                        <View style={styles.statDivider} />
+                        <View style={styles.statItem}>
+                            <TrendingDown size={16} color="#f87171" />
+                            <Text style={styles.statText}>- R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            {/* Lembretes de Pagamento */}
-            <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Lembretes</Text>
-                    {upcomingReminders.length > 0 && <View style={styles.alertBadge} />}
+                {/* Botões de Ação Rápida */}
+                <View style={styles.actionRow}>
+                    <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: '#e6f4ea' }]}
+                        onPress={() => setModalType('income')}
+                    >
+                        <Plus size={20} color="#1e8e3e" />
+                        <Text style={[styles.actionBtnText, { color: '#1e8e3e' }]}>Receita</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.actionBtn, { backgroundColor: '#fce8e6' }]}
+                        onPress={() => setModalType('expense')}
+                    >
+                        <Minus size={20} color="#d93025" />
+                        <Text style={[styles.actionBtnText, { color: '#d93025' }]}>Despesa</Text>
+                    </TouchableOpacity>
                 </View>
 
-                {upcomingReminders.map(({ bill, dueDate }, idx) => {
-                    const diffDays = Math.ceil((dueDate - new Date().setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
-                    const isOverdue = diffDays < 0;
-                    return (
-                        <TouchableOpacity key={bill.id || idx} style={styles.reminderCard}>
-                            <View style={[styles.reminderIcon, isOverdue && { backgroundColor: '#fce8e6' }]}>
-                                <Bell size={20} color={isOverdue ? '#d93025' : '#1a73e8'} />
-                            </View>
-                            <View style={styles.reminderInfo}>
-                                <Text style={styles.reminderName}>{bill.name || bill.description}</Text>
-                                <Text style={[styles.reminderDue, isOverdue && { color: '#d93025', fontWeight: 'bold' }]}>
-                                    {isOverdue ? `Atrasado ${Math.abs(diffDays)}d` : `Vence em ${diffDays} dias`}
-                                </Text>
-                            </View>
-                            <ChevronRight size={18} color="#ccc" />
-                        </TouchableOpacity>
-                    );
-                })}
-                {upcomingReminders.length === 0 && (
-                    <Text style={styles.emptyText}>Tudo em dia por enquanto!</Text>
-                )}
-            </View>
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Lembretes de Pagamento</Text>
+                        {upcomingReminders.length > 0 && <View style={styles.alertBadge} />}
+                    </View>
 
-            {/* Próximos Pagamentos de BP ou Insights Rápidos podem entrar aqui */}
-            <View style={[styles.section, { marginBottom: 40 }]}>
-                <Text style={styles.sectionTitle}>Análise Rápida</Text>
-                <View style={styles.insightCard}>
-                    <Text style={styles.insightText}>
-                        {balance > 0
-                            ? "Seu saldo está positivo. Que tal planejar um investimento?"
-                            : "Atenção: Suas despesas superaram as receitas este mês."}
-                    </Text>
+                    {upcomingReminders.map(({ bill, dueDate }, idx) => {
+                        const diffDays = Math.ceil((dueDate - new Date().setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
+                        const isOverdue = diffDays < 0;
+                        return (
+                            <TouchableOpacity key={bill.id || idx} style={styles.reminderCard}>
+                                <View style={[styles.reminderIcon, isOverdue && { backgroundColor: '#fce8e6' }]}>
+                                    <Bell size={20} color={isOverdue ? '#d93025' : '#1a73e8'} />
+                                </View>
+                                <View style={styles.reminderInfo}>
+                                    <Text style={styles.reminderName}>{bill.name || bill.description}</Text>
+                                    <Text style={[styles.reminderDue, isOverdue && { color: '#d93025', fontWeight: 'bold' }]}>
+                                        {isOverdue ? `Atrasado ${Math.abs(diffDays)}d` : `Vence em ${diffDays} dias`}
+                                    </Text>
+                                </View>
+                                <ChevronRight size={18} color="#ccc" />
+                            </TouchableOpacity>
+                        );
+                    })}
+                    {upcomingReminders.length === 0 && (
+                        <Text style={styles.emptyText}>Tudo em dia por enquanto!</Text>
+                    )}
                 </View>
-            </View>
-        </ScrollView>
+
+                <View style={[styles.section, { marginBottom: 40 }]}>
+                    <Text style={styles.sectionTitle}>Análise Rápida</Text>
+                    <View style={styles.insightCard}>
+                        <Text style={styles.insightText}>
+                            {balance > 0
+                                ? "Seu saldo está positivo. Que tal planejar um investimento?"
+                                : "Atenção: Suas despesas superaram as receitas este mês."}
+                        </Text>
+                    </View>
+                </View>
+            </ScrollView>
+
+            <AddTransactionModal
+                isOpen={!!modalType}
+                onClose={() => setModalType(null)}
+                accountId={accountId}
+                initialType={modalType}
+                onAdded={fetchData}
+            />
+        </View>
     );
 }
 
@@ -215,6 +242,25 @@ const styles = StyleSheet.create({
         height: 20,
         backgroundColor: 'rgba(255,255,255,0.1)',
         marginHorizontal: 16,
+    },
+    actionRow: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        gap: 16,
+        marginTop: 8,
+    },
+    actionBtn: {
+        flex: 1,
+        height: 54,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+    },
+    actionBtnText: {
+        fontSize: 15,
+        fontWeight: 'bold',
     },
     section: {
         paddingHorizontal: 24,

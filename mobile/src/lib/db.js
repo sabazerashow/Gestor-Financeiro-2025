@@ -45,6 +45,19 @@ export const db = {
             .insert({ ...transaction, account_id: accountId })
             .select()
             .single();
+        if (error) {
+            console.error('Supabase Insert Error:', error);
+            throw error;
+        }
+        return data;
+    },
+
+    addBill: async (accountId, bill) => {
+        const { data, error } = await supabase
+            .from('bills')
+            .insert({ ...bill, account_id: accountId })
+            .select()
+            .single();
         if (error) throw error;
         return data;
     },
@@ -102,5 +115,25 @@ export const db = {
             .insert({ account_id: createdAcc.id, user_id: userId, role: 'owner' });
 
         return { accountId: createdAcc.id, name: createdAcc.name };
+    },
+
+    fetchProfile: async (userId) => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .maybeSingle();
+        if (error) throw error;
+        return data;
+    },
+
+    updateProfile: async (userId, updates) => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .upsert({ id: userId, ...updates })
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
     }
 };

@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { db } from '../lib/db';
 import { CreditCard, Plus, CheckCircle2, Circle, Calendar, ArrowRight } from 'lucide-react-native';
+import AddBillModal from '../components/AddBillModal';
 
 export default function Bills({ accountId }) {
     const [loading, setLoading] = useState(true);
     const [bills, setBills] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchData = async () => {
         if (!accountId) return;
@@ -60,7 +62,7 @@ export default function Bills({ accountId }) {
             </View>
 
             <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.addBtn}>
+                <TouchableOpacity style={styles.addBtn} onPress={() => setIsModalOpen(true)}>
                     <Plus size={20} color="#fff" />
                     <Text style={styles.addBtnText}>Nova Conta</Text>
                 </TouchableOpacity>
@@ -81,7 +83,7 @@ export default function Bills({ accountId }) {
                             <Text style={styles.billName}>{bill.name || bill.description}</Text>
                             <View style={styles.billMeta}>
                                 <Calendar size={12} color="#666" />
-                                <Text style={styles.billDue}>Todo dia {bill.dueDay || '10'}</Text>
+                                <Text style={styles.billDue}>Todo dia {bill.due_day || bill.dueDay || '10'}</Text>
                             </View>
                         </View>
                         <View style={styles.billAction}>
@@ -102,6 +104,13 @@ export default function Bills({ accountId }) {
                     Toque em uma conta para registrar o pagamento deste mês.
                 </Text>
             </View>
+
+            <AddBillModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                accountId={accountId}
+                onAdded={fetchData}
+            />
         </ScrollView>
     );
 }

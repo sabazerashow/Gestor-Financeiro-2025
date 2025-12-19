@@ -2,10 +2,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
-import { LayoutDashboard, Zap, CreditCard, FileChartLine, UserCircle } from 'lucide-react-native';
+import { LayoutDashboard, ReceiptText, CreditCard, FileChartLine, UserCircle } from 'lucide-react-native';
 
 import Dashboard from '../screens/Dashboard';
-import QuickAdd from '../screens/QuickAdd';
+import Transactions from '../screens/Transactions';
 import Bills from '../screens/Bills';
 import BPAnalysis from '../screens/BPAnalysis';
 import Profile from '../screens/Profile';
@@ -30,7 +30,6 @@ export default function AppNavigator({ session, accountId, accountName }) {
                 <Tab.Screen
                     name="Geral"
                     options={{
-                        tabBarLabel: 'Geral',
                         tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} />,
                     }}
                 >
@@ -38,29 +37,17 @@ export default function AppNavigator({ session, accountId, accountName }) {
                 </Tab.Screen>
 
                 <Tab.Screen
-                    name="Lançar"
+                    name="Lançamentos"
                     options={{
-                        tabBarLabel: 'Lançar',
-                        tabBarIcon: ({ color, size }) => <Zap size={size} color={color} fill={color === '#000' ? '#000' : 'none'} />,
+                        tabBarIcon: ({ color, size }) => <ReceiptText size={size} color={color} />,
                     }}
                 >
-                    {() => <QuickAdd accountId={accountId} />}
-                </Tab.Screen>
-
-                <Tab.Screen
-                    name="BP"
-                    options={{
-                        tabBarLabel: 'BP',
-                        tabBarIcon: ({ color, size }) => <FileChartLine size={size} color={color} />,
-                    }}
-                >
-                    {() => <BPAnalysis accountId={accountId} />}
+                    {() => <Transactions accountId={accountId} />}
                 </Tab.Screen>
 
                 <Tab.Screen
                     name="Contas"
                     options={{
-                        tabBarLabel: 'Contas',
                         tabBarIcon: ({ color, size }) => <CreditCard size={size} color={color} />,
                     }}
                 >
@@ -68,13 +55,21 @@ export default function AppNavigator({ session, accountId, accountName }) {
                 </Tab.Screen>
 
                 <Tab.Screen
+                    name="BP"
+                    options={{
+                        tabBarIcon: ({ color, size }) => <FileChartLine size={size} color={color} />,
+                    }}
+                >
+                    {() => <BPAnalysis accountId={accountId} />}
+                </Tab.Screen>
+
+                <Tab.Screen
                     name="Perfil"
                     options={{
-                        tabBarLabel: 'Perfil',
                         tabBarIcon: ({ color, size }) => <UserCircle size={size} color={color} />,
                     }}
                 >
-                    {() => <Profile session={session} accountName={accountName} />}
+                    {() => <Profile session={session} accountName={accountName} accountId={accountId} />}
                 </Tab.Screen>
             </Tab.Navigator>
         </NavigationContainer>

@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { db } from '../lib/db';
-import { PieChart } from 'react-native-svg-charts';
 import { FileText, TrendingUp, ShieldCheck, Info } from 'lucide-react-native';
 
 export default function BPAnalysis({ accountId }) {

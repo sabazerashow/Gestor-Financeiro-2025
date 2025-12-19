@@ -1,118 +1,361 @@
 
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Modal, ScrollView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Modal, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { db } from '../lib/db';
-import { X, Check, Save } from 'lucide-react-native';
+import { TransactionType, PaymentMethod, categories, expenseCategoryList, incomeCategoryList } from '../lib/constants';
+import { X, Check, Save, Zap, Edit2, ArrowRight, ChevronDown } from 'lucide-react-native';
+import CategorySelectionModal from './CategorySelectionModal';
 
-const CATEGORIES = [
-    'Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Outros'
-];
+const monthMap = {
+    'janeiro': 1, 'jan': 1,
+    'fevereiro': 2, 'fev': 2,
+    'março': 3, 'marco': 3, 'mar': 3,
+    'abril': 4, 'abr': 4,
+    'maio': 5,
+    'junho': 6, 'jun': 6,
+    'julho': 7, 'jul': 7,
+    'agosto': 8, 'ago': 8,
+    'setembro': 9, 'set': 9,
+    'outubro': 10, 'out': 10,
+    'novembro': 11, 'nov': 11,
+    'dezembro': 12, 'dez': 12,
+};
 
-export default function AddTransactionModal({ isOpen, onClose, accountId, onAdded }) {
-    const [description, setDescription] = useState('');
-    const [amount, setAmount] = useState('');
-    const [type, setType] = useState('expense');
-    const [category, setCategory] = useState('Outros');
+const toISO = (y, m, d) => {
+    const dt = new Date(y, m - 1, d);
+    return dt.toISOString().split('T')[0];
+};
+
+const parseDateFromText = (text, todayISO) => {
+    const raw = text.toLowerCase();
+    const today = new Date(todayISO + 'T00:00:00');
+
+    if (raw.includes('ontem')) {
+        const d = new Date(today); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0];
+    }
+    if (raw.includes('hoje')) return todayISO;
+
+    const dm = raw.match(/(\b\d{1,2})\s*[\/\-]\s*(\d{1,2})(?:[\/\-](\d{4}))?/);
+    if (dm) {
+        const d = parseInt(dm[1]);
+        const m = parseInt(dm[2]);
+        const y = dm[3] ? parseInt(dm[3]) : today.getFullYear();
+        return toISO(y, m, d);
+    }
+
+    const named = raw.match(/\b(\d{1,2})\s*(?:de\s*)?(janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|jun|jul|ago|set|out|nov|dez)\b/);
+    if (named) {
+        const d = parseInt(named[1]);
+        const m = monthMap[named[2]] || today.getMonth() + 1;
+        const yearHint = raw.match(/\b(\d{4})\b/);
+        const y = yearHint ? parseInt(yearHint[1]) : today.getFullYear();
+        return toISO(y, m, d);
+    }
+
+    const onlyDay = raw.match(/\bdia\s*(\d{1,2})\b/);
+    if (onlyDay) {
+        const d = parseInt(onlyDay[1]);
+        return toISO(today.getFullYear(), today.getMonth() + 1, d);
+    }
+
+    return todayISO;
+};
+
+export default function AddTransactionModal({ isOpen, onClose, accountId, initialType, onAdded }) {
+    const [step, setStep] = useState('input'); // 'input', 'review', 'edit'
+    const [inputText, setInputText] = useState('');
+
+    // Use strings for numeric inputs to allow clean editing
+    const [amountStr, setAmountStr] = useState('0');
+    const [installmentsStr, setInstallmentsStr] = useState('1');
+
+    const [details, setDetails] = useState({
+        description: '',
+        type: 'expense',
+        category: 'A verificar',
+        subcategory: 'A classificar',
+        date: new Date().toISOString().split('T')[0],
+        paymentMethod: PaymentMethod.OUTRO
+    });
     const [loading, setLoading] = useState(false);
+    const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setStep('input');
+            setInputText('');
+            setAmountStr('0');
+            setInstallmentsStr('1');
+            setDetails({
+                description: '',
+                type: initialType || 'expense',
+                category: 'A verificar',
+                subcategory: 'A classificar',
+                date: new Date().toISOString().split('T')[0],
+                paymentMethod: PaymentMethod.OUTRO
+            });
+        }
+    }, [isOpen, initialType]);
+
+    const handleProcessMagic = () => {
+        if (!inputText.trim()) return;
+
+        const raw = inputText.toLowerCase();
+        const amountMatch = raw.match(/(\d+[\.,]?\d*)\s*(reais|r\$|rs)?/);
+        const amount = amountMatch ? parseFloat(amountMatch[1].replace(/\./g, '').replace(',', '.')) : 0;
+
+        const installmentsMatch = raw.match(/(\d+)\s*x/);
+        const installments = installmentsMatch ? parseInt(installmentsMatch[1]) : 1;
+
+        const date = parseDateFromText(inputText, new Date().toISOString().split('T')[0]);
+
+        let paymentMethod = PaymentMethod.OUTRO;
+        if (raw.includes('crédito') || raw.includes('credito') || raw.includes('cartao') || raw.includes('cartão')) paymentMethod = PaymentMethod.CREDITO;
+        else if (raw.includes('débito') || raw.includes('debito')) paymentMethod = PaymentMethod.DEBITO;
+        else if (raw.includes('pix')) paymentMethod = PaymentMethod.PIX;
+        else if (raw.includes('dinheiro')) paymentMethod = PaymentMethod.DINHEIRO;
+        else if (raw.includes('boleto')) paymentMethod = PaymentMethod.BOLETO;
+
+        setAmountStr(amount.toString());
+        setInstallmentsStr(installments.toString());
+        setDetails({
+            ...details,
+            description: inputText.trim(),
+            date,
+            paymentMethod,
+            category: 'A verificar',
+            subcategory: 'A classificar',
+            type: initialType || 'expense'
+        });
+        setStep('review');
+    };
 
     const handleSave = async () => {
-        if (!description || !amount || !accountId) return;
         setLoading(true);
+        const amount = parseFloat(amountStr.replace(',', '.')) || 0;
+        const installments = parseInt(installmentsStr) || 1;
+
         try {
-            await db.addTransaction(accountId, {
-                id: Math.random().toString(36).substring(2, 15),
-                description,
-                amount: parseFloat(amount),
-                type,
-                category,
-                date: new Date().toISOString().split('T')[0],
-            });
-            setDescription('');
-            setAmount('');
+            // Manual mapping to snake_case to ensure Supabase compatibility
+            const txData = {
+                id: Math.random().toString(36).substring(2, 10), // Short random ID or omit let DB generate
+                description: details.description,
+                amount: amount,
+                type: details.type,
+                category: details.category,
+                subcategory: details.subcategory,
+                date: details.date,
+                payment_method: details.paymentMethod, // Map to DB column name
+            };
+
+            if (installments > 1) {
+                txData.installment_details = {
+                    total: installments,
+                    current: 1,
+                    totalAmount: amount
+                };
+            }
+
+            await db.addTransaction(accountId, txData);
             onAdded?.();
             onClose();
         } catch (e) {
-            console.error(e);
-            alert('Falha ao salvar transação');
+            console.error('Save Error:', e);
+            alert('Erro ao salvar lançamento: ' + (e.message || 'Verifique sua conexão'));
         } finally {
             setLoading(false);
         }
     };
 
+    const handleEditChange = (field, value) => {
+        const updated = { ...details, [field]: value };
+        if (field === 'category') {
+            updated.subcategory = categories[value]?.subcategories[0] || '';
+        }
+        setDetails(updated);
+    };
+
     return (
-        <Modal visible={isOpen} animationType="slide" transparent={true}>
+        <Modal visible={isOpen} animationType="slide" transparent={true} onRequestClose={onClose}>
             <View style={styles.overlay}>
-                <View style={styles.content}>
+                <View style={[styles.content, step === 'edit' && { height: '90%' }]}>
                     <View style={styles.header}>
-                        <Text style={styles.title}>Nova Transação</Text>
+                        <Text style={styles.title}>
+                            {step === 'input' ? 'Lançamento Rápido' : (step === 'edit' ? 'Editar Lançamento' : 'Confirme os detalhes')}
+                        </Text>
                         <TouchableOpacity onPress={onClose}>
                             <X size={24} color="#000" />
                         </TouchableOpacity>
                     </View>
 
-                    <ScrollView style={styles.form}>
-                        <View style={styles.typeSelector}>
-                            <TouchableOpacity
-                                style={[styles.typeBtn, type === 'expense' && styles.typeBtnActiveExpense]}
-                                onPress={() => setType('expense')}
-                            >
-                                <Text style={[styles.typeBtnText, type === 'expense' && styles.typeBtnTextActive]}>Despesa</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.typeBtn, type === 'income' && styles.typeBtnActiveIncome]}
-                                onPress={() => setType('income')}
-                            >
-                                <Text style={[styles.typeBtnText, type === 'income' && styles.typeBtnTextActive]}>Receita</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Descrição</Text>
+                    {step === 'input' && (
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.label}>O que você {details.type === 'income' ? 'recebeu' : 'pagou'}?</Text>
                             <TextInput
-                                style={styles.input}
-                                placeholder="Ex: Aluguel, Supermercado..."
-                                value={description}
-                                onChangeText={setDescription}
+                                style={styles.magicInput}
+                                placeholder="Ex: Almoço 45 reais no pix hoje"
+                                value={inputText}
+                                onChangeText={setInputText}
+                                multiline
+                                autoFocus
                             />
+                            <TouchableOpacity
+                                style={styles.processBtn}
+                                onPress={handleProcessMagic}
+                                disabled={!inputText.trim()}
+                            >
+                                <Zap size={20} color="#fff" fill="#fff" />
+                                <Text style={styles.processBtnText}>Analisar Gasto</Text>
+                            </TouchableOpacity>
                         </View>
+                    )}
 
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Valor (R$)</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="0,00"
-                                keyboardType="numeric"
-                                value={amount}
-                                onChangeText={setAmount}
-                            />
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Categoria</Text>
-                            <View style={styles.categoryGrid}>
-                                {CATEGORIES.map(cat => (
-                                    <TouchableOpacity
-                                        key={cat}
-                                        style={[styles.categoryBtn, category === cat && styles.categoryBtnActive]}
-                                        onPress={() => setCategory(cat)}
-                                    >
-                                        <Text style={[styles.categoryBtnText, category === cat && styles.categoryBtnTextActive]}>{cat}</Text>
-                                    </TouchableOpacity>
-                                ))}
+                    {step === 'review' && (
+                        <ScrollView style={styles.reviewContainer}>
+                            <View style={styles.reviewCard}>
+                                <View style={styles.reviewRow}>
+                                    <Text style={styles.reviewLabel}>Descrição</Text>
+                                    <Text style={styles.reviewValue}>{details.description}</Text>
+                                </View>
+                                <View style={styles.reviewRow}>
+                                    <Text style={styles.reviewLabel}>Valor</Text>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                        <Text style={[styles.reviewValueBold, { color: details.type === 'income' ? '#1e8e3e' : '#d93025' }]}>
+                                            R$ {(parseFloat(amountStr) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </Text>
+                                        {parseInt(installmentsStr) > 1 && (
+                                            <Text style={styles.subtext}>{installmentsStr}x de R$ {((parseFloat(amountStr) || 0) / (parseInt(installmentsStr) || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                                        )}
+                                    </View>
+                                </View>
+                                <View style={styles.reviewRow}>
+                                    <Text style={styles.reviewLabel}>Data</Text>
+                                    <Text style={styles.reviewValue}>{new Date(details.date + 'T00:00:00').toLocaleDateString('pt-BR')}</Text>
+                                </View>
+                                <View style={styles.reviewRow}>
+                                    <Text style={styles.reviewLabel}>Categoria</Text>
+                                    <View style={styles.tag}>
+                                        <ArrowRight size={12} color="#666" />
+                                        <Text style={styles.tagText}>{details.category} {' > '} {details.subcategory}</Text>
+                                    </View>
+                                </View>
+                                <View style={styles.reviewRow}>
+                                    <Text style={styles.reviewLabel}>Pagamento</Text>
+                                    <Text style={styles.reviewValue}>{details.paymentMethod}</Text>
+                                </View>
                             </View>
-                        </View>
 
-                        <TouchableOpacity
-                            style={styles.saveBtn}
-                            onPress={handleSave}
-                            disabled={loading || !description || !amount}
-                        >
-                            <Save size={20} color="#fff" />
-                            <Text style={styles.saveBtnText}>{loading ? 'Salvando...' : 'Salvar Transação'}</Text>
-                        </TouchableOpacity>
-                    </ScrollView>
+                            <View style={styles.footer}>
+                                <TouchableOpacity style={styles.secondaryBtn} onPress={() => setStep('input')}>
+                                    <Text style={styles.secondaryBtnText}>Voltar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.secondaryBtn} onPress={() => setStep('edit')}>
+                                    <Edit2 size={16} color="#000" />
+                                    <Text style={styles.secondaryBtnText}>Editar Detalhes</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.confirmBtn} onPress={handleSave} disabled={loading}>
+                                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmBtnText}>Confirmar e Adicionar</Text>}
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    )}
+
+                    {step === 'edit' && (
+                        <ScrollView style={styles.editContainer}>
+                            <View style={styles.fieldGroup}>
+                                <Text style={styles.editLabel}>Descrição</Text>
+                                <TextInput
+                                    style={styles.editInput}
+                                    value={details.description}
+                                    onChangeText={(val) => handleEditChange('description', val)}
+                                />
+                            </View>
+
+                            <View style={styles.row}>
+                                <View style={[styles.fieldGroup, { flex: 1, marginRight: 8 }]}>
+                                    <Text style={styles.editLabel}>Valor (R$)</Text>
+                                    <TextInput
+                                        style={styles.editInput}
+                                        keyboardType="numeric"
+                                        value={amountStr}
+                                        onChangeText={setAmountStr}
+                                    />
+                                </View>
+                                <View style={[styles.fieldGroup, { flex: 1, marginLeft: 8 }]}>
+                                    <Text style={styles.editLabel}>Data</Text>
+                                    <TextInput
+                                        style={styles.editInput}
+                                        placeholder="YYYY-MM-DD"
+                                        value={details.date}
+                                        onChangeText={(val) => handleEditChange('date', val)}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.fieldGroup}>
+                                <Text style={styles.editLabel}>Categoria e Subcategoria</Text>
+                                <TouchableOpacity
+                                    style={styles.pickerContainerElegant}
+                                    onPress={() => setIsCatModalOpen(true)}
+                                >
+                                    <View>
+                                        <Text style={styles.selectorTextBold}>{details.category}</Text>
+                                        <Text style={styles.selectorTextSub}>{details.subcategory}</Text>
+                                    </View>
+                                    <ChevronDown size={20} color="#666" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.row}>
+                                <View style={[styles.fieldGroup, { flex: 1, marginRight: 8 }]}>
+                                    <Text style={styles.editLabel}>Pagamento</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                            {Object.values(PaymentMethod).map(m => (
+                                                <TouchableOpacity
+                                                    key={m}
+                                                    style={[styles.chip, details.paymentMethod === m && styles.chipActive]}
+                                                    onPress={() => handleEditChange('paymentMethod', m)}
+                                                >
+                                                    <Text style={[styles.chipText, details.paymentMethod === m && styles.chipTextActive]}>{m}</Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                </View>
+                                <View style={[styles.fieldGroup, { width: 100, marginLeft: 8 }]}>
+                                    <Text style={styles.editLabel}>Parcelas</Text>
+                                    <TextInput
+                                        style={styles.editInput}
+                                        keyboardType="numeric"
+                                        value={installmentsStr}
+                                        onChangeText={setInstallmentsStr}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.editFooter}>
+                                <TouchableOpacity style={styles.secondaryBtn} onPress={() => setStep('review')}>
+                                    <Text style={styles.secondaryBtnText}>Voltar</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.confirmBtn} onPress={handleSave} disabled={loading}>
+                                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmBtnText}>Salvar Alterações</Text>}
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    )}
                 </View>
             </View>
+            <CategorySelectionModal
+                isOpen={isCatModalOpen}
+                onClose={() => setIsCatModalOpen(false)}
+                selectedCategory={details.category}
+                selectedSubcategory={details.subcategory}
+                onSelect={(cat, sub) => {
+                    setDetails({ ...details, category: cat, subcategory: sub });
+                }}
+                type={details.type}
+            />
         </Modal>
     );
 }
@@ -128,7 +371,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         padding: 24,
-        height: '85%',
+        minHeight: '60%',
     },
     header: {
         flexDirection: 'row',
@@ -140,76 +383,25 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
     },
-    form: {
-        flex: 1,
-    },
-    typeSelector: {
-        flexDirection: 'row',
-        backgroundColor: '#f1f3f4',
-        borderRadius: 16,
-        padding: 6,
-        marginBottom: 24,
-    },
-    typeBtn: {
-        flex: 1,
-        paddingVertical: 12,
-        alignItems: 'center',
-        borderRadius: 12,
-    },
-    typeBtnActiveExpense: {
-        backgroundColor: '#d93025',
-    },
-    typeBtnActiveIncome: {
-        backgroundColor: '#1e8e3e',
-    },
-    typeBtnText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#666',
-    },
-    typeBtnTextActive: {
-        color: '#fff',
-    },
-    inputGroup: {
-        marginBottom: 20,
+    inputContainer: {
+        gap: 16,
     },
     label: {
         fontSize: 14,
-        fontWeight: 'bold',
         color: '#666',
-        marginBottom: 8,
+        fontWeight: '600',
     },
-    input: {
+    magicInput: {
         backgroundColor: '#f8f9fa',
-        borderRadius: 12,
-        padding: 16,
-        fontSize: 16,
+        borderRadius: 16,
+        padding: 20,
+        fontSize: 18,
+        minHeight: 120,
+        textAlignVertical: 'top',
         borderWidth: 1,
         borderColor: '#eee',
     },
-    categoryGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    categoryBtn: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-        backgroundColor: '#f1f3f4',
-    },
-    categoryBtnActive: {
-        backgroundColor: '#000',
-    },
-    categoryBtnText: {
-        fontSize: 13,
-        color: '#666',
-    },
-    categoryBtnTextActive: {
-        color: '#fff',
-        fontWeight: '600',
-    },
-    saveBtn: {
+    processBtn: {
         backgroundColor: '#000',
         borderRadius: 16,
         padding: 18,
@@ -217,12 +409,166 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 12,
-        marginTop: 20,
-        marginBottom: 40,
     },
-    saveBtnText: {
+    processBtnText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    reviewContainer: {
+        flex: 1,
+    },
+    reviewCard: {
+        backgroundColor: '#f8f9fa',
+        borderRadius: 20,
+        padding: 20,
+        gap: 16,
+    },
+    reviewRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    reviewLabel: {
+        fontSize: 14,
+        color: '#666',
+    },
+    reviewValue: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1a1a1a',
+        textAlign: 'right',
+        flex: 1,
+        marginLeft: 12,
+    },
+    reviewValueBold: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    subtext: {
+        fontSize: 11,
+        color: '#999',
+    },
+    tag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: '#e8f0fe',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 20,
+    },
+    tagText: {
+        fontSize: 12,
+        color: '#1a73e8',
+        fontWeight: 'bold',
+    },
+    footer: {
+        flexDirection: 'column',
+        gap: 12,
+        marginTop: 24,
+        marginBottom: 40,
+    },
+    editFooter: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 24,
+        marginBottom: 40,
+    },
+    confirmBtn: {
+        flex: 1,
+        backgroundColor: '#000',
+        borderRadius: 16,
+        padding: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    confirmBtnText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    secondaryBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#eee',
+        gap: 8,
+    },
+    secondaryBtnText: {
+        color: '#000',
+        fontWeight: '600',
+    },
+    editContainer: {
+        flex: 1,
+    },
+    fieldGroup: {
+        marginBottom: 20,
+    },
+    editLabel: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#999',
+        textTransform: 'uppercase',
+        marginBottom: 8,
+    },
+    editInput: {
+        backgroundColor: '#f8f9fa',
+        borderRadius: 12,
+        padding: 14,
+        fontSize: 16,
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    row: {
+        flexDirection: 'row',
+    },
+    pickerContainer: {
+        flexDirection: 'row',
+        marginTop: 4,
+    },
+    chip: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: '#f1f3f4',
+        marginRight: 8,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    chipActive: {
+        backgroundColor: '#000',
+        borderColor: '#000',
+    },
+    chipText: {
+        fontSize: 13,
+        color: '#666',
+    },
+    chipTextActive: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    pickerContainerElegant: {
+        backgroundColor: '#f8f9fa',
+        borderRadius: 16,
+        padding: 16,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    selectorTextBold: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
+    selectorTextSub: {
+        fontSize: 13,
+        color: '#666',
+        marginTop: 2,
     }
 });

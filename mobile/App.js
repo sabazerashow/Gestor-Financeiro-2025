@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, StatusBar, ActivityIndicator, View } from 'react-native';
+import { StyleSheet, StatusBar, ActivityIndicator, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from './src/lib/supabase';
 import { db } from './src/lib/db';
 import Auth from './src/components/Auth';
@@ -50,18 +50,20 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      {!session ? (
-        <Auth />
-      ) : (
-        <AppNavigator
-          session={session}
-          accountId={account?.accountId}
-          accountName={account?.name}
-        />
-      )}
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        {!session ? (
+          <Auth />
+        ) : (
+          <AppNavigator
+            session={session}
+            accountId={account?.accountId}
+            accountName={account?.name}
+          />
+        )}
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
