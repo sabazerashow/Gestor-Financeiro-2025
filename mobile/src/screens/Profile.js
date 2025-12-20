@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, ScrollView, StatusBar } from 'react-native';
 import { supabase } from '../lib/supabase';
-import { User, LogOut, Share2, Shield, ChevronRight } from 'lucide-react-native';
+import { User, LogOut, Share2, Shield, ChevronRight, Calendar, Settings, Award } from 'lucide-react-native';
 import InviteModal from '../components/InviteModal';
 import EditProfileModal from '../components/EditProfileModal';
 import { db } from '../lib/db';
+import { COLORS, SHADOWS, SPACING, TYPOGRAPHY } from '../constants/theme';
+import { Squircle } from '../components/common/Squircle';
+import * as Haptics from 'expo-haptics';
 
 export default function Profile({ session, accountName, accountId }) {
     const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -26,11 +29,13 @@ export default function Profile({ session, accountName, accountId }) {
     }, [session?.user?.id]);
 
     const handleSignOut = async () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         const { error } = await supabase.auth.signOut();
         if (error) Alert.alert('Erro', error.message);
     };
 
     const handleSecurity = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         Alert.alert(
             "Segurança",
             "Deseja receber um e-mail para redefinir sua senha?",
@@ -52,60 +57,76 @@ export default function Profile({ session, accountName, accountId }) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{userName.substring(0, 1).toUpperCase()}</Text>
+            <StatusBar barStyle="light-content" />
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.header}>
+                    <Squircle color={COLORS.secondary} size={100} style={styles.avatar}>
+                        <Text style={styles.avatarText}>{userName.substring(0, 1).toUpperCase()}</Text>
+                    </Squircle>
+                    <Text style={styles.userName}>{userName}</Text>
+                    <Text style={styles.userEmail}>{session?.user?.email}</Text>
+
+                    <View style={styles.rankBadge}>
+                        <Award size={14} color={COLORS.primary} strokeWidth={2.5} />
+                        <Text style={styles.rankText}>{profile?.rank || 'Piloto Aprendiz'}</Text>
+                    </View>
                 </View>
-                <Text style={styles.email}>{userName}</Text>
-                {profile?.rank && <Text style={styles.rankText}>{profile.rank}</Text>}
-                <Text style={styles.subEmail}>{session?.user?.email}</Text>
 
-                {profile?.birth_date && (
-                    <View style={styles.infoRow}>
-                        <Calendar size={12} color="#666" />
-                        <Text style={styles.infoText}>{new Date(profile.birth_date).toLocaleDateString('pt-BR')}</Text>
+                <View style={styles.statsRow}>
+                    <View style={styles.statBox}>
+                        <Text style={styles.statLabel}>Conta Ativa</Text>
+                        <Text style={styles.statValue} numberOfLines={1}>{accountName || 'Pessoal'}</Text>
                     </View>
-                )}
-
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{accountName || 'Conta Pessoal'}</Text>
+                    <View style={styles.dividerVertical} />
+                    <View style={styles.statBox}>
+                        <Text style={styles.statLabel}>Membro Desde</Text>
+                        <Text style={styles.statValue}>Dez 2025</Text>
+                    </View>
                 </View>
-            </View>
 
-            <View style={styles.menu}>
-                <Text style={styles.menuLabel}>Configurações</Text>
+                <View style={styles.menuSection}>
+                    <Text style={styles.sectionTitle}>Preferências</Text>
 
-                <TouchableOpacity style={styles.menuItem} onPress={() => setIsEditOpen(true)}>
-                    <View style={[styles.iconBox, { backgroundColor: '#e8f0fe' }]}>
-                        <User size={20} color="#1a73e8" />
-                    </View>
-                    <Text style={styles.menuText}>Meu Perfil</Text>
-                    <ChevronRight size={20} color="#ccc" />
+                    {[
+                        { icon: User, label: 'Meu Perfil', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.1)', action: () => setIsEditOpen(true) },
+                        { icon: Share2, label: 'Compartilhar Conta', color: '#10B981', bg: 'rgba(16, 185, 129, 0.1)', action: () => setIsInviteOpen(true) },
+                        { icon: Shield, label: 'Segurança e Senha', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.1)', action: handleSecurity }
+                    ].map((item, idx) => (
+                        <TouchableOpacity
+                            key={idx}
+                            style={styles.menuItem}
+                            onPress={() => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                item.action();
+                            }}
+                        >
+                            <Squircle color={item.bg} size={44}>
+                                <item.icon size={20} color={item.color} strokeWidth={2.5} />
+                            </Squircle>
+                            <Text style={styles.menuText}>{item.label}</Text>
+                            <ChevronRight size={20} color={COLORS.gray} />
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                <View style={styles.menuSection}>
+                    <Text style={styles.sectionTitle}>Sobre</Text>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+                        <Squircle color="#F1F5F9" size={44}>
+                            <Settings size={20} color={COLORS.textSecondary} strokeWidth={2.5} />
+                        </Squircle>
+                        <Text style={styles.menuText}>Configurações do App</Text>
+                        <ChevronRight size={20} color={COLORS.gray} />
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
+                    <LogOut size={20} color={COLORS.danger} strokeWidth={2.5} />
+                    <Text style={styles.logoutText}>Encerrar Sessão</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem} onPress={() => setIsInviteOpen(true)}>
-                    <View style={[styles.iconBox, { backgroundColor: '#e6f4ea' }]}>
-                        <Share2 size={20} color="#1e8e3e" />
-                    </View>
-                    <Text style={styles.menuText}>Compartilhar Conta</Text>
-                    <ChevronRight size={20} color="#ccc" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={handleSecurity}>
-                    <View style={[styles.iconBox, { backgroundColor: '#fef7e0' }]}>
-                        <Shield size={20} color="#f9ab00" />
-                    </View>
-                    <Text style={styles.menuText}>Segurança</Text>
-                    <ChevronRight size={20} color="#ccc" />
-                </TouchableOpacity>
-
-                <View style={styles.divider} />
-
-                <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-                    <LogOut size={20} color="#d93025" />
-                    <Text style={styles.signOutText}>Sair da Conta</Text>
-                </TouchableOpacity>
-            </View>
+                <Text style={styles.versionText}>Finance Pilot Mobile v1.0.0 • Premium Edition</Text>
+            </ScrollView >
 
             <InviteModal
                 isOpen={isInviteOpen}
@@ -120,135 +141,133 @@ export default function Profile({ session, accountName, accountId }) {
                 initialName={profile?.full_name}
                 onUpdated={fetchProfile}
             />
-
-            <Text style={styles.version}>Versão 1.0.0 (Paridade Web)</Text>
-        </View>
+        </View >
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.background,
+    },
+    scrollContent: {
+        paddingBottom: 120,
     },
     header: {
         alignItems: 'center',
-        padding: 40,
-        backgroundColor: '#f8f9fa',
-        borderBottomLeftRadius: 32,
-        borderBottomRightRadius: 32,
+        paddingTop: 40,
+        paddingBottom: SPACING.xl,
+        backgroundColor: COLORS.white,
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
+        ...SHADOWS.small,
     },
     avatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#000',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
+        marginBottom: SPACING.md,
+        ...SHADOWS.premium,
     },
     avatarText: {
-        color: '#fff',
-        fontSize: 28,
-        fontWeight: 'bold',
+        fontSize: 36,
+        fontWeight: '900',
+        color: COLORS.primary,
     },
-    email: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
+    userName: {
+        ...TYPOGRAPHY.h2,
+        color: COLORS.text,
     },
-    rankText: {
+    userEmail: {
         fontSize: 14,
-        color: '#666',
+        color: COLORS.textSecondary,
         marginTop: 2,
     },
-    subEmail: {
-        fontSize: 12,
-        color: '#999',
-        marginTop: 2,
-    },
-    infoRow: {
+    rankBadge: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: COLORS.primaryLight,
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: 20,
+        marginTop: SPACING.md,
         gap: 6,
-        marginTop: 8,
     },
-    infoText: {
-        fontSize: 12,
-        color: '#666',
-    },
-    badge: {
-        marginTop: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        borderRadius: 12,
-    },
-    badgeText: {
-        fontSize: 12,
-        color: '#666',
-        fontWeight: '600',
-    },
-    menu: {
-        padding: 24,
-    },
-    menuLabel: {
-        fontSize: 12,
+    rankText: {
+        fontSize: 13,
         fontWeight: 'bold',
-        color: '#999',
+        color: COLORS.primaryDark,
+    },
+    statsRow: {
+        flexDirection: 'row',
+        backgroundColor: COLORS.white,
+        margin: SPACING.lg,
+        borderRadius: 24,
+        padding: SPACING.md,
+        ...SHADOWS.small,
+    },
+    statBox: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    statLabel: {
+        fontSize: 12,
+        color: COLORS.textSecondary,
+        marginBottom: 4,
+    },
+    statValue: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: COLORS.text,
+        textAlign: 'center',
+    },
+    dividerVertical: {
+        width: 1,
+        backgroundColor: '#2D3748',
+        height: '100%',
+    },
+    menuSection: {
+        paddingHorizontal: SPACING.lg,
+        marginTop: SPACING.lg,
+    },
+    sectionTitle: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: COLORS.textSecondary,
         textTransform: 'uppercase',
-        letterSpacing: 1,
-        marginBottom: 16,
+        letterSpacing: 1.5,
+        marginBottom: SPACING.md,
         marginLeft: 4,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        marginBottom: 8,
-    },
-    iconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
+        backgroundColor: COLORS.white,
+        padding: 12,
+        borderRadius: 20,
+        marginBottom: 10,
+        ...SHADOWS.small,
     },
     menuText: {
         flex: 1,
         fontSize: 16,
-        color: '#1a1a1a',
-        fontWeight: '500',
+        fontWeight: '600',
+        color: COLORS.text,
+        marginLeft: 14,
     },
-    divider: {
-        height: 1,
-        backgroundColor: '#f1f3f4',
-        marginVertical: 16,
-    },
-    signOutButton: {
+    logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        paddingVertical: 12,
-        paddingHorizontal: 4,
+        justifyContent: 'center',
+        marginTop: SPACING.xl,
+        gap: 10,
     },
-    signOutText: {
+    logoutText: {
         fontSize: 16,
-        color: '#d93025',
         fontWeight: 'bold',
+        color: COLORS.danger,
     },
-    version: {
-        position: 'absolute',
-        bottom: 40,
-        width: '100%',
+    versionText: {
         textAlign: 'center',
-        color: '#ccc',
+        marginTop: 40,
         fontSize: 12,
+        color: '#94A3B8',
     }
 });

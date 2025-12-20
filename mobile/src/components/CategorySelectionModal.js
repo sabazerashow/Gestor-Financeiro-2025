@@ -85,11 +85,11 @@ export default function CategorySelectionModal({ isOpen, onClose, onSelect, sele
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.85)',
         justifyContent: 'flex-end',
     },
     content: {
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.secondary,
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         padding: 24,
@@ -104,16 +104,19 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: COLORS.text,
     },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f1f3f4',
+        borderBottomColor: 'rgba(255,255,255,0.05)',
+        paddingHorizontal: 8,
     },
     itemSelected: {
-        backgroundColor: '#f8f9fa',
+        backgroundColor: 'rgba(0, 208, 156, 0.05)',
+        borderRadius: 16,
     },
     iconBox: {
         width: 40,
@@ -126,7 +129,7 @@ const styles = StyleSheet.create({
     itemText: {
         flex: 1,
         fontSize: 16,
-        color: '#1a1a1a',
+        color: COLORS.text,
     },
     backBtn: {
         marginTop: 24,
@@ -134,7 +137,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     backBtnText: {
-        color: '#1a73e8',
+        color: COLORS.primary,
         fontWeight: 'bold',
     }
 });

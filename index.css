@@ -64,7 +64,8 @@
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-error: var(--destructive);
-  --color-success: var(--chart-2); /* azul para entradas */
+  --color-success: var(--chart-2);
+  /* azul para entradas */
   --ring-color: var(--ring);
   /* Overlay para modais */
   --overlay: color-mix(in oklch, black 60%, transparent);
@@ -81,11 +82,25 @@ body {
 }
 
 /* Utilitários de cores para entradas/saídas */
-.text-income { color: var(--chart-2); }
-.bg-income { background-color: color-mix(in oklch, var(--chart-2) 15%, transparent); }
-.text-expense { color: var(--destructive); }
-.bg-expense { background-color: color-mix(in oklch, var(--destructive) 15%, transparent); }
-.text-primary { color: var(--primary); }
+.text-income {
+  color: var(--chart-2);
+}
+
+.bg-income {
+  background-color: color-mix(in oklch, var(--chart-2) 15%, transparent);
+}
+
+.text-expense {
+  color: var(--destructive);
+}
+
+.bg-expense {
+  background-color: color-mix(in oklch, var(--destructive) 15%, transparent);
+}
+
+.text-primary {
+  color: var(--primary);
+}
 
 /* Ripple effect para botões */
 .button-ripple {
@@ -105,9 +120,20 @@ body {
 }
 
 /* Mapeia classes utilitárias de fonte para os tokens do Design System */
-.font-sans { font-family: var(--font-sans); }
-.font-serif { font-family: var(--font-serif); }
-.font-mono { font-family: var(--font-mono); }
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
 
 /* Garante monoespaçada em elementos sem classe utilitária */
-code, pre { font-family: var(--font-mono); }
+code,
+pre {
+  font-family: var(--font-mono);
+}

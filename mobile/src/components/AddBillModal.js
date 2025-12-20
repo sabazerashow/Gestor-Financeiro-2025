@@ -164,11 +164,11 @@ export default function AddBillModal({ isOpen, onClose, accountId, onAdded }) {
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.85)',
         justifyContent: 'flex-end',
     },
     content: {
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.secondary,
         borderTopLeftRadius: 32,
         borderTopRightRadius: 32,
         padding: 24,
@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: COLORS.text,
     },
     form: {
         flex: 1,
@@ -193,16 +194,17 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#1a1a1a',
+        color: COLORS.textSecondary,
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#f8f9fa',
-        borderRadius: 12,
+        backgroundColor: '#0F172A',
+        borderRadius: 16,
         padding: 14,
         fontSize: 16,
         borderWidth: 1,
-        borderColor: '#eee',
+        borderColor: '#1E293B',
+        color: COLORS.text,
     },
     row: {
         flexDirection: 'row',
@@ -213,45 +215,44 @@ const styles = StyleSheet.create({
     switchLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#1a1a1a',
+        color: COLORS.text,
         flex: 1,
         marginRight: 10,
     },
     helperBox: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
+        backgroundColor: '#1E293B',
+        borderRadius: 24,
         padding: 16,
-        borderWidth: 1,
-        borderColor: '#eee',
         marginBottom: 24,
     },
     helperText: {
         fontSize: 12,
-        color: '#666',
+        color: COLORS.textSecondary,
         marginBottom: 16,
     },
     selector: {
-        backgroundColor: '#f8f9fa',
-        borderRadius: 12,
+        backgroundColor: '#0F172A',
+        borderRadius: 16,
         padding: 14,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#eee',
+        borderColor: '#1E293B',
     },
     selectorText: {
         fontSize: 14,
-        color: '#1a1a1a',
+        color: COLORS.text,
     },
     submitBtn: {
-        backgroundColor: '#1a1a1a',
-        borderRadius: 16,
+        backgroundColor: COLORS.primary,
+        borderRadius: 18,
         padding: 18,
         alignItems: 'center',
+        ...SHADOWS.small,
     },
     submitBtnText: {
-        color: '#fff',
+        color: COLORS.secondary,
         fontSize: 16,
         fontWeight: 'bold',
     }

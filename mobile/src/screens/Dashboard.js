@@ -1,24 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, RefreshControl, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, RefreshControl, TouchableOpacity, Platform, Dimensions, StatusBar } from 'react-native';
 import { db } from '../lib/db';
-import { TrendingUp, TrendingDown, Bell, ChevronRight, Wallet, Plus, Minus } from 'lucide-react-native';
+import { Bell, Plus, Minus, CreditCard, PieChart, TrendingUp, History } from 'lucide-react-native';
 import AddTransactionModal from '../components/AddTransactionModal';
+import { COLORS, SHADOWS, SPACING, TYPOGRAPHY } from '../constants/theme';
+import { PremiumCard } from '../components/Dashboard/PremiumCard';
+import { Squircle } from '../components/common/Squircle';
+import * as Haptics from 'expo-haptics';
+
+const { width } = Dimensions.get('window');
 
 export default function Dashboard({ accountId }) {
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState({ transactions: [], bills: [] });
+    const [data, setData] = useState({ transactions: [] });
     const [refreshing, setRefreshing] = useState(false);
-    const [modalType, setModalType] = useState(null); // 'income' or 'expense'
+    const [modalType, setModalType] = useState(null);
 
     const fetchData = async () => {
         if (!accountId) return;
         try {
-            const [tx, bl] = await Promise.all([
-                db.fetchTransactions(accountId),
-                db.fetchBills(accountId)
-            ]);
-            setData({ transactions: tx, bills: bl });
+            const tx = await db.fetchTransactions(accountId);
+            setData({ transactions: tx });
         } catch (e) {
             console.error(e);
         } finally {
@@ -36,32 +39,10 @@ export default function Dashboard({ accountId }) {
         fetchData();
     };
 
-    const upcomingReminders = (() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-
-        return data.bills
-            .filter(bill => !bill.isAutoDebit)
-            .map(bill => {
-                const dueDate = new Date(currentYear, currentMonth, bill.dueDay || 10);
-                return { bill, dueDate };
-            })
-            .filter(({ bill }) => {
-                const hasBeenPaid = data.transactions.some(t =>
-                    t.description.toLowerCase().includes((bill.name || bill.description).toLowerCase()) &&
-                    new Date(t.date).getMonth() === currentMonth &&
-                    new Date(t.date).getFullYear() === currentYear
-                );
-                return !hasBeenPaid;
-            })
-            .filter(({ dueDate }) => {
-                const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-                return diffDays <= 15;
-            })
-            .sort((a, b) => a.dueDate - b.dueDate);
-    })();
+    const handleAction = (type) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        setModalType(type);
+    };
 
     const totalIncome = data.transactions
         .filter(t => t.type === 'income')
@@ -73,94 +54,68 @@ export default function Dashboard({ accountId }) {
 
     const balance = totalIncome - totalExpense;
 
+    // Group transactions by date
+    const groupedTransactions = data.transactions.slice(0, 8).reduce((acc, current) => {
+        const date = new Date(current.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(current);
+        return acc;
+    }, {});
+
     return (
-        <View style={{ flex: 1 }}>
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" />
             <ScrollView
-                style={styles.container}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                style={styles.scrollView}
+                contentContainerStyle={{ paddingBottom: 150 }}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
             >
+                {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.title}>Visão Geral</Text>
-                    <Text style={styles.subtitle}>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</Text>
-                </View>
-
-                <View style={styles.balanceCard}>
-                    <View style={styles.balanceHeader}>
-                        <Text style={styles.balanceLabel}>Saldo Disponível</Text>
-                        <Wallet size={20} color="rgba(255,255,255,0.4)" />
+                    <View>
+                        <Text style={styles.greeting}>Bem-vindo de volta,</Text>
+                        <Text style={styles.subGreeting}>Sua Conta</Text>
                     </View>
-                    <Text style={styles.balanceValue}>R$ {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
-
-                    <View style={styles.statsRow}>
-                        <View style={styles.statItem}>
-                            <TrendingUp size={16} color="#4ade80" />
-                            <Text style={styles.statText}>+ R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
-                        </View>
-                        <View style={styles.statDivider} />
-                        <View style={styles.statItem}>
-                            <TrendingDown size={16} color="#f87171" />
-                            <Text style={styles.statText}>- R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Botões de Ação Rápida */}
-                <View style={styles.actionRow}>
-                    <TouchableOpacity
-                        style={[styles.actionBtn, { backgroundColor: '#e6f4ea' }]}
-                        onPress={() => setModalType('income')}
-                    >
-                        <Plus size={20} color="#1e8e3e" />
-                        <Text style={[styles.actionBtnText, { color: '#1e8e3e' }]}>Receita</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.actionBtn, { backgroundColor: '#fce8e6' }]}
-                        onPress={() => setModalType('expense')}
-                    >
-                        <Minus size={20} color="#d93025" />
-                        <Text style={[styles.actionBtnText, { color: '#d93025' }]}>Despesa</Text>
+                    <TouchableOpacity style={styles.notificationBtn} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
+                        <Bell size={24} color={COLORS.text} />
+                        <View style={styles.badge} />
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Lembretes de Pagamento</Text>
-                        {upcomingReminders.length > 0 && <View style={styles.alertBadge} />}
-                    </View>
+                {/* Premium Balance Card */}
+                <PremiumCard balance={balance} income={totalIncome} expense={totalExpense} />
 
-                    {upcomingReminders.map(({ bill, dueDate }, idx) => {
-                        const diffDays = Math.ceil((dueDate - new Date().setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24));
-                        const isOverdue = diffDays < 0;
-                        return (
-                            <TouchableOpacity key={bill.id || idx} style={styles.reminderCard}>
-                                <View style={[styles.reminderIcon, isOverdue && { backgroundColor: '#fce8e6' }]}>
-                                    <Bell size={20} color={isOverdue ? '#d93025' : '#1a73e8'} />
-                                </View>
-                                <View style={styles.reminderInfo}>
-                                    <Text style={styles.reminderName}>{bill.name || bill.description}</Text>
-                                    <Text style={[styles.reminderDue, isOverdue && { color: '#d93025', fontWeight: 'bold' }]}>
-                                        {isOverdue ? `Atrasado ${Math.abs(diffDays)}d` : `Vence em ${diffDays} dias`}
-                                    </Text>
-                                </View>
-                                <ChevronRight size={18} color="#ccc" />
-                            </TouchableOpacity>
-                        );
-                    })}
-                    {upcomingReminders.length === 0 && (
-                        <Text style={styles.emptyText}>Tudo em dia por enquanto!</Text>
-                    )}
+                {/* Action Buttons */}
+                <View style={styles.actionContainer}>
+                    <TouchableOpacity
+                        style={[styles.bigActionItem, { backgroundColor: 'rgba(0, 208, 156, 0.1)' }]}
+                        onPress={() => handleAction('income')}
+                    >
+                        <Squircle color={COLORS.primaryLight} size={64}>
+                            <Plus size={32} color={COLORS.primary} strokeWidth={3} />
+                        </Squircle>
+                        <View style={styles.actionTextContent}>
+                            <Text style={styles.bigActionLabel}>Adicionar Receita</Text>
+                            <Text style={styles.bigActionSub}>Entradas, salários e extras</Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.bigActionItem, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}
+                        onPress={() => handleAction('expense')}
+                    >
+                        <Squircle color="rgba(255, 90, 90, 0.1)" size={64}>
+                            <Minus size={32} color={COLORS.danger} strokeWidth={3} />
+                        </Squircle>
+                        <View style={styles.actionTextContent}>
+                            <Text style={styles.bigActionLabel}>Adicionar Despesa</Text>
+                            <Text style={styles.bigActionSub}>Gastos, contas e boletos</Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
-                <View style={[styles.section, { marginBottom: 40 }]}>
-                    <Text style={styles.sectionTitle}>Análise Rápida</Text>
-                    <View style={styles.insightCard}>
-                        <Text style={styles.insightText}>
-                            {balance > 0
-                                ? "Seu saldo está positivo. Que tal planejar um investimento?"
-                                : "Atenção: Suas despesas superaram as receitas este mês."}
-                        </Text>
-                    </View>
-                </View>
+
+                {/* Content ends here for a cleaner look as requested */}
             </ScrollView>
 
             <AddTransactionModal
@@ -177,156 +132,156 @@ export default function Dashboard({ accountId }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.background,
+    },
+    scrollView: {
+        flex: 1,
     },
     header: {
-        padding: 24,
-        paddingTop: 60,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-    },
-    subtitle: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 4,
-        textTransform: 'capitalize',
-    },
-    balanceCard: {
-        margin: 24,
-        marginTop: 0,
-        backgroundColor: '#1a1a1a',
-        borderRadius: 24,
-        padding: 24,
-    },
-    balanceHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
+        paddingHorizontal: SPACING.lg,
+        paddingTop: Platform.OS === 'ios' ? 60 : 40,
+        marginBottom: SPACING.lg,
     },
-    balanceLabel: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 12,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+    greeting: {
+        fontSize: 14,
+        color: COLORS.textSecondary,
+        fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
     },
-    balanceValue: {
-        color: '#fff',
-        fontSize: 32,
+    subGreeting: {
+        fontSize: 26,
         fontWeight: 'bold',
+        color: COLORS.text,
+        letterSpacing: -0.5,
     },
-    statsRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 20,
-        paddingTop: 20,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.1)',
-    },
-    statItem: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    statText: {
-        color: '#fff',
-        fontSize: 13,
-        fontWeight: '500',
-    },
-    statDivider: {
-        width: 1,
-        height: 20,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        marginHorizontal: 16,
-    },
-    actionRow: {
-        flexDirection: 'row',
-        paddingHorizontal: 24,
-        gap: 16,
-        marginTop: 8,
-    },
-    actionBtn: {
-        flex: 1,
-        height: 54,
+    notificationBtn: {
+        width: 48,
+        height: 48,
+        backgroundColor: COLORS.white,
         borderRadius: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'center',
+        alignItems: 'center',
+        ...SHADOWS.small,
+    },
+    badge: {
+        position: 'absolute',
+        top: 14,
+        right: 14,
+        width: 10,
+        height: 10,
+        backgroundColor: COLORS.danger,
+        borderRadius: 5,
+        borderWidth: 2,
+        borderColor: COLORS.white,
+    },
+    actionContainer: {
+        marginTop: SPACING.xl,
+    },
+    actionScroll: {
+        paddingHorizontal: SPACING.lg,
+    },
+    actionItem: {
+        alignItems: 'center',
         gap: 8,
     },
-    actionBtnText: {
-        fontSize: 15,
+    actionLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: COLORS.text,
+    },
+    bigActionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 20,
+        borderRadius: 28,
+        marginBottom: 16,
+        gap: 16,
+    },
+    actionTextContent: {
+        flex: 1,
+    },
+    bigActionLabel: {
+        fontSize: 18,
         fontWeight: 'bold',
+        color: COLORS.text,
+        marginBottom: 4,
+    },
+    bigActionSub: {
+        fontSize: 14,
+        color: COLORS.textSecondary,
     },
     section: {
-        paddingHorizontal: 24,
-        marginTop: 32,
+        paddingHorizontal: SPACING.lg,
+        marginTop: SPACING.xl,
     },
     sectionHeader: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        gap: 8,
-        marginBottom: 16,
+        marginBottom: SPACING.md,
     },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-    },
-    alertBadge: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#d93025',
-    },
-    reminderCard: {
+    sectionTitleRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        backgroundColor: '#f8f9fa',
-        borderRadius: 16,
-        marginBottom: 12,
     },
-    reminderIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        backgroundColor: '#e8f0fe',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: COLORS.text,
+        letterSpacing: -0.5,
     },
-    reminderInfo: {
-        flex: 1,
-    },
-    reminderName: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1a1a1a',
-    },
-    reminderDue: {
-        fontSize: 13,
-        color: '#666',
-        marginTop: 2,
-    },
-    insightCard: {
-        padding: 20,
-        backgroundColor: '#f1f3f4',
-        borderRadius: 16,
-        marginTop: 8,
-    },
-    insightText: {
+    seeAllText: {
         fontSize: 14,
-        color: '#444',
-        lineHeight: 20,
+        color: COLORS.primary,
+        fontWeight: '700',
+    },
+    dateHeader: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: COLORS.textSecondary,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginTop: SPACING.lg,
+        marginBottom: SPACING.sm,
+    },
+    transactionCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: 24,
+        padding: SPACING.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: SPACING.sm,
+        ...SHADOWS.small,
+    },
+    transactionDetails: {
+        flex: 1,
+        marginLeft: SPACING.md,
+    },
+    transactionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: COLORS.text,
+        marginBottom: 2,
+    },
+    transactionCategory: {
+        fontSize: 12,
+        color: COLORS.textSecondary,
+    },
+    amountBox: {
+        alignItems: 'flex-end',
+    },
+    transactionAmount: {
+        fontSize: 16,
+        fontWeight: '800',
+    },
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: 40,
     },
     emptyText: {
-        color: '#999',
+        color: COLORS.textSecondary,
         fontStyle: 'italic',
-        fontSize: 14,
     }
 });
