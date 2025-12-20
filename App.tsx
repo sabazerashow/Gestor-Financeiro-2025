@@ -40,6 +40,7 @@ import BudgetManagement from './components/BudgetManagement';
 import BudgetModal from './components/BudgetModal';
 import GoalsView from './components/GoalsView';
 import GoalModal from './components/GoalModal';
+import { useAIAnalysis } from './hooks/useAIAnalysis';
 
 export interface DashboardCardConfig {
   id: string;
@@ -68,11 +69,12 @@ const App: React.FC = () => {
     recurringTransactions, setRecurringTransactions,
     bills, setBills,
     userProfile, setUserProfile,
+    updateTransaction,
     fetchData, syncData
   } = useFinanceStore();
 
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { analyzeTransactions, isAnalyzing, analysisError, setAnalysisError } = useAIAnalysis();
   const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -605,9 +607,6 @@ const App: React.FC = () => {
     }
   };
 
-  const updateTransaction = (id: string, updatedTransaction: Omit<Transaction, 'id'>) => {
-    setTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t));
-  };
 
   const handleAttemptDelete = (transaction: Transaction) => {
     if (transaction.installmentDetails) {
@@ -619,9 +618,10 @@ const App: React.FC = () => {
     }
   };
 
-  const deleteTransaction = (id: string, scope: 'single' | 'all-future') => {
+  const handleDeleteTransaction = (id: string, scope: 'single' | 'all-future') => {
     if (scope === 'single') {
-      setTransactions(transactions.filter(t => t.id !== id));
+      const { deleteTransaction } = useFinanceStore.getState();
+      deleteTransaction(id);
     } else {
       const transaction = transactions.find(t => t.id === id);
       if (transaction?.installmentDetails) {
@@ -643,7 +643,7 @@ const App: React.FC = () => {
   const handleConfirmDelete = () => {
     if (!confirmDeleteContext) return;
     if (confirmDeleteContext.kind === 'transaction' && confirmDeleteContext.transaction) {
-      deleteTransaction(confirmDeleteContext.transaction.id, 'single');
+      handleDeleteTransaction(confirmDeleteContext.transaction.id, 'single');
     } else if (confirmDeleteContext.kind === 'bill' && confirmDeleteContext.billId) {
       deleteBill(confirmDeleteContext.billId);
     }
@@ -891,77 +891,7 @@ const App: React.FC = () => {
   };
 
   const analyzePendingTransactions = async () => {
-    try {
-      setIsAnalyzing(true);
-      setGlobalError(null);
-      const pending = transactions.filter(t => t.category === 'A verificar');
-      if (pending.length === 0) {
-        setGlobalError("Nenhum registro marcado como 'A verificar' para analisar.");
-        return;
-      }
-
-      // Prepare category structure for the model
-      const availableCategories = JSON.stringify(
-        Object.fromEntries(
-          Object.keys(categories)
-            .filter(catName => catName !== 'Receitas/Entradas')
-            .map(catName => [catName, categories[catName].subcategories])
-        ), null, 2
-      );
-
-      for (const t of pending) {
-        try {
-          // Primeiro tentamos com GLM
-          const glmMessages = [
-            { role: 'system', content: 'Você é um classificador de despesas pessoais. Responda apenas com JSON: {"category":"...","subcategory":"..."} usando uma categoria e subcategoria presentes na estrutura fornecida. Não inclua explicações.' },
-            { role: 'user', content: `Descrição: ${t.description}\nEstrutura de categorias disponível (não invente novas):\n${availableCategories}\nResponda somente JSON.` }
-          ];
-
-          let suggestion: { category?: string; subcategory?: string } = {};
-          try {
-            const glmResp = await generateGLMContent({ model: 'glm-4', messages: glmMessages, temperature: 0.2, max_tokens: 256 });
-            const glmText = glmResp?.choices?.[0]?.message?.content || '';
-            const cleanGLM = (s: string) => s.replace(/```json/g, '').replace(/```/g, '').trim();
-            suggestion = JSON.parse(cleanGLM(glmText));
-          } catch (glmErr) {
-            // Fallback para Gemini, caso GLM falhe
-            try {
-              const prompt = `Dada a descrição da transação: "${t.description}", sugira a categoria e subcategoria mais apropriada.\nResponda APENAS com um objeto JSON contendo \"category\" e \"subcategory\".\nEstrutura de categorias de despesa disponível:\n${availableCategories}`;
-              const response = await generateContent({ model: 'gemini-2.5-flash', contents: prompt, expectJson: true });
-              const cleanGemini = (s: string) => s.replace(/```json/g, '').replace(/```/g, '').trim();
-              suggestion = JSON.parse(cleanGemini(response.text));
-            } catch (gemErr) {
-              console.warn('Falha ao classificar registro com GLM e Gemini', t.id, glmErr, gemErr);
-              suggestion = {};
-            }
-          }
-
-          if (suggestion.category && categories[suggestion.category]) {
-            const chosenSub = suggestion.subcategory && categories[suggestion.category].subcategories.includes(suggestion.subcategory)
-              ? suggestion.subcategory
-              : categories[suggestion.category].subcategories[0];
-
-            updateTransaction(t.id, {
-              description: t.description,
-              amount: t.amount,
-              type: t.type,
-              date: t.date,
-              category: suggestion.category,
-              subcategory: chosenSub,
-              paymentMethod: t.paymentMethod,
-              isRecurring: t.isRecurring,
-              installmentDetails: t.installmentDetails,
-            });
-          }
-        } catch (err) {
-          console.warn('Falha ao classificar registro', t.id, err);
-        }
-      }
-    } catch (e) {
-      setGlobalError('Falha ao analisar registros. Verifique a configuração da IA.');
-    } finally {
-      setIsAnalyzing(false);
-    }
+    await analyzeTransactions(transactions, updateTransaction);
   };
 
   // Gate de autenticação: só exibe login quando auth está ativa
@@ -1102,7 +1032,7 @@ const App: React.FC = () => {
           isOpen={isDeleteInstallmentModalOpen}
           onClose={() => setIsDeleteInstallmentModalOpen(false)}
           transaction={transactionToDelete}
-          onConfirmDelete={deleteTransaction}
+          onConfirmDelete={handleDeleteTransaction}
         />
       )}
 

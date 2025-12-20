@@ -22,8 +22,15 @@ export async function generateContent(req: GenerateRequest, options?: { token?: 
     body: JSON.stringify(req),
   });
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || 'Falha ao chamar IA');
+    let errorMessage = 'Falha ao chamar IA';
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch {
+      errorMessage = await res.text() || errorMessage;
+    }
+    console.error(`AI Client Gemini Error [${res.status}]:`, errorMessage);
+    throw new Error(errorMessage);
   }
   const data = await res.json();
   return data as { text: string };
@@ -39,8 +46,15 @@ export async function generateGLMContent(req: GLMRequest, options?: { token?: st
     body: JSON.stringify(req),
   });
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || 'Falha ao chamar GLM API');
+    let errorMessage = 'Falha ao chamar GLM API';
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch {
+      errorMessage = await res.text() || errorMessage;
+    }
+    console.error(`AI Client GLM Error [${res.status}]:`, errorMessage);
+    throw new Error(errorMessage);
   }
   const data = await res.json();
   return data;

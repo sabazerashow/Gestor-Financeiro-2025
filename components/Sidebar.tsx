@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Logo from './Logo';
 
 interface ProfileData {
     name: string;
@@ -76,10 +77,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     return (
         <motion.aside
             initial={false}
-            animate={{ width: isCollapsed ? 96 : 288 }}
+            animate={{ width: isCollapsed ? 120 : 320 }}
             className="flex flex-col h-screen bg-[#0A0A0A] sticky top-0 z-40 border-r border-white-[0.05] shadow-[10px_0_30px_-15px_rgba(0,0,0,0.5)]"
         >
-            <div className="p-8 pb-10">
+            <div className={`transition-all duration-300 ${isCollapsed ? 'px-4 py-8' : 'p-8'} pb-10`}>
                 <AnimatePresence mode="wait">
                     {!isCollapsed ? (
                         <motion.div
@@ -89,11 +90,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                             exit={{ opacity: 0, scale: 0.9 }}
                             className="flex items-center gap-4"
                         >
-                            <div className="w-12 h-12 bg-gradient-to-br from-[var(--primary)] to-blue-600 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-blue-500/30 ring-4 ring-white/5">
-                                <i className="fas fa-plane-up text-xl"></i>
+                            <div className="w-14 h-14 bg-white/5 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl ring-1 ring-white/10">
+                                <Logo size={52} color="white" />
                             </div>
                             <div>
-                                <h1 className="text-xl font-black tracking-[0.1em] text-white uppercase leading-[0.8]">
+                                <h1 className="text-2xl font-black tracking-[0.1em] text-white uppercase leading-[0.8]">
                                     FINANCE<br /><span className="text-[var(--primary)] text-sm tracking-[0.2em] font-black">PILOT</span>
                                 </h1>
                             </div>
@@ -104,10 +105,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
-                            className="w-14 h-14 bg-gradient-to-br from-[var(--primary)] to-blue-600 rounded-2xl flex items-center justify-center mx-auto text-white shadow-2xl shadow-blue-500/40 ring-4 ring-white/5 cursor-pointer"
+                            className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto text-white shadow-2xl ring-1 ring-white/10 cursor-pointer"
                             onClick={() => setIsCollapsed(false)}
                         >
-                            <i className="fas fa-plane-up text-2xl"></i>
+                            <Logo size={60} color="white" />
                         </motion.div>
                     )}
                 </AnimatePresence>

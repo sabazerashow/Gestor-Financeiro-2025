@@ -9,19 +9,24 @@ dotenv.config({ path: process.env.SERVER_ENV_PATH || '.env.server.local' });
 dotenv.config(); // fallback to .env
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
-const GLM_API_KEY = process.env.GLM_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY || process.env.VITE_GEMINI_API_KEY;
+const GLM_API_KEY = process.env.GLM_API_KEY || process.env.VITE_GLM_API_KEY;
 const APP_ACCESS_TOKEN = process.env.APP_ACCESS_TOKEN || null;
 
-if (!GEMINI_API_KEY) {
-  console.error('GEMINI_API_KEY não definido. Configure no ambiente do servidor.');
-  process.exit(1);
+console.log('--- Configuração do Servidor de IA ---');
+console.log(`Porta: ${PORT}`);
+console.log(`Gemini Key: ${GEMINI_API_KEY ? 'Configurada ✅' : 'AUSENTE ❌'}`);
+console.log(`GLM Key: ${GLM_API_KEY ? 'Configurada ✅' : 'AUSENTE ❌'}`);
+console.log('--------------------------------------');
+
+if (!GEMINI_API_KEY && !GLM_API_KEY) {
+  console.warn('⚠️ Nenhuma chave de API de IA configurada. O servidor pode falhar em chamadas de IA.');
 }
 
 const app = express();
 app.use(cors({ origin: true, credentials: false }));
-app.use(express.json({ limit: '1mb' }));
-app.use(morgan('combined'));
+app.use(express.json({ limit: '5mb' })); // Aumentado para suportar contextos maiores
+app.use(morgan('dev'));
 
 // Rate limit: 20 req/min por IP
 const limiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
@@ -50,7 +55,7 @@ app.post('/api/ai/generate', async (req, res) => {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${GEMINI_API_KEY}`;
 
     const body = {
-      contents: [{ role: 'user', parts: [{ text: contents }]}],
+      contents: [{ role: 'user', parts: [{ text: contents }] }],
       generationConfig: expectJson ? { responseMimeType: 'application/json' } : undefined,
     };
 
@@ -65,7 +70,7 @@ app.post('/api/ai/generate', async (req, res) => {
     try {
       const parts = data?.candidates?.[0]?.content?.parts || [];
       text = parts.map(p => p.text || '').join('\n');
-    } catch {}
+    } catch { }
     return res.json({ text });
   } catch (err) {
     console.error('Erro no /api/ai/generate:', err);

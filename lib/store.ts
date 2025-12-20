@@ -28,6 +28,9 @@ interface FinanceState {
     setBudgets: (val: Budget[] | ((prev: Budget[]) => Budget[])) => void;
     setGoals: (val: FinancialGoal[] | ((prev: FinancialGoal[]) => FinancialGoal[])) => void;
 
+    updateTransaction: (id: string, updates: Partial<Transaction>) => void;
+    deleteTransaction: (id: string) => void;
+
     // Hydration / Sync
     fetchData: (accountId: string) => Promise<void>;
     syncData: (accountId: string) => Promise<void>;
@@ -103,6 +106,14 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
             console.error('Store: Falha ao buscar dados', e);
         }
     },
+
+    updateTransaction: (id, updates) => set((state) => ({
+        transactions: state.transactions.map(t => t.id === id ? { ...t, ...updates } : t)
+    })),
+
+    deleteTransaction: (id) => set((state) => ({
+        transactions: state.transactions.filter(t => t.id !== id)
+    })),
 
     syncData: async (accountId) => {
         const { transactions, recurringTransactions, bills, payslips, budgets, goals } = get();
