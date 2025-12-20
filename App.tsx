@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, TransactionType, RecurringTransaction, Frequency, Bill, Payslip, PaymentMethod } from './types';
 import Header from './components/Header';
+import Sidebar from './components/Sidebar';
 import ErrorBanner from './components/ui/error-banner';
 import Summary from './components/Summary';
 import TransactionList from './components/TransactionList';
@@ -48,17 +49,17 @@ export interface DashboardCardConfig {
 }
 
 const defaultProfile = {
-    name: 'Diego Sabá',
-    title: 'Capitão de Corveta',
-    email: 'diego.saba@email.com',
-    dob: '1986-08-25',
-    gender: 'Masculino',
-    photo: 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
+  name: 'Diego Sabá',
+  title: 'Capitão de Corveta',
+  email: 'diego.saba@email.com',
+  dob: '1986-08-25',
+  gender: 'Masculino',
+  photo: 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
 };
 
 // CSV export/import removidos: funcionalidades migradas para lançamentos manuais.
 
- const App: React.FC = () => {
+const App: React.FC = () => {
   const [session, setSession] = useState<any>(null);
   const [accountId, setAccountId] = useState<string | null>(() => {
     try {
@@ -75,8 +76,8 @@ const defaultProfile = {
     if (savedTransactions) {
       try {
         const parsed = JSON.parse(savedTransactions);
-        if (Array.isArray(parsed)) { 
-          return parsed.map((t: any) => ({...t, amount: Number(t.amount) || 0}));
+        if (Array.isArray(parsed)) {
+          return parsed.map((t: any) => ({ ...t, amount: Number(t.amount) || 0 }));
         }
       } catch (e) {
         console.error("Failed to parse transactions from localStorage", e);
@@ -88,23 +89,23 @@ const defaultProfile = {
   const [payslips, setPayslips] = useState<Payslip[]>(() => {
     const saved = localStorage.getItem('payslips');
     if (saved) {
-        try {
-            const parsedPayslips = JSON.parse(saved);
-            if (Array.isArray(parsedPayslips)) {
-                return parsedPayslips.map((p: any) => ({
-                    ...p,
-                    month: Number(p.month),
-                    year: Number(p.year),
-                    netTotal: Number(p.netTotal),
-                    grossTotal: Number(p.grossTotal),
-                    deductionsTotal: Number(p.deductionsTotal),
-                    payments: p.payments?.map((item: any) => ({...item, value: Number(item.value)})) ?? [],
-                    deductions: p.deductions?.map((item: any) => ({...item, value: Number(item.value)})) ?? [],
-                }));
-            }
-        } catch (e) {
-            console.error("Failed to parse payslips from localStorage", e);
+      try {
+        const parsedPayslips = JSON.parse(saved);
+        if (Array.isArray(parsedPayslips)) {
+          return parsedPayslips.map((p: any) => ({
+            ...p,
+            month: Number(p.month),
+            year: Number(p.year),
+            netTotal: Number(p.netTotal),
+            grossTotal: Number(p.grossTotal),
+            deductionsTotal: Number(p.deductionsTotal),
+            payments: p.payments?.map((item: any) => ({ ...item, value: Number(item.value) })) ?? [],
+            deductions: p.deductions?.map((item: any) => ({ ...item, value: Number(item.value) })) ?? [],
+          }));
         }
+      } catch (e) {
+        console.error("Failed to parse payslips from localStorage", e);
+      }
     }
     return [];
   });
@@ -115,7 +116,7 @@ const defaultProfile = {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-            return parsed.map((t: any) => ({...t, amount: Number(t.amount) || 0}));
+          return parsed.map((t: any) => ({ ...t, amount: Number(t.amount) || 0 }));
         }
       } catch (e) {
         console.error("Failed to parse recurring transactions from localStorage", e);
@@ -130,7 +131,7 @@ const defaultProfile = {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-            return parsed;
+          return parsed;
         }
       } catch (e) {
         return [];
@@ -180,9 +181,9 @@ const defaultProfile = {
     });
     if (unique.length !== transactions.length) {
       setTransactions(unique);
-      try { localStorage.setItem('transactions', JSON.stringify(unique)); } catch(e) { /* ignore */ }
+      try { localStorage.setItem('transactions', JSON.stringify(unique)); } catch (e) { /* ignore */ }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Supabase Auth: obter sessão e escutar mudanças (apenas quando auth está ativa)
@@ -209,8 +210,8 @@ const defaultProfile = {
         if (!mounted) return;
         setAccountId(accId);
         setAccountName(name || null);
-        try { localStorage.setItem('accountId', accId); } catch {/* ignore */}
-        try { if (name) localStorage.setItem('accountName', name); } catch {/* ignore */}
+        try { localStorage.setItem('accountId', accId); } catch {/* ignore */ }
+        try { if (name) localStorage.setItem('accountName', name); } catch {/* ignore */ }
       } catch (e) {
         console.error('Falha ao garantir conta padrão', e);
       }
@@ -255,16 +256,16 @@ const defaultProfile = {
       }
     })();
   }, [transactions, recurringTransactions, bills, payslips, session, accountId]);
-  
+
   const allDashboardCards: DashboardCardConfig[] = useMemo(() => [
-     {
+    {
       id: 'aiInsightsCards',
       title: 'Análises Inteligentes (Cards)',
       description: 'Insights curtos gerados pela IA em formato de cartões.',
       icon: 'fa-wand-magic-sparkles',
       component: IntelligentAnalysisCards,
     },
-     {
+    {
       id: 'financialInsights',
       title: 'Análise Inteligente',
       description: 'Receba insights gerados por IA sobre seus padrões de gastos.',
@@ -286,32 +287,32 @@ const defaultProfile = {
       component: ExpenseBreakdown,
     },
     {
-        id: 'incomeBreakdown',
-        title: 'Receitas por Categoria',
-        description: 'Visualize a origem de suas receitas no período selecionado.',
-        icon: 'fa-chart-bar',
-        component: IncomeBreakdown,
+      id: 'incomeBreakdown',
+      title: 'Receitas por Categoria',
+      description: 'Visualize a origem de suas receitas no período selecionado.',
+      icon: 'fa-chart-bar',
+      component: IncomeBreakdown,
     },
     {
-        id: 'creditCardSpending',
-        title: 'Gastos com Crédito',
-        description: 'Análise detalhada dos seus gastos no cartão de crédito.',
-        icon: 'fa-regular fa-credit-card',
-        component: SpendingByCategoryCard,
+      id: 'creditCardSpending',
+      title: 'Gastos com Crédito',
+      description: 'Análise detalhada dos seus gastos no cartão de crédito.',
+      icon: 'fa-regular fa-credit-card',
+      component: SpendingByCategoryCard,
     },
     {
-        id: 'otherSpending',
-        title: 'Gastos com Débito e Outros',
-        description: 'Análise de gastos com Débito, PIX, Dinheiro, etc.',
-        icon: 'fa-money-bill-wave',
-        component: SpendingByCategoryCard,
+      id: 'otherSpending',
+      title: 'Gastos com Débito e Outros',
+      description: 'Análise de gastos com Débito, PIX, Dinheiro, etc.',
+      icon: 'fa-money-bill-wave',
+      component: SpendingByCategoryCard,
     },
     {
-        id: 'pendingInstallments',
-        title: 'Parcelas Pendentes',
-        description: 'Visualize o valor total e o status de suas compras parceladas.',
-        icon: 'fa-calendar-alt',
-        component: PendingInstallmentsCard,
+      id: 'pendingInstallments',
+      title: 'Parcelas Pendentes',
+      description: 'Visualize o valor total e o status de suas compras parceladas.',
+      icon: 'fa-calendar-alt',
+      component: PendingInstallmentsCard,
     }
   ], []);
 
@@ -319,47 +320,47 @@ const defaultProfile = {
   const [cardVisibility, setCardVisibility] = useState<Record<string, boolean>>(() => {
     const saved = localStorage.getItem('dashboardCardVisibility');
     if (saved) {
-        try {
-            return JSON.parse(saved);
-        } catch(e) { /* fall through */ }
+      try {
+        return JSON.parse(saved);
+      } catch (e) { /* fall through */ }
     }
     // Default visibility
     return {
-        aiInsightsCards: true,
-        financialInsights: true,
-        periodSummary: true,
-        expenseBreakdown: true,
-        incomeBreakdown: true,
-        creditCardSpending: true,
-        otherSpending: true,
-        pendingInstallments: true,
+      aiInsightsCards: true,
+      financialInsights: true,
+      periodSummary: true,
+      expenseBreakdown: true,
+      incomeBreakdown: true,
+      creditCardSpending: true,
+      otherSpending: true,
+      pendingInstallments: true,
     };
   });
-  
-    const [cardOrder, setCardOrder] = useState<string[]>(() => {
-        const savedOrder = localStorage.getItem('dashboardCardOrder');
-        if (savedOrder) {
-            try {
-                const parsed = JSON.parse(savedOrder) as string[];
-                // Validate that the saved order contains exactly the same cards as the master list
-                const allCardIds = new Set(allDashboardCards.map(c => c.id));
-                const savedCardIds = new Set(parsed);
-                if (allCardIds.size === savedCardIds.size && [...allCardIds].every(id => savedCardIds.has(id))) {
-                    return parsed;
-                }
-            } catch (e) {
-                console.error("Failed to parse card order from localStorage", e);
-            }
-        }
-        // Default order
-        return allDashboardCards.map(card => card.id);
-    });
 
-    const sortedDashboardCards = useMemo(() => {
-        return [...allDashboardCards].sort((a, b) => {
-            return cardOrder.indexOf(a.id) - cardOrder.indexOf(b.id);
-        });
-    }, [allDashboardCards, cardOrder]);
+  const [cardOrder, setCardOrder] = useState<string[]>(() => {
+    const savedOrder = localStorage.getItem('dashboardCardOrder');
+    if (savedOrder) {
+      try {
+        const parsed = JSON.parse(savedOrder) as string[];
+        // Validate that the saved order contains exactly the same cards as the master list
+        const allCardIds = new Set(allDashboardCards.map(c => c.id));
+        const savedCardIds = new Set(parsed);
+        if (allCardIds.size === savedCardIds.size && [...allCardIds].every(id => savedCardIds.has(id))) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Failed to parse card order from localStorage", e);
+      }
+    }
+    // Default order
+    return allDashboardCards.map(card => card.id);
+  });
+
+  const sortedDashboardCards = useMemo(() => {
+    return [...allDashboardCards].sort((a, b) => {
+      return cardOrder.indexOf(a.id) - cardOrder.indexOf(b.id);
+    });
+  }, [allDashboardCards, cardOrder]);
 
   const [activeTab, setActiveTab] = useState('overview');
   const [isNFeModalOpen, setIsNFeModalOpen] = useState(false);
@@ -395,19 +396,19 @@ const defaultProfile = {
   const [userProfile, setUserProfile] = useState(() => {
     const savedProfile = localStorage.getItem('userProfile');
     if (savedProfile) {
-        try {
-            return JSON.parse(savedProfile);
-        } catch (e) { /* fall through */ }
+      try {
+        return JSON.parse(savedProfile);
+      } catch (e) { /* fall through */ }
     }
     return defaultProfile;
   });
-  
+
 
 
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
-  
+
   useEffect(() => {
     localStorage.setItem('payslips', JSON.stringify(payslips));
   }, [payslips]);
@@ -419,7 +420,7 @@ const defaultProfile = {
   useEffect(() => {
     localStorage.setItem('bills', JSON.stringify(bills));
   }, [bills]);
-  
+
   useEffect(() => {
     localStorage.setItem('dashboardCardVisibility', JSON.stringify(cardVisibility));
   }, [cardVisibility]);
@@ -432,7 +433,7 @@ const defaultProfile = {
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
   }, [userProfile]);
 
-    // Data migration hook
+  // Data migration hook
   useEffect(() => {
     const migrationVersion = localStorage.getItem('migrationVersion');
     if (migrationVersion !== '2') {
@@ -465,7 +466,7 @@ const defaultProfile = {
       setBills(prev => prev.map(migrateItem));
 
       localStorage.setItem('migrationVersion', '2');
-       console.log("Migration complete.");
+      console.log("Migration complete.");
     }
   }, []);
 
@@ -491,19 +492,19 @@ const defaultProfile = {
           ));
 
         if (!transactionExists) {
-            newTransactions.push({
-              id: occurrenceId,
-              description: rec.description,
-              amount: rec.amount,
-              type: rec.type,
-              date: dueDateStr,
-              category: rec.category,
-              subcategory: rec.subcategory,
-              isRecurring: true,
-              paymentMethod: PaymentMethod.DEBITO,
-            });
+          newTransactions.push({
+            id: occurrenceId,
+            description: rec.description,
+            amount: rec.amount,
+            type: rec.type,
+            date: dueDateStr,
+            category: rec.category,
+            subcategory: rec.subcategory,
+            isRecurring: true,
+            paymentMethod: PaymentMethod.DEBITO,
+          });
         }
-        
+
         if (rec.frequency === Frequency.MONTHLY) {
           nextDueDate.setMonth(nextDueDate.getMonth() + 1);
         }
@@ -527,84 +528,84 @@ const defaultProfile = {
       });
       setRecurringTransactions(updatedRecurring);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>, installmentCount?: number) => {
     if (installmentCount && installmentCount > 1 && transaction.type === TransactionType.EXPENSE) {
-        const purchaseId = `inst-${new Date().getTime()}`;
-        const totalAmount = transaction.amount;
-        const installmentAmount = parseFloat((totalAmount / installmentCount).toFixed(2));
-        const startDate = new Date(transaction.date + 'T00:00:00');
-        
-        const newTransactions: Transaction[] = [];
+      const purchaseId = `inst-${new Date().getTime()}`;
+      const totalAmount = transaction.amount;
+      const installmentAmount = parseFloat((totalAmount / installmentCount).toFixed(2));
+      const startDate = new Date(transaction.date + 'T00:00:00');
 
-        for (let i = 0; i < installmentCount; i++) {
-            const installmentDate = new Date(startDate);
-            installmentDate.setMonth(startDate.getMonth() + i);
+      const newTransactions: Transaction[] = [];
 
-            newTransactions.push({
-                ...transaction,
-                id: `${purchaseId}-${i + 1}`,
-                description: `${transaction.description} (${i + 1}/${installmentCount})`,
-                amount: installmentAmount,
-                date: installmentDate.toISOString().split('T')[0],
-                installmentDetails: {
-                    purchaseId,
-                    current: i + 1,
-                    total: installmentCount,
-                    totalAmount: totalAmount,
-                }
-            });
-        }
-        setTransactions(prev => [...prev, ...newTransactions]);
-    } else {
-        const newTransaction: Transaction = {
-            ...transaction,
-            id: new Date().getTime().toString(),
-        };
-        setTransactions(prev => [...prev, newTransaction]);
-    }
-};
-  
-  const addMultipleTransactions = (transactionsToAdd: Omit<Transaction, 'id'>[]) => {
-      const newTransactions: Transaction[] = transactionsToAdd.map((t, index) => ({
-          ...t,
-          id: `${new Date().getTime()}-${index}`,
-      }));
-      setTransactions(prev => [...prev, ...newTransactions]);
-  }
-  
-    const addPayslip = (payslipData: Omit<Payslip, 'id'>, shouldLaunchTransaction: boolean) => {
-        const newPayslip: Payslip = {
-            ...payslipData,
-            id: `payslip-${payslipData.year}-${payslipData.month}`,
-        };
-        setPayslips(prev => {
-            const existingIndex = prev.findIndex(p => p.id === newPayslip.id);
-            if (existingIndex > -1) {
-                const updatedPayslips = [...prev];
-                updatedPayslips[existingIndex] = newPayslip;
-                return updatedPayslips;
-            }
-            return [...prev, newPayslip];
+      for (let i = 0; i < installmentCount; i++) {
+        const installmentDate = new Date(startDate);
+        installmentDate.setMonth(startDate.getMonth() + i);
+
+        newTransactions.push({
+          ...transaction,
+          id: `${purchaseId}-${i + 1}`,
+          description: `${transaction.description} (${i + 1}/${installmentCount})`,
+          amount: installmentAmount,
+          date: installmentDate.toISOString().split('T')[0],
+          installmentDetails: {
+            purchaseId,
+            current: i + 1,
+            total: installmentCount,
+            totalAmount: totalAmount,
+          }
         });
+      }
+      setTransactions(prev => [...prev, ...newTransactions]);
+    } else {
+      const newTransaction: Transaction = {
+        ...transaction,
+        id: new Date().getTime().toString(),
+      };
+      setTransactions(prev => [...prev, newTransaction]);
+    }
+  };
 
-        if (shouldLaunchTransaction) {
-            const transactionDate = new Date(payslipData.year, payslipData.month, 1);
+  const addMultipleTransactions = (transactionsToAdd: Omit<Transaction, 'id'>[]) => {
+    const newTransactions: Transaction[] = transactionsToAdd.map((t, index) => ({
+      ...t,
+      id: `${new Date().getTime()}-${index}`,
+    }));
+    setTransactions(prev => [...prev, ...newTransactions]);
+  }
 
-            const transactionData: Omit<Transaction, 'id'> = {
-                description: `Salário ${new Date(payslipData.year, payslipData.month - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}`,
-                amount: payslipData.netTotal,
-                type: TransactionType.INCOME,
-                date: transactionDate.toISOString().split('T')[0],
-                category: 'Receitas/Entradas',
-                subcategory: 'BP',
-                paymentMethod: PaymentMethod.OUTRO,
-            };
-            addTransaction(transactionData);
-        }
+  const addPayslip = (payslipData: Omit<Payslip, 'id'>, shouldLaunchTransaction: boolean) => {
+    const newPayslip: Payslip = {
+      ...payslipData,
+      id: `payslip-${payslipData.year}-${payslipData.month}`,
     };
+    setPayslips(prev => {
+      const existingIndex = prev.findIndex(p => p.id === newPayslip.id);
+      if (existingIndex > -1) {
+        const updatedPayslips = [...prev];
+        updatedPayslips[existingIndex] = newPayslip;
+        return updatedPayslips;
+      }
+      return [...prev, newPayslip];
+    });
+
+    if (shouldLaunchTransaction) {
+      const transactionDate = new Date(payslipData.year, payslipData.month, 1);
+
+      const transactionData: Omit<Transaction, 'id'> = {
+        description: `Salário ${new Date(payslipData.year, payslipData.month - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}`,
+        amount: payslipData.netTotal,
+        type: TransactionType.INCOME,
+        date: transactionDate.toISOString().split('T')[0],
+        category: 'Receitas/Entradas',
+        subcategory: 'BP',
+        paymentMethod: PaymentMethod.OUTRO,
+      };
+      addTransaction(transactionData);
+    }
+  };
 
   const updateTransaction = (id: string, updatedTransaction: Omit<Transaction, 'id'>) => {
     setTransactions(prev => prev.map(t => t.id === id ? { ...updatedTransaction, id } : t));
@@ -612,30 +613,30 @@ const defaultProfile = {
 
   const handleAttemptDelete = (transaction: Transaction) => {
     if (transaction.installmentDetails) {
-        setTransactionToDelete(transaction);
-        setIsDeleteInstallmentModalOpen(true);
+      setTransactionToDelete(transaction);
+      setIsDeleteInstallmentModalOpen(true);
     } else {
-        setConfirmDeleteContext({ kind: 'transaction', transaction });
-        setIsConfirmDeleteOpen(true);
+      setConfirmDeleteContext({ kind: 'transaction', transaction });
+      setIsConfirmDeleteOpen(true);
     }
   };
 
   const deleteTransaction = (id: string, scope: 'single' | 'all-future') => {
     if (scope === 'single') {
-        setTransactions(transactions.filter(t => t.id !== id));
+      setTransactions(transactions.filter(t => t.id !== id));
     } else {
-        const transaction = transactions.find(t => t.id === id);
-        if (transaction?.installmentDetails) {
-            const { purchaseId, current } = transaction.installmentDetails;
-            setTransactions(transactions.filter(t => 
-                !(t.installmentDetails?.purchaseId === purchaseId && t.installmentDetails.current >= current)
-            ));
-        }
+      const transaction = transactions.find(t => t.id === id);
+      if (transaction?.installmentDetails) {
+        const { purchaseId, current } = transaction.installmentDetails;
+        setTransactions(transactions.filter(t =>
+          !(t.installmentDetails?.purchaseId === purchaseId && t.installmentDetails.current >= current)
+        ));
+      }
     }
     setIsDeleteInstallmentModalOpen(false);
     setTransactionToDelete(null);
   };
-  
+
   const handleAttemptDeleteBill = (id: string) => {
     setConfirmDeleteContext({ kind: 'bill', billId: id });
     setIsConfirmDeleteOpen(true);
@@ -651,39 +652,39 @@ const defaultProfile = {
     setIsConfirmDeleteOpen(false);
     setConfirmDeleteContext(null);
   };
-  
+
   const addBill = (bill: Omit<Bill, 'id' | 'recurringTransactionId'>) => {
     const billId = `bill-${new Date().getTime().toString()}`;
     let newBill: Bill = { ...bill, id: billId };
     let newRecurring: RecurringTransaction | null = null;
 
     if (bill.isAutoDebit && bill.amount && bill.category && bill.subcategory) {
-        const recId = `rec-${billId}`;
-        newBill.recurringTransactionId = recId;
+      const recId = `rec-${billId}`;
+      newBill.recurringTransactionId = recId;
 
-        const today = new Date();
-        let firstDueDate = new Date(today.getFullYear(), today.getMonth(), bill.dueDay);
-        if (today.getDate() > bill.dueDay) {
-            firstDueDate.setMonth(firstDueDate.getMonth() + 1);
-        }
-        
-        newRecurring = {
-            id: recId,
-            description: bill.description,
-            amount: bill.amount,
-            type: TransactionType.EXPENSE,
-            category: bill.category,
-            subcategory: bill.subcategory,
-            frequency: Frequency.MONTHLY,
-            startDate: firstDueDate.toISOString().split('T')[0],
-            nextDueDate: firstDueDate.toISOString().split('T')[0],
-            linkedBillId: billId,
-        };
+      const today = new Date();
+      let firstDueDate = new Date(today.getFullYear(), today.getMonth(), bill.dueDay);
+      if (today.getDate() > bill.dueDay) {
+        firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+      }
+
+      newRecurring = {
+        id: recId,
+        description: bill.description,
+        amount: bill.amount,
+        type: TransactionType.EXPENSE,
+        category: bill.category,
+        subcategory: bill.subcategory,
+        frequency: Frequency.MONTHLY,
+        startDate: firstDueDate.toISOString().split('T')[0],
+        nextDueDate: firstDueDate.toISOString().split('T')[0],
+        linkedBillId: billId,
+      };
     }
 
     setBills(prev => [...prev, newBill]);
     if (newRecurring) {
-        setRecurringTransactions(prev => [...prev, newRecurring!]);
+      setRecurringTransactions(prev => [...prev, newRecurring!]);
     }
   };
 
@@ -691,16 +692,16 @@ const defaultProfile = {
   const deleteBill = (id: string) => {
     const billToDelete = bills.find(bill => bill.id === id);
     if (billToDelete?.recurringTransactionId) {
-        setRecurringTransactions(prev => prev.filter(rec => rec.id !== billToDelete.recurringTransactionId));
+      setRecurringTransactions(prev => prev.filter(rec => rec.id !== billToDelete.recurringTransactionId));
     }
     setBills(bills.filter(bill => bill.id !== id));
   };
-  
+
   const handlePayBill = (billDescription: string) => {
     setBillToPayDescription(billDescription);
     setIsPayBillChoiceModalOpen(true);
   };
-  
+
   const handleSelectQuickAdd = () => {
     setIsPayBillChoiceModalOpen(false);
     setQuickAddMode('ai');
@@ -731,12 +732,12 @@ const defaultProfile = {
   const handleFileSelected = (selectedFile: { content: string; mimeType: string }, type: 'nfe' | 'statement' | 'bp') => {
     setFileContent(selectedFile);
     if (type === 'nfe') {
-        setIsNFeModalOpen(true);
-    } else if (type === 'statement'){
-        setIsStatementModalOpen(true);
+      setIsNFeModalOpen(true);
+    } else if (type === 'statement') {
+      setIsStatementModalOpen(true);
     } else {
-        setBpImportMode('ocr');
-        setIsBPModalOpen(true);
+      setBpImportMode('ocr');
+      setIsBPModalOpen(true);
     }
   };
 
@@ -745,7 +746,7 @@ const defaultProfile = {
     setBpImportMode(mode);
     setIsBPModalOpen(true);
   };
-  
+
   // Removidos: handlers CSV (import/export)
 
   const handleCloseModals = () => {
@@ -755,14 +756,14 @@ const defaultProfile = {
     setIsManualBPModalOpen(false);
     setFileContent(null);
   }
-  
+
   const currentMonthTransactions = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     return transactions.filter(t => {
-        const transactionDate = new Date(t.date + 'T00:00:00');
-        return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
+      const transactionDate = new Date(t.date + 'T00:00:00');
+      return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions]);
 
@@ -778,46 +779,46 @@ const defaultProfile = {
     const balance = income - expense;
     return { income, expense, balance };
   }, [currentMonthTransactions]);
-  
+
   const availableMonths = useMemo(() => {
     const monthSet = new Set<string>();
     transactions.forEach(t => {
-        monthSet.add(t.date.slice(0, 7)); // 'YYYY-MM'
+      monthSet.add(t.date.slice(0, 7)); // 'YYYY-MM'
     });
     return Array.from(monthSet).sort().reverse();
   }, [transactions]);
 
   const filteredTransactionsForList = useMemo(() => {
     return transactions
-        .slice() // Create a shallow copy to avoid mutating the original array
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .filter(t => {
-            if (monthFilter !== 'all') {
-                return t.date.startsWith(monthFilter);
-            }
-            return true;
-        })
-        .filter(t => {
-            if (paymentMethodFilter !== 'all') {
-                return t.paymentMethod === paymentMethodFilter;
-            }
-            return true;
-        })
-        .filter(t => {
-            switch (installmentFilter) {
-                case 'single': return !t.installmentDetails;
-                case 'installments': return !!t.installmentDetails;
-                case 'all': default: return true;
-            }
-        });
+      .slice() // Create a shallow copy to avoid mutating the original array
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .filter(t => {
+        if (monthFilter !== 'all') {
+          return t.date.startsWith(monthFilter);
+        }
+        return true;
+      })
+      .filter(t => {
+        if (paymentMethodFilter !== 'all') {
+          return t.paymentMethod === paymentMethodFilter;
+        }
+        return true;
+      })
+      .filter(t => {
+        switch (installmentFilter) {
+          case 'single': return !t.installmentDetails;
+          case 'installments': return !!t.installmentDetails;
+          case 'all': default: return true;
+        }
+      });
   }, [transactions, installmentFilter, monthFilter, paymentMethodFilter]);
-  
+
   const toggleCardVisibility = (cardId: string) => {
-    setCardVisibility(prev => ({...prev, [cardId]: !prev[cardId]}));
+    setCardVisibility(prev => ({ ...prev, [cardId]: !prev[cardId] }));
   };
-  
+
   const monthYearDisplay = new Date().toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
-  
+
   const confirmMessage = (() => {
     if (isConfirmDeleteOpen && confirmDeleteContext) {
       if (confirmDeleteContext.kind === 'transaction' && confirmDeleteContext.transaction) {
@@ -835,82 +836,82 @@ const defaultProfile = {
     }
     return 'Tem certeza que deseja excluir este item?';
   })();
-  
+
   const renderContent = () => {
     switch (activeTab) {
-        case 'overview':
-            return (
-                <div className="space-y-8">
-                    <h2 className="text-center text-lg font-semibold text-[var(--color-text-muted)] tracking-wider">{monthYearDisplay}</h2>
-                    <Summary income={mainSummary.income} expense={mainSummary.expense} balance={mainSummary.balance} />
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-                        <div className="xl:col-span-1 bg-[var(--card)] rounded-xl shadow-lg">
-                           <UpcomingPayments bills={bills} onPayBill={handlePayBill} transactions={currentMonthTransactions} />
-                        </div>
-                        <div className="xl:col-span-2">
-                             <TransactionList
-                                transactions={currentMonthTransactions}
-                                onDelete={handleAttemptDelete}
-                                onEdit={handleOpenEditModal}
-                                showFilters={false}
-                            />
-                        </div>
-                    </div>
-                </div>
-            );
-        case 'history':
-            return (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                     <AddTransactionForm 
-                        onAddTransaction={addTransaction}
-                     />
-                    <div className="lg:col-span-2">
-                        <TransactionList
-                            transactions={filteredTransactionsForList}
-                            onDelete={handleAttemptDelete}
-                            onEdit={handleOpenEditModal}
-                            installmentFilter={installmentFilter}
-                            onInstallmentFilterChange={setInstallmentFilter}
-                            monthFilter={monthFilter}
-                            onMonthFilterChange={setMonthFilter}
-                            paymentMethodFilter={paymentMethodFilter}
-                            onPaymentMethodFilterChange={setPaymentMethodFilter}
-                        availableMonths={availableMonths}
-                          showFilters={true}
-                            onAnalyzePending={() => setIsConfirmAnalyzeOpen(true)}
-                            isAnalyzingPending={isAnalyzing}
-                        />
-                    </div>
-                </div>
-            );
-        case 'bills':
-            return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                    <AddBillForm onAddBill={addBill} />
-                    <BillList bills={bills} onDelete={handleAttemptDeleteBill} />
-                </div>
-            );
-        case 'reports':
-            return (
-                <ReportsView
-                    transactions={transactions}
-                    allDashboardCards={sortedDashboardCards}
-                    cardVisibility={cardVisibility}
-                    onToggleCard={toggleCardVisibility}
-                    onSetCardOrder={setCardOrder}
+      case 'overview':
+        return (
+          <div className="space-y-8">
+            <h2 className="text-center text-lg font-semibold text-[var(--color-text-muted)] tracking-wider">{monthYearDisplay}</h2>
+            <Summary income={mainSummary.income} expense={mainSummary.expense} balance={mainSummary.balance} />
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+              <div className="xl:col-span-1 bg-[var(--card)] rounded-xl shadow-lg">
+                <UpcomingPayments bills={bills} onPayBill={handlePayBill} transactions={currentMonthTransactions} />
+              </div>
+              <div className="xl:col-span-2">
+                <TransactionList
+                  transactions={currentMonthTransactions}
+                  onDelete={handleAttemptDelete}
+                  onEdit={handleOpenEditModal}
+                  showFilters={false}
                 />
-            );
-        case 'bp-analysis':
-            return (
-                <BPAnalysisView
-                    payslips={payslips}
-                    transactions={transactions}
-                    onFileSelectedBP={handleFileSelectedBP}
-                    onManualAdd={() => setIsManualBPModalOpen(true)}
-                />
-            );
-        default:
-            return null;
+              </div>
+            </div>
+          </div>
+        );
+      case 'history':
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <AddTransactionForm
+              onAddTransaction={addTransaction}
+            />
+            <div className="lg:col-span-2">
+              <TransactionList
+                transactions={filteredTransactionsForList}
+                onDelete={handleAttemptDelete}
+                onEdit={handleOpenEditModal}
+                installmentFilter={installmentFilter}
+                onInstallmentFilterChange={setInstallmentFilter}
+                monthFilter={monthFilter}
+                onMonthFilterChange={setMonthFilter}
+                paymentMethodFilter={paymentMethodFilter}
+                onPaymentMethodFilterChange={setPaymentMethodFilter}
+                availableMonths={availableMonths}
+                showFilters={true}
+                onAnalyzePending={() => setIsConfirmAnalyzeOpen(true)}
+                isAnalyzingPending={isAnalyzing}
+              />
+            </div>
+          </div>
+        );
+      case 'bills':
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <AddBillForm onAddBill={addBill} />
+            <BillList bills={bills} onDelete={handleAttemptDeleteBill} />
+          </div>
+        );
+      case 'reports':
+        return (
+          <ReportsView
+            transactions={transactions}
+            allDashboardCards={sortedDashboardCards}
+            cardVisibility={cardVisibility}
+            onToggleCard={toggleCardVisibility}
+            onSetCardOrder={setCardOrder}
+          />
+        );
+      case 'bp-analysis':
+        return (
+          <BPAnalysisView
+            payslips={payslips}
+            transactions={transactions}
+            onFileSelectedBP={handleFileSelectedBP}
+            onManualAdd={() => setIsManualBPModalOpen(true)}
+          />
+        );
+      default:
+        return null;
     }
   };
 
@@ -994,8 +995,8 @@ const defaultProfile = {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-col">
-      <Header 
+    <div className="min-h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-row overflow-hidden">
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onQuickAdd={() => setIsQuickAddModalOpen(true)}
@@ -1013,40 +1014,72 @@ const defaultProfile = {
         }}
         onPurgeAll={() => setIsPurgeAllOpen(true)}
       />
-      
-      <main className="container mx-auto p-4 md:p-8 flex-grow">
+
+      <main className="flex-1 h-screen overflow-y-auto px-10 py-8 custom-scrollbar bg-[#f8f9fa]">
+        {/* Dashboard Header from Reference */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6 animate-in slide-in-from-top duration-700">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+              Bom dia, {userProfile.name.split(' ')[0]}
+              <span className="text-gray-300 font-medium text-lg ml-2">
+                <i className="fas fa-angles-right text-xs align-middle"></i>
+                <span className="ml-3">{new Date().toLocaleDateString('pt-BR', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              </span>
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="relative group">
+              <i className="fas fa-bell text-gray-400 text-lg cursor-pointer hover:text-[var(--primary)] transition-all"></i>
+              <div className="absolute -top-1 -right-0.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#f8f9fa]"></div>
+            </div>
+
+            <div className="relative">
+              <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input
+                type="text"
+                placeholder="Search here"
+                className="bg-white pl-12 pr-6 py-3.5 rounded-2xl text-sm border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-64 tracking-tight outline-none"
+              />
+            </div>
+          </div>
+        </header>
+
         {globalError && <div className="mb-4"><ErrorBanner message={globalError} onClose={() => setGlobalError(null)} /></div>}
-        {renderContent()}
+
+        <div className="max-w-[1700px] mx-auto space-y-12">
+          {renderContent()}
+        </div>
+
+        <footer className="text-center py-16 mt-16 border-t border-gray-100">
+          <p className="text-xs text-gray-300 font-bold uppercase tracking-[0.2em]">
+            Gestor Financeiro <span className="text-[var(--primary)] mx-2">•</span> PC Version 1.0
+          </p>
+        </footer>
       </main>
-      
-      <footer className="text-center py-4">
-        <p className="text-xs text-[var(--color-text-muted)]">
-            Construído por Diego Sabá. Versão 0.1
-        </p>
-      </footer>
 
       {isNFeModalOpen && (
-        <ImportNFeModal 
-          isOpen={isNFeModalOpen} 
-          onClose={handleCloseModals} 
+        <ImportNFeModal
+          isOpen={isNFeModalOpen}
+          onClose={handleCloseModals}
           xmlContent={fileContent?.content ?? null}
           onConfirm={addMultipleTransactions}
         />
       )}
 
       {isStatementModalOpen && (
-        <ImportStatementModal 
-          isOpen={isStatementModalOpen} 
-          onClose={handleCloseModals} 
+        <ImportStatementModal
+          isOpen={isStatementModalOpen}
+          onClose={handleCloseModals}
           fileContent={fileContent?.content ?? null}
           onConfirm={addMultipleTransactions}
         />
       )}
-      
+
       {isBPModalOpen && (
-        <ImportBPModal 
-          isOpen={isBPModalOpen} 
-          onClose={handleCloseModals} 
+        <ImportBPModal
+          isOpen={isBPModalOpen}
+          onClose={handleCloseModals}
           file={fileContent}
           mode={bpImportMode}
           onConfirm={addPayslip}
@@ -1067,33 +1100,33 @@ const defaultProfile = {
         onConfirm={addPayslip}
       />
 
-      <QuickAddModal 
+      <QuickAddModal
         isOpen={isQuickAddModalOpen}
         onClose={() => {
-            setIsQuickAddModalOpen(false);
-            setQuickAddInitialDescription(undefined);
-            setBillToPayDescription(undefined);
+          setIsQuickAddModalOpen(false);
+          setQuickAddInitialDescription(undefined);
+          setBillToPayDescription(undefined);
         }}
         onAddTransaction={addTransaction}
         initialDescription={quickAddInitialDescription}
         initialMode={quickAddMode}
       />
-      
+
       {transactionToEdit && (
         <EditTransactionModal
-            isOpen={isEditModalOpen}
-            onClose={handleCloseEditModal}
-            transaction={transactionToEdit}
-            onUpdate={updateTransaction}
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          transaction={transactionToEdit}
+          onUpdate={updateTransaction}
         />
       )}
-      
+
       {isDeleteInstallmentModalOpen && transactionToDelete && (
         <DeleteInstallmentModal
-            isOpen={isDeleteInstallmentModalOpen}
-            onClose={() => setIsDeleteInstallmentModalOpen(false)}
-            transaction={transactionToDelete}
-            onConfirmDelete={deleteTransaction}
+          isOpen={isDeleteInstallmentModalOpen}
+          onClose={() => setIsDeleteInstallmentModalOpen(false)}
+          transaction={transactionToDelete}
+          onConfirmDelete={deleteTransaction}
         />
       )}
 
@@ -1108,16 +1141,16 @@ const defaultProfile = {
         message={confirmMessage}
       />
 
-       <PayBillChoiceModal
-            isOpen={isPayBillChoiceModalOpen}
-            onClose={() => setIsPayBillChoiceModalOpen(false)}
-            onSelectQuick={handleSelectQuickAdd}
-            onSelectManual={handleSelectManualAdd}
-        />
-        
-      <ProfileModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
+      <PayBillChoiceModal
+        isOpen={isPayBillChoiceModalOpen}
+        onClose={() => setIsPayBillChoiceModalOpen(false)}
+        onSelectQuick={handleSelectQuickAdd}
+        onSelectManual={handleSelectManualAdd}
+      />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
         userProfile={userProfile}
         onSave={setUserProfile}
       />
@@ -1142,7 +1175,7 @@ const defaultProfile = {
               localStorage.removeItem('recurringTransactions');
               localStorage.removeItem('bills');
               localStorage.removeItem('payslips');
-            } catch {}
+            } catch { }
             setIsPurgeAllOpen(false);
           } catch (e) {
             console.error('Falha ao apagar dados', e);

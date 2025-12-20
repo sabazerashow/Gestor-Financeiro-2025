@@ -1,46 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Fira+Code:wght@400;500;700&family=STIX+Two+Text:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Updated Palette from Reference Image */
+  --primary: #2ab29a;
+  --primary-foreground: #ffffff;
+  --background: #f8f9fa;
+  --foreground: #111111;
 
-  /* Tipografia base */
-  --font-sans: Montserrat, sans-serif;
-  --font-serif: Georgia, serif;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+
+  --secondary: #e6f7f4;
+  --secondary-foreground: #2ab29a;
+
+  --muted: #f0f2f5;
+  --muted-foreground: #6c757d;
+
+  --accent: #e6f7f4;
+  --accent-foreground: #111111;
+
+  --destructive: #ff4d4f;
+  --border: #edf2f7;
+  --input: #ffffff;
+  --ring: rgba(42, 178, 154, 0.2);
+
+  --sidebar: #111111;
+  --sidebar-foreground: #ffffff;
+  --radius: 12px;
+
+  /* Typography */
+  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Inter', sans-serif;
   --font-mono: 'Fira Code', monospace;
 
-  /* Aliases compatíveis com os componentes */
+  /* Aliases compatíveis */
   --color-bg: var(--background);
   --color-surface: var(--card);
   --color-border: var(--border);
@@ -49,59 +44,181 @@
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-error: var(--destructive);
-  --color-success: var(--chart-2);
-  --ring-color: var(--ring);
-  /* Overlay para modais */
-  --overlay: color-mix(in oklch, black 60%, transparent);
-
-  /* Estados para hover/active derivados */
-  --color-primary-hover: color-mix(in oklch, var(--primary) 90%, black 10%);
-  --color-primary-active: color-mix(in oklch, var(--primary) 80%, black 20%);
-  --color-secondary-hover: color-mix(in oklch, var(--secondary) 90%, black 10%);
-  --color-secondary-active: color-mix(in oklch, var(--secondary) 80%, black 20%);
-
-  /* Aliases para compatibilidade com componentes que usam --primary-hover */
-  --primary-hover: var(--color-primary-hover);
-  --primary-active: var(--color-primary-active);
-  --secondary-hover: var(--color-secondary-hover);
-  --secondary-active: var(--color-secondary-active);
+  --color-success: #2ab29a;
+  --color-primary-hover: #249b87;
 }
 
-
-
-/* Tipografia base e fundo aplicados globalmente */
 body {
   font-family: var(--font-sans);
   color: var(--color-text);
   background-color: var(--color-bg);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Utilitários de cores para entradas/saídas */
-.text-income { color: var(--chart-2); }
-.bg-income { background-color: color-mix(in oklch, var(--chart-2) 15%, transparent); }
-.text-expense { color: var(--destructive); }
-.bg-expense { background-color: color-mix(in oklch, var(--destructive) 15%, transparent); }
-.text-primary { color: var(--primary); }
-
-/* Ripple effect para botões usados em ui/button.tsx */
-.button-ripple {
-  position: absolute;
-  border-radius: 9999px;
-  transform: scale(0);
-  animation: ripple 600ms linear;
-  background-color: rgba(255, 255, 255, 0.4);
-  pointer-events: none;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
 }
 
-@keyframes ripple {
+/* Utilitários de cores */
+.text-income {
+  color: var(--color-success);
+}
+
+.bg-income {
+  background-color: rgba(76, 175, 110, 0.1);
+}
+
+.text-expense {
+  color: var(--color-error);
+}
+
+.bg-expense {
+  background-color: rgba(231, 61, 28, 0.1);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+/* Utility classes from style.css */
+.thq-heading-1 {
+  font-size: 48px;
+  font-family: STIX Two Text;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.thq-heading-2 {
+  font-size: 35px;
+  font-family: STIX Two Text;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.thq-heading-3 {
+  font-size: 26px;
+  font-family: STIX Two Text;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.thq-body-large {
+  font-size: 18px;
+  font-family: Noto Sans;
+  line-height: 1.5;
+}
+
+.thq-body-small {
+  font-size: 16px;
+  font-family: Noto Sans;
+  line-height: 1.5;
+}
+
+.thq-button-filled {
+  gap: var(--dl-layout-space-halfunit);
+  fill: var(--dl-color-theme-secondary1);
+  color: var(--dl-color-theme-secondary1);
+  cursor: pointer;
+  display: flex;
+  transition: 0.3s;
+  align-items: center;
+  font-weight: bold;
+  padding: var(--dl-layout-space-halfunit) var(--dl-layout-space-oneandhalfunits);
+  white-space: nowrap;
+  border: 1px solid var(--dl-color-theme-primary1);
+  border-radius: var(--dl-layout-radius-buttonradius);
+  justify-content: center;
+  background-color: var(--dl-color-theme-primary1);
+}
+
+.thq-button-filled:hover {
+  fill: var(--dl-color-theme-secondary2);
+  color: var(--dl-color-theme-secondary2);
+  border-color: var(--dl-color-theme-primary2);
+  background-color: var(--dl-color-theme-primary2);
+}
+
+.thq-card {
+  gap: var(--dl-layout-space-oneandhalfunits);
+  display: flex;
+  padding: var(--dl-layout-space-twounits);
+  align-items: stretch;
+  border-radius: var(--dl-layout-radius-cardradius);
+  flex-direction: column;
+  background-color: var(--card);
+}
+
+.thq-box-shadow {
+  box-shadow: 0px 0px 5px -2px var(--dl-color-theme-neutral-dark);
+}
+
+.thq-input {
+  color: var(--dl-color-theme-neutral-dark);
+  cursor: auto;
+  outline: none;
+  padding: 0.5rem 1rem;
+  align-self: stretch;
+  text-align: center;
+  border: 1px solid var(--dl-color-theme-neutral-dark);
+  border-radius: var(--dl-layout-radius-inputradius);
+  background-color: var(--dl-color-theme-neutral-light);
+}
+
+/* Animations from style.css */
+@keyframes scroll-x {
+  from {
+    transform: translateX(0);
+  }
+
   to {
-    transform: scale(4);
-    opacity: 0;
+    transform: translateX(-100%);
   }
 }
 
-/* Utilitários de fonte */
-.font-sans { font-family: var(--font-sans); }
-.font-serif { font-family: var(--font-serif); }
-.font-mono { font-family: var(--font-mono); }
-code, pre { font-family: var(--font-mono); }
+@keyframes scroll-y {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+.thq-animated-card-bg-1 {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s;
+  border-radius: var(--dl-layout-radius-cardradius);
+  background-color: var(--dl-color-theme-accent1);
+}
+
+.thq-animated-card-bg-2 {
+  transition: transform 0.3s;
+  border-radius: var(--dl-layout-radius-cardradius);
+  background-color: var(--dl-color-theme-accent2);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--dl-color-gray-05);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--dl-color-gray-04);
+}
