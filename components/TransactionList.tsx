@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { Button } from './ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction, PaymentMethod } from '../types';
 import TransactionItem from './TransactionItem';
 
@@ -83,15 +83,17 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
 
   const renderTransactionList = (list: Transaction[]) => (
-    <ul className="space-y-3">
-      {list.map(transaction => (
-        <TransactionItem key={transaction.id} transaction={transaction} onDelete={onDelete} onEdit={onEdit} />
-      ))}
-    </ul>
+    <AnimatePresence initial={false}>
+      <motion.ul layout className="space-y-4">
+        {list.map(transaction => (
+          <TransactionItem key={transaction.id} transaction={transaction} onDelete={onDelete} onEdit={onEdit} />
+        ))}
+      </motion.ul>
+    </AnimatePresence>
   );
 
   return (
-    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm animate-in fade-in duration-700 min-h-[680px]">
+    <div className="bg-white p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] flex flex-col min-h-[680px]">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">

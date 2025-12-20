@@ -1,6 +1,7 @@
 
 
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction, CategoryExpense, CategoryIncome, PaymentMethod } from '../types';
 import { categories } from '../categories';
 import PeriodSummaryCard from './PeriodSummaryCard';
@@ -13,7 +14,7 @@ interface ReportsViewProps {
 }
 
 const ReportsView: React.FC<ReportsViewProps> = ({
-  transactions
+  transactions = []
 }) => {
   const [periodType, setPeriodType] = useState<'month' | 'period'>('month');
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
@@ -21,7 +22,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     start: new Date(new Date().setDate(1)).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0],
   });
-  const [isManageCardsModalOpen, setIsManageCardsModalOpen] = useState(false);
 
   const analysisTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -40,56 +40,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     });
   }, [transactions, periodType, selectedMonth, dateRange]);
 
-  const expenseData: CategoryExpense[] = useMemo(() => {
-    const expenses = analysisTransactions.filter(t => t.type === 'expense');
-    // FIX: Ensure 't.amount' is treated as a number in reduce functions.
-    const totalExpense = expenses.reduce((acc: number, t) => acc + (Number(t.amount) || 0), 0);
-    if (totalExpense === 0) return [];
-
-    const byCategory = expenses.reduce((acc: { [key: string]: number }, t) => {
-      const cat = t.category || 'Outros';
-      // FIX: Ensure 't.amount' is treated as a number in reduce functions.
-      acc[cat] = (acc[cat] || 0) + (Number(t.amount) || 0);
-      return acc;
-    }, {});
-
-    const palette = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
-    return Object.entries(byCategory)
-      .map(([category, amount], idx) => ({
-        category,
-        amount: amount as number,
-        percentage: ((amount as number) / totalExpense) * 100,
-        color: palette[idx % palette.length],
-        icon: categories[category]?.icon || 'fa-tag',
-      }))
-      .sort((a, b) => (b.amount as number) - (a.amount as number));
-  }, [analysisTransactions]);
-
-  const incomeData: CategoryIncome[] = useMemo(() => {
-    const incomes = analysisTransactions.filter(t => t.type === 'income');
-    // FIX: Ensure 't.amount' is treated as a number in reduce functions.
-    const totalIncome = incomes.reduce((acc: number, t) => acc + (Number(t.amount) || 0), 0);
-    if (totalIncome === 0) return [];
-
-    const byCategory = incomes.reduce((acc: { [key: string]: number }, t) => {
-      const cat = t.category || 'Outros';
-      // FIX: Ensure 't.amount' is treated as a number in reduce functions.
-      acc[cat] = (acc[cat] || 0) + (Number(t.amount) || 0);
-      return acc;
-    }, {});
-
-    const palette = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
-    return Object.entries(byCategory)
-      .map(([category, amount], idx) => ({
-        category,
-        amount: amount as number,
-        percentage: ((amount as number) / totalIncome) * 100,
-        color: palette[idx % palette.length],
-        icon: categories[category]?.icon || 'fa-tag',
-      }))
-      .sort((a, b) => (b.amount as number) - (a.amount as number));
-  }, [analysisTransactions]);
-
   const CreditCardFooter = () => {
     const invoiceTotal = useMemo(() => {
       return analysisTransactions
@@ -104,70 +54,89 @@ const ReportsView: React.FC<ReportsViewProps> = ({
     const invoiceMonth = new Date(year, month - 1, 1).toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
 
     return (
-      <p className="text-xs text-center text-[var(--color-text-muted)] mt-2">
-        Fatura {invoiceMonth}: <span className="font-bold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoiceTotal)}</span>, vence em {dueDate.toLocaleDateString('pt-BR')}
-      </p>
+      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+        <i className="fas fa-info-circle text-blue-500"></i>
+        <span>Fatura {invoiceMonth} (Vence {dueDate.toLocaleDateString('pt-BR')}):</span>
+        <span className="text-gray-900">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoiceTotal)}</span>
+      </div>
     );
   };
 
 
   return (
-    <div className="space-y-8">
-      <div>
-        <div className="flex flex-wrap items-center gap-4 p-4 bg-[var(--card)] rounded-lg shadow">
-          <div className="flex items-center space-x-2">
+    <div className="space-y-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">Relatórios Detalhados</h2>
+          <p className="text-sm text-gray-500 font-medium">Análise profunda da sua saúde financeira mensal</p>
+        </div>
+
+        <div className="flex items-center gap-4 p-2 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex p-1 bg-gray-50 rounded-xl">
             <button
               onClick={() => setPeriodType('month')}
-              className={`px-3 py-1 text-sm rounded-md ${periodType === 'month' ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : 'bg-[var(--surface)]'}`}
+              className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${periodType === 'month' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
-              Mês
+              Mensal
             </button>
             <button
               onClick={() => setPeriodType('period')}
-              className={`px-3 py-1 text-sm rounded-md ${periodType === 'period' ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : 'bg-[var(--surface)]'}`}
+              className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${periodType === 'period' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
               Período
             </button>
           </div>
-          {periodType === 'month' ? (
-            <div>
-              <label htmlFor="month-select" className="sr-only">Selecione o Mês</label>
-              <input
-                type="month"
-                id="month-select"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] text-sm"
-              />
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center gap-4">
-              <div>
-                <label htmlFor="start-date" className="text-sm mr-2">De:</label>
+
+          <div className="h-8 w-px bg-gray-100"></div>
+
+          <AnimatePresence mode="wait">
+            {periodType === 'month' ? (
+              <motion.div
+                key="month-picker"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+              >
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 p-0 cursor-pointer"
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="period-picker"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="flex items-center gap-3"
+              >
                 <input
                   type="date"
-                  id="start-date"
                   value={dateRange.start}
                   onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] text-sm"
+                  className="bg-transparent border-none text-xs font-bold text-gray-700 p-0 focus:ring-0"
                 />
-              </div>
-              <div>
-                <label htmlFor="end-date" className="text-sm mr-2">Até:</label>
+                <span className="text-gray-300 font-bold">→</span>
                 <input
                   type="date"
-                  id="end-date"
                   value={dateRange.end}
                   onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] text-sm"
+                  className="bg-transparent border-none text-xs font-bold text-gray-700 p-0 focus:ring-0"
                 />
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="grid grid-cols-1 lg:grid-cols-6 gap-8"
+      >
         {/* Row 1: Period Summary (Full Width) */}
         <div className="lg:col-span-6">
           <PeriodSummaryCard transactions={analysisTransactions} />
@@ -178,7 +147,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <SpendingByCategoryCard
             transactions={analysisTransactions.filter(t => t.type === 'income')}
             paymentMethods={[PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
-            title="Receitas por Categoria"
+            title="Distribuição de Receitas"
             icon="fa-chart-line"
           />
         </div>
@@ -186,7 +155,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <SpendingByCategoryCard
             transactions={analysisTransactions}
             paymentMethods={[PaymentMethod.CREDITO, PaymentMethod.DEBITO, PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
-            title="Despesas por Categoria"
+            title="Distribuição de Despesas"
             icon="fa-chart-pie"
           />
         </div>
@@ -196,7 +165,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <SpendingByCategoryCard
             transactions={analysisTransactions}
             paymentMethods={[PaymentMethod.CREDITO]}
-            title="Gastos com Crédito"
+            title="Movimentação: Crédito"
             icon="fa-regular fa-credit-card"
             footer={<CreditCardFooter />}
           />
@@ -205,7 +174,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <SpendingByCategoryCard
             transactions={analysisTransactions}
             paymentMethods={[PaymentMethod.DEBITO, PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
-            title="Gastos com Débito e Outros"
+            title="Movimentação: Débito & Outros"
             icon="fa-money-bill-wave"
           />
         </div>
@@ -217,9 +186,10 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         <div className="lg:col-span-3">
           <IntelligentAnalysisCards transactions={analysisTransactions} />
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
 export default ReportsView;
+

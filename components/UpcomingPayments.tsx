@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Bill, Transaction, TransactionType } from '../types';
 
 interface UpcomingPaymentsProps {
@@ -32,23 +32,31 @@ const UpcomingPaymentItem: React.FC<{ bill: Bill; dueDate: Date; onPayBill: (des
   }
 
   return (
-    <li className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-[var(--surface)] rounded-lg">
-      <div className="flex items-center space-x-3 mb-2 sm:mb-0">
-        <i className="fas fa-bell text-[var(--primary)]"></i>
+    <motion.li
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100/50 group hover:bg-white hover:border-[var(--primary)]/20 hover:shadow-sm transition-all"
+    >
+      <div className="flex items-center gap-4">
+        <div className={`w-10 h-10 rounded-xl ${diffDays < 0 ? 'bg-red-50 text-red-500' : 'bg-[var(--primary)]/10 text-[var(--primary)]'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+          <i className={`fas ${diffDays < 0 ? 'fa-exclamation-circle' : 'fa-calendar-day'} text-lg`}></i>
+        </div>
         <div>
-          <p className="font-semibold text-[var(--color-text)]">{bill.description}</p>
-          <p className={`text-sm ${textColor}`}>{dueDateText}</p>
+          <p className="font-black text-sm text-gray-900 tracking-tight">{bill.description}</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className={`text-[10px] font-black uppercase tracking-widest ${textColor}`}>{dueDateText}</span>
+            <span className="text-[10px] text-gray-300 font-bold">•</span>
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{dueDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+          </div>
         </div>
       </div>
-      <div className="flex items-center space-x-4 self-end sm:self-center">
-        <button
-          onClick={() => onPayBill(bill.description)}
-          className="px-3 py-1 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
-        >
-          Pagar Conta
-        </button>
-      </div>
-    </li>
+      <button
+        onClick={() => onPayBill(bill.description)}
+        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl bg-white text-gray-900 border border-gray-100 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all shadow-sm"
+      >
+        Pagar
+      </button>
+    </motion.li>
   );
 };
 
@@ -86,19 +94,30 @@ const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ bills, onPayBill, t
     .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
   return (
-    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm min-h-[680px]">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-          <i className="fas fa-file-invoice-dollar"></i>
+    <div className="bg-white p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] h-full flex flex-col min-h-[680px]">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+            <i className="fas fa-file-invoice-dollar"></i>
+          </div>
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contas Próximas</h2>
         </div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contas a Pagar</h2>
+        <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-100">
+          {upcoming.length} Pendentes
+        </div>
       </div>
 
-      <div className="overflow-y-auto pr-2 custom-scrollbar" style={{ height: '500px' }}>
+      <div className="overflow-y-auto pr-2 flex-1 custom-scrollbar">
         {upcoming.length === 0 ? (
-          <p className="text-gray-300 text-center py-8 italic text-sm">Nenhuma conta próxima do vencimento.</p>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-4">
+              <i className="fas fa-check-circle text-2xl"></i>
+            </div>
+            <p className="text-sm font-bold text-gray-900">Tudo em dia!</p>
+            <p className="text-xs text-gray-400 mt-1">Nenhuma conta pendente para os próximos 15 dias.</p>
+          </div>
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-4">
             {upcoming.map(({ bill, dueDate }) => (
               <UpcomingPaymentItem key={bill.id} bill={bill} dueDate={dueDate} onPayBill={onPayBill} />
             ))}

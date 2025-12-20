@@ -29,7 +29,7 @@ const SimplePieChart: React.FC<SimplePieChartProps> = ({ data }) => {
       'var(--chart-9)',
       'var(--chart-10)'
     ];
-    
+
     for (let i = 0; i < numColors; i++) {
       colors.push(chartColors[i % chartColors.length]);
     }
@@ -57,7 +57,14 @@ const SimplePieChart: React.FC<SimplePieChartProps> = ({ data }) => {
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} stroke={'var(--surface)'} strokeWidth={2} />
             ))}
           </Pie>
-          <Legend wrapperStyle={{ color: legendColor }} />
+          <Legend
+            wrapperStyle={{ color: legendColor }}
+            formatter={(value, entry: any) => (
+              <span className="text-[10px] font-bold">
+                {value}: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entry.payload.value)}
+              </span>
+            )}
+          />
           <Tooltip
             formatter={(value: any, name: any) => {
               const val = Number(value) || 0;

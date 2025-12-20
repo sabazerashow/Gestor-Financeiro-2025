@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Transaction, TransactionType, paymentMethodDetails } from '../types';
 import { categories } from '../categories';
 
@@ -25,31 +26,35 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
   const isFuture = transactionDate > today;
 
   return (
-    <li
-      className="flex items-center justify-between p-5 bg-white rounded-2xl border border-transparent hover:border-gray-50 hover:bg-gray-50/30 transition-all group cursor-pointer"
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      whileHover={{ y: -2 }}
+      className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-50/50 hover:border-[var(--primary)]/30 hover:shadow-md transition-all group cursor-pointer"
       onClick={() => onEdit(transaction)}
     >
-      <div className="flex items-center space-x-5 flex-1 min-w-0">
-        <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-xl text-gray-400 border border-gray-100 group-hover:bg-white group-hover:border-[var(--primary)]/20 transition-all">
+      <div className="flex items-center gap-5 flex-1 min-w-0">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all ${isIncome ? 'bg-emerald-50 text-emerald-500' : 'bg-gray-50 text-gray-400'} group-hover:scale-110`}>
           <i className={`fas ${categoryInfo?.icon || 'fa-tag'}`}></i>
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-900 truncate tracking-tight text-base">{transaction.description}</p>
-          <div className="flex items-center space-x-2 mt-1">
-            <span className="text-xs text-gray-400 font-medium">{transaction.category}</span>
-            <span className="text-gray-200 text-[10px]">•</span>
-            <span className="text-xs text-gray-400 font-medium">{formattedDate}</span>
+          <p className="font-black text-gray-900 truncate tracking-tight text-base mb-0.5">{transaction.description}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#2ab29a] bg-emerald-50 px-2 py-0.5 rounded-lg">{transaction.category}</span>
+            <span className="text-gray-300 text-[10px]">•</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formattedDate}</span>
 
             {transaction.createdByName && (
-              <div className="flex items-center gap-1.5 ml-2 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+              <div className="flex items-center gap-1.5 ml-2 px-1.5 py-0.5 rounded-full bg-gray-50 border border-gray-100/50">
                 <div
-                  className="w-5 h-5 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] font-bold uppercase shadow-sm"
-                  title={`Lançado por: ${transaction.createdByName}`}
+                  className="w-4 h-4 rounded-full bg-gray-900 text-white flex items-center justify-center text-[8px] font-black uppercase"
                 >
                   {transaction.createdByName.charAt(0)}
                 </div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide max-w-[60px] truncate">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-wide max-w-[50px] truncate">
                   {transaction.createdByName.split(' ')[0]}
                 </span>
               </div>
@@ -58,23 +63,28 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
         </div>
       </div>
 
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-6">
         <div className="text-right">
-          <p className={`text-lg font-bold tracking-tight ${isIncome ? 'text-[#2ab29a]' : 'text-gray-900'}`}>
+          <p className={`text-lg font-black tracking-tight ${isIncome ? 'text-emerald-500' : 'text-gray-900'}`}>
             {isIncome ? `+${formattedAmount}` : formattedAmount}
           </p>
-          <p className="text-[10px] text-gray-300 font-semibold uppercase tracking-widest mt-0.5">{transaction.paymentMethod || 'Other'}</p>
+          <div className="flex items-center justify-end gap-1.5 mt-0.5">
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em]">{transaction.paymentMethod || 'OUTRO'}</span>
+            {paymentInfo?.icon && <i className={`fas ${paymentInfo.icon} text-[10px] text-gray-400`}></i>}
+          </div>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(transaction); }}
-            className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+            className="w-9 h-9 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90"
+            title="Excluir Lançamento"
           >
-            <i className="fas fa-trash-alt text-sm"></i>
+            <i className="fas fa-trash-alt text-xs"></i>
           </button>
         </div>
       </div>
-    </li >
+    </motion.li >
   );
 };
 

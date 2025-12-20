@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Transaction, TransactionType, PaymentMethod } from '../../types';
 import { categories } from '../../categories';
 import CategoryPieChart from '../charts/CategoryPieChart';
@@ -18,12 +19,10 @@ const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transac
       paymentMethods.includes(t.paymentMethod)
     );
 
-    // FIX: Explicitly cast 't.amount' to a number to prevent type errors.
     const total = filtered.reduce((acc: number, t) => acc + (Number(t.amount) || 0), 0);
 
     const byCategory = filtered.reduce((acc: { [key: string]: number }, t) => {
       const category = t.category || 'Outros';
-      // FIX: Explicitly cast 't.amount' to a number to prevent type errors.
       acc[category] = (acc[category] || 0) + (Number(t.amount) || 0);
       return acc;
     }, {});
@@ -50,49 +49,71 @@ const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transac
   }));
 
   return (
-    <div className="p-8 h-full flex flex-col bg-white rounded-[32px] border border-gray-100 shadow-sm">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-          <i className={`fas ${icon}`}></i>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-8 h-full flex flex-col bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden group"
+    >
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[var(--primary)] group-hover:text-white transition-colors duration-500 shadow-inner">
+            <i className={`fas ${icon} text-sm`}></i>
+          </div>
+          <div>
+            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{title}</h2>
+          </div>
         </div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</h2>
       </div>
 
       {data.total === 0 ? (
-        <div className="flex-grow flex flex-col items-center justify-center text-center text-gray-300">
-          <i className="fas fa-inbox text-4xl mb-3"></i>
-          <p className="text-sm italic">Nenhuma despesa no período.</p>
+        <div className="flex-grow flex flex-col items-center justify-center text-center py-10">
+          <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-200 mb-4 border border-gray-50">
+            <i className="fas fa-inbox text-2xl"></i>
+          </div>
+          <p className="text-sm font-medium text-gray-400 italic">Nenhum dado para exibir</p>
         </div>
       ) : (
-        <>
-          <div className="text-center mb-6">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total</p>
-            <p className="text-3xl font-black text-gray-900 tracking-tight">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total)}</p>
+        <div className="flex flex-col flex-grow">
+          <div className="text-center mb-8 p-4 bg-gray-50/50 rounded-2xl border border-gray-100/50">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Montante no Período</p>
+            <p className="text-4xl font-black text-gray-900 tracking-tighter tabular-nums">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.total)}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <div className="h-48">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-center flex-grow">
+            <div className="h-44 flex items-center justify-center">
               <CategoryPieChart data={pieChartData} />
             </div>
-            <ul className="space-y-2 text-sm">
-              {data.categoryBreakdown.slice(0, 5).map(item => (
-                <li key={item.category} className="flex items-center justify-between p-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></span>
-                    <span className="text-gray-500 font-medium text-xs">{item.category}</span>
+            <ul className="space-y-1.5 list-none m-0 p-0">
+              {data.categoryBreakdown.slice(0, 5).map((item, index) => (
+                <motion.li
+                  key={item.category}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                    <span className="text-gray-600 font-bold text-[11px] truncate max-w-[100px]">{item.category}</span>
                   </div>
-                  <span className="font-bold text-gray-900 text-xs">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount)}</span>
-                </li>
+                  <span className="font-black text-gray-900 text-xs tabular-nums">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.amount)}
+                  </span>
+                </motion.li>
               ))}
               {data.categoryBreakdown.length > 5 && (
-                <li className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest pt-2">...e mais {data.categoryBreakdown.length - 5}</li>
+                <li className="text-center text-[9px] font-black text-gray-400 uppercase tracking-widest pt-3 border-t border-gray-50 mt-2">
+                  Mais {data.categoryBreakdown.length - 5} categorias...
+                </li>
               )}
             </ul>
           </div>
-          {footer && <div className="mt-4 border-t border-gray-100 pt-4">{footer}</div>}
-        </>
+          {footer && footer}
+        </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

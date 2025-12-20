@@ -1,52 +1,60 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Fira+Code:wght@400;500;700&family=STIX+Two+Text:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Updated Palette from Reference Image */
+  /* Core Palette - Finance Pilot Premium */
   --primary: #2ab29a;
+  --primary-rgb: 42, 178, 154;
+  --primary-hover: #249b87;
   --primary-foreground: #ffffff;
+
   --background: #f8f9fa;
   --foreground: #111111;
 
   --card: #ffffff;
   --card-foreground: #111111;
-  --popover: #ffffff;
-  --popover-foreground: #111111;
+  --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 10px 30px -4px rgba(0, 0, 0, 0.1);
 
   --secondary: #e6f7f4;
   --secondary-foreground: #2ab29a;
 
-  --muted: #f0f2f5;
-  --muted-foreground: #6c757d;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
 
-  --accent: #e6f7f4;
-  --accent-foreground: #111111;
+  --accent: #f8fafc;
+  --accent-foreground: #0f172a;
 
-  --destructive: #ff4d4f;
-  --border: #edf2f7;
+  --destructive: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  --border: #f1f5f9;
   --input: #ffffff;
   --ring: rgba(42, 178, 154, 0.2);
 
-  --sidebar: #111111;
-  --sidebar-foreground: #ffffff;
-  --radius: 12px;
+  --sidebar: #0f172a;
+  --sidebar-foreground: #f8fafc;
+
+  --radius: 16px;
+  --radius-lg: 24px;
+  --radius-sm: 8px;
+
+  /* Glassmorphism Defaults */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: 12px;
 
   /* Typography */
-  --font-sans: 'Inter', sans-serif;
-  --font-heading: 'Inter', sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Inter', system-ui, sans-serif;
   --font-mono: 'Fira Code', monospace;
 
-  /* Aliases compatíveis */
-  /* Chart Colors */
+  /* Chart & Functional Colors */
   --chart-1: #2ab29a;
-  --chart-2: #ff8042;
-  --chart-3: #0088fe;
-  --chart-4: #ffbb28;
-  --chart-5: #00c49f;
-  --chart-6: #8884d8;
-  --chart-7: #ff7300;
-  --chart-8: #d0ed57;
-  --chart-9: #a4de6c;
-  --chart-10: #82ca9d;
+  --chart-2: #3b82f6;
+  --chart-3: #8b5cf6;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
 
   --color-bg: var(--background);
   --color-surface: var(--card);
@@ -56,8 +64,7 @@
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-error: var(--destructive);
-  --color-success: #2ab29a;
-  --color-primary-hover: #249b87;
+  --color-success: var(--success);
 }
 
 body {

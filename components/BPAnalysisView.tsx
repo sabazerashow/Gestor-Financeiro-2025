@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ErrorBanner from './ui/error-banner';
 import { Payslip, Transaction } from '../types';
 import UnderstandBPModal from './UnderstandBPModal';
@@ -137,7 +138,11 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
   };
 
   return (
-    <div className="space-y-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8"
+    >
       <div className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm">
         <div className="flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center gap-3">
@@ -232,7 +237,7 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
         onToggle={(cardId: string) => setCardVisibility(prev => ({ ...prev, [cardId]: !prev[cardId] }))}
         onOrderChange={setCardOrder}
       />
-    </div>
+    </motion.div>
   );
 };
 

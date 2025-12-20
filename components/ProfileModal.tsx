@@ -19,7 +19,7 @@ interface ProfileModalProps {
 }
 
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfile, onSave }) => {
-  const [editableProfile, setEditableProfile] = useState<ProfileData>(userProfile);
+  const [editableProfile, setEditableProfile] = useState<ProfileData | null>(userProfile);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_IMAGE_SIZE = 3 * 1024 * 1024; // 3MB foto de perfil
@@ -32,7 +32,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setEditableProfile(prev => ({ ...prev, [name]: value }));
+    if (!editableProfile) return;
+    setEditableProfile(prev => prev ? ({ ...prev, [name]: value }) : null);
   };
 
   const handlePhotoUploadClick = () => {
@@ -55,8 +56,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
       }
       const reader = new FileReader();
       reader.onload = (event) => {
-        if (event.target?.result) {
-          setEditableProfile(prev => ({ ...prev, photo: event.target.result as string }));
+        if (event.target?.result && editableProfile) {
+          setEditableProfile(prev => prev ? ({ ...prev, photo: event.target.result as string }) : null);
           setError(null);
         }
       };
@@ -69,33 +70,33 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !editableProfile) return null;
 
   return (
-    <div className="fixed inset-0 bg-[var(--overlay)] z-50 flex justify-center items-center p-4">
-      <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="p-5 border-b border-[var(--border)] flex justify-between items-center">
-          <h2 className="text-xl font-bold text-[var(--color-text)]">Editar Perfil</h2>
-          <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors">
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-
-        <div className="p-6 overflow-y-auto flex-grow space-y-6">
-          {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
-
-          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 mb-6">
-            <p className="text-xs text-blue-600 leading-relaxed italic">
-              <i className="fas fa-info-circle mr-1"></i> Seus dados são compartilhados com os membros desta conta (ex: seu parceiro/a).
-            </p>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-[var(--card)] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-[var(--border)] animate-in fade-in zoom-in duration-300">
+        <div className="p-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-black text-[var(--color-text)] uppercase tracking-widest flex items-center gap-2">
+              <i className="fas fa-user-circle text-[var(--primary)] text-2xl"></i>
+              Meu Perfil
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] p-2 hover:bg-[var(--surface)] rounded-full transition-colors"
+            >
+              <i className="fas fa-times text-lg"></i>
+            </button>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <div className="relative">
+          {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
+
+          <div className="flex flex-col md:flex-row items-center gap-8 mb-10 pb-10 border-b border-[var(--border)]">
+            <div className="relative group">
               <img
-                src={editableProfile.photo}
-                alt="Foto do Perfil"
-                className="w-24 h-24 rounded-full object-cover ring-4 ring-[var(--primary)]/30"
+                src={editableProfile?.photo || '/default-avatar.png'}
+                alt="Profile"
+                className="h-32 w-32 rounded-3xl object-cover ring-4 ring-[var(--surface)] shadow-xl group-hover:scale-105 transition-transform duration-500"
               />
               <input
                 type="file"
@@ -109,8 +110,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
               </button>
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-[var(--color-text)]">{editableProfile.name}</h3>
-              <p className="text-[var(--color-text-muted)]">{editableProfile.title}</p>
+              <h3 className="text-2xl font-bold text-[var(--color-text)]">{editableProfile?.name || 'Usuário'}</h3>
+              <p className="text-[var(--color-text-muted)]">{editableProfile?.title || 'Cargo/Posto'}</p>
             </div>
           </div>
 

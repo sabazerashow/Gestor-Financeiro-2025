@@ -1,5 +1,5 @@
 import supabase, { isSupabaseEnabled } from './supabase';
-import type { Transaction, RecurringTransaction, Bill, Payslip } from '@/types';
+import type { Transaction, RecurringTransaction, Bill, Payslip, Budget, FinancialGoal } from '@/types';
 
 export const withSupabase = <T>(fn: () => Promise<T>): Promise<T> => {
   if (!isSupabaseEnabled) throw new Error('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
@@ -153,7 +153,7 @@ export async function ensureDefaultAccount(userId: string): Promise<{ accountId:
 }
 
 // Tables
-type TableName = 'transactions' | 'recurring_transactions' | 'bills' | 'payslips';
+type TableName = 'transactions' | 'recurring_transactions' | 'bills' | 'payslips' | 'budgets' | 'financial_goals';
 
 export async function fetchAll<T>(table: TableName, accountId?: string): Promise<T[]> {
   return withSupabase(async () => {
@@ -185,6 +185,10 @@ export const db = {
   upsertRecurring: (rows: RecurringTransaction[], accountId?: string) => bulkUpsert('recurring_transactions', rows, accountId),
   upsertBills: (rows: Bill[], accountId?: string) => bulkUpsert('bills', rows, accountId),
   upsertPayslips: (rows: Payslip[], accountId?: string) => bulkUpsert('payslips', rows, accountId),
+  fetchBudgets: (accountId?: string) => fetchAll<Budget>('budgets', accountId),
+  upsertBudgets: (rows: Budget[], accountId?: string) => bulkUpsert('budgets', rows, accountId),
+  fetchGoals: (accountId?: string) => fetchAll<FinancialGoal>('financial_goals', accountId),
+  upsertGoals: (rows: FinancialGoal[], accountId?: string) => bulkUpsert('financial_goals', rows, accountId),
   fetchUserProfile: (userId: string) => withSupabase(async () => {
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
     if (error) throw error;
@@ -201,7 +205,7 @@ export default db;
 // Danger zone: purge all account data (transactions, recurring, bills, payslips)
 export async function purgeAccountData(accountId: string) {
   return withSupabase(async () => {
-    const tables: TableName[] = ['transactions', 'recurring_transactions', 'bills', 'payslips'];
+    const tables: TableName[] = ['transactions', 'recurring_transactions', 'bills', 'payslips', 'budgets', 'financial_goals'];
     for (const t of tables) {
       const { error } = await supabase.from(t).delete().eq('account_id', accountId);
       if (error) throw error;

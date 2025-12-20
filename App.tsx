@@ -1,18 +1,16 @@
 
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { Transaction, TransactionType, RecurringTransaction, Frequency, Bill, Payslip, PaymentMethod } from './types';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Transaction, TransactionType, RecurringTransaction, Frequency, Bill, Payslip, PaymentMethod, FinancialGoal, Budget } from './types';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import ErrorBanner from './components/ui/error-banner';
-import Summary from './components/Summary';
 import TransactionList from './components/TransactionList';
 import AddTransactionForm from './components/AddTransactionForm';
 import ImportNFeModal from './components/ImportNFeModal';
 import ImportStatementModal from './components/ImportStatementModal';
 import { categories } from './categories';
 import QuickAddModal from './components/QuickAddModal';
-import UpcomingPayments from './components/UpcomingPayments';
 import BillList from './components/BillList';
 import AddBillForm from './components/AddBillForm';
 import EditTransactionModal from './components/EditTransactionModal';
@@ -22,30 +20,33 @@ import BPAnalysisView from './components/BPAnalysisView';
 import DeleteInstallmentModal from './components/DeleteInstallmentModal';
 import ConfirmDialog from './components/ConfirmDialog';
 import ReportsView from './components/ReportsView';
-import SpendingByCategoryCard from './components/report-cards/SpendingByCategoryCard';
-import PendingInstallmentsCard from './components/report-cards/PendingInstallmentsCard';
-import PeriodSummaryCard from './components/PeriodSummaryCard';
-import FinancialInsights from './components/FinancialInsights';
-import ExpenseBreakdown from './components/ExpenseBreakdown';
-import IncomeBreakdown from './components/IncomeBreakdown';
 import PayBillChoiceModal from './components/PayBillChoiceModal';
 import ProfileModal from './components/ProfileModal';
 import InviteModal from './components/InviteModal';
-// Removidos: ExportModal e ImportTransactionsModal (lançamentos manuais)
+import IntelligentAnalysisCards from './components/IntelligentAnalysisCards';
+import FinancialInsights from './components/FinancialInsights';
+import PeriodSummaryCard from './components/PeriodSummaryCard';
+import ExpenseBreakdown from './components/ExpenseBreakdown';
+import IncomeBreakdown from './components/IncomeBreakdown';
+import SpendingByCategoryCard from './components/report-cards/SpendingByCategoryCard';
+import PendingInstallmentsCard from './components/report-cards/PendingInstallmentsCard';
 import { generateContent, generateGLMContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
-import supabase, { isSupabaseEnabled, isAuthActive, isAuthDisabled } from '@/lib/supabase';
+import supabase, { isSupabaseEnabled, isAuthActive } from '@/lib/supabase';
 import db, { getSession, signOut, ensureDefaultAccount, purgeAccountData } from '@/lib/db';
-import IntelligentAnalysisCards from './components/IntelligentAnalysisCards';
+import { useFinanceStore } from './lib/store';
+import DashboardContainer from './components/DashboardContainer';
+import BudgetManagement from './components/BudgetManagement';
+import BudgetModal from './components/BudgetModal';
+import GoalsView from './components/GoalsView';
+import GoalModal from './components/GoalModal';
 
-
-// Define the shape of a dashboard card configuration
 export interface DashboardCardConfig {
   id: string;
   title: string;
   description: string;
   icon: string;
-  component: React.FC<any>; // The component to render
+  component: React.FC<any>;
 }
 
 const defaultProfile = {
@@ -57,88 +58,25 @@ const defaultProfile = {
   photo: 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
 };
 
-// CSV export/import removidos: funcionalidades migradas para lançamentos manuais.
-
 const App: React.FC = () => {
-  const [session, setSession] = useState<any>(null);
-  const [accountId, setAccountId] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('accountId');
-    } catch { return null; }
-  });
-  const [accountName, setAccountName] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('accountName');
-    } catch { return null; }
-  });
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const savedTransactions = localStorage.getItem('transactions');
-    if (savedTransactions) {
-      try {
-        const parsed = JSON.parse(savedTransactions);
-        if (Array.isArray(parsed)) {
-          return parsed.map((t: any) => ({ ...t, amount: Number(t.amount) || 0 }));
-        }
-      } catch (e) {
-        console.error("Failed to parse transactions from localStorage", e);
-      }
-    }
-    return [];
-  });
+  const {
+    session, setSession,
+    accountId, setAccountId,
+    accountName, setAccountName,
+    transactions, setTransactions,
+    payslips, setPayslips,
+    recurringTransactions, setRecurringTransactions,
+    bills, setBills,
+    userProfile, setUserProfile,
+    fetchData, syncData
+  } = useFinanceStore();
 
-  const [payslips, setPayslips] = useState<Payslip[]>(() => {
-    const saved = localStorage.getItem('payslips');
-    if (saved) {
-      try {
-        const parsedPayslips = JSON.parse(saved);
-        if (Array.isArray(parsedPayslips)) {
-          return parsedPayslips.map((p: any) => ({
-            ...p,
-            month: Number(p.month),
-            year: Number(p.year),
-            netTotal: Number(p.netTotal),
-            grossTotal: Number(p.grossTotal),
-            deductionsTotal: Number(p.deductionsTotal),
-            payments: p.payments?.map((item: any) => ({ ...item, value: Number(item.value) })) ?? [],
-            deductions: p.deductions?.map((item: any) => ({ ...item, value: Number(item.value) })) ?? [],
-          }));
-        }
-      } catch (e) {
-        console.error("Failed to parse payslips from localStorage", e);
-      }
-    }
-    return [];
-  });
-
-  const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>(() => {
-    const saved = localStorage.getItem('recurringTransactions');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.map((t: any) => ({ ...t, amount: Number(t.amount) || 0 }));
-        }
-      } catch (e) {
-        console.error("Failed to parse recurring transactions from localStorage", e);
-      }
-    }
-    return [];
-  });
-
-  const [bills, setBills] = useState<Bill[]>(() => {
-    const saved = localStorage.getItem('bills');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed;
-        }
-      } catch (e) {
-        return [];
-      }
-    }
-    return [];
-  });
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [goalToEdit, setGoalToEdit] = useState<FinancialGoal | null>(null);
 
   // Seed desativado: zerar dados locais caso estejam vazios
   useEffect(() => {
@@ -456,18 +394,6 @@ const App: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isPurgeAllOpen, setIsPurgeAllOpen] = useState(false);
-  const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
-  // Estados de Exportação/Importação CSV removidos
-
-  const [userProfile, setUserProfile] = useState(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      try {
-        return JSON.parse(savedProfile);
-      } catch (e) { /* fall through */ }
-    }
-    return defaultProfile;
-  });
 
 
 
@@ -798,8 +724,7 @@ const App: React.FC = () => {
     setIsEditModalOpen(false);
   };
 
-  const [globalError, setGlobalError] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+
 
   const handleFileSelected = (selectedFile: { content: string; mimeType: string }, type: 'nfe' | 'statement' | 'bp') => {
     setFileContent(selectedFile);
@@ -831,22 +756,7 @@ const App: React.FC = () => {
     setPendingPayslipData(null);
   }
 
-  const currentMonthTransactions = useMemo(() => {
-    return transactions.filter(t => t.date.startsWith(dashboardMonth));
-  }, [transactions, dashboardMonth]);
 
-  const mainSummary = useMemo(() => {
-    const income = currentMonthTransactions
-      .filter(t => t.type === TransactionType.INCOME)
-      // FIX: Ensure amount is treated as a number in arithmetic operations.
-      .reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
-    const expense = currentMonthTransactions
-      .filter(t => t.type === TransactionType.EXPENSE)
-      // FIX: Ensure amount is treated as a number in arithmetic operations.
-      .reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
-    const balance = income - expense;
-    return { income, expense, balance };
-  }, [currentMonthTransactions]);
 
   const availableMonths = useMemo(() => {
     const monthSet = new Set<string>();
@@ -909,45 +819,13 @@ const App: React.FC = () => {
     switch (activeTab) {
       case 'overview':
         return (
-          <div className="space-y-8">
-            <div className="flex items-center justify-center gap-6 mb-8">
-              <button
-                onClick={() => handleDashboardMonthChange('prev')}
-                className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
-              >
-                <i className="fas fa-chevron-left"></i>
-              </button>
-              <h2 className="text-xl font-black text-gray-800 tracking-tight uppercase min-w-[200px] text-center">{dashboardMonthDisplay}</h2>
-              <button
-                onClick={() => handleDashboardMonthChange('next')}
-                className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
-              >
-                <i className="fas fa-chevron-right"></i>
-              </button>
-            </div>
-
-            <Summary
-              income={mainSummary.income}
-              expense={mainSummary.expense}
-              balance={mainSummary.balance}
-              transactions={currentMonthTransactions}
-              currentMonth={dashboardMonth}
-              onMonthChange={handleDashboardMonthChange}
-            />
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-              <div className="xl:col-span-1 rounded-xl">
-                <UpcomingPayments bills={bills} onPayBill={handlePayBill} transactions={currentMonthTransactions} />
-              </div>
-              <div className="xl:col-span-2">
-                <TransactionList
-                  transactions={currentMonthTransactions}
-                  onDelete={handleAttemptDelete}
-                  onEdit={handleOpenEditModal}
-                  showFilters={false}
-                />
-              </div>
-            </div>
-          </div>
+          <DashboardContainer
+            dashboardMonth={dashboardMonth}
+            onMonthChange={handleDashboardMonthChange}
+            onPayBill={handlePayBill}
+            onEditTransaction={handleOpenEditModal}
+            onDeleteTransaction={handleAttemptDelete}
+          />
         );
       case 'history':
         return (
@@ -982,9 +860,20 @@ const App: React.FC = () => {
           </div>
         );
       case 'reports':
+        return <ReportsView transactions={transactions} />;
+      case 'budgets':
+        return <BudgetManagement onAddBudget={() => setIsBudgetModalOpen(true)} />;
+      case 'goals':
         return (
-          <ReportsView
-            transactions={transactions}
+          <GoalsView
+            onAddGoal={() => {
+              setGoalToEdit(null);
+              setIsGoalModalOpen(true);
+            }}
+            onEditGoal={(goal) => {
+              setGoalToEdit(goal);
+              setIsGoalModalOpen(true);
+            }}
           />
         );
       case 'bp-analysis':
@@ -1103,24 +992,31 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 h-screen overflow-y-auto px-10 py-8 custom-scrollbar bg-[#f8f9fa]">
-        {/* Dashboard Header from Reference */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6 animate-in slide-in-from-top duration-700">
-          <div>
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-              Bom dia, {userProfile.name.split(' ')[0]}
-              <span className="w-2 h-2 rounded-full bg-[var(--primary)] ml-1 animate-pulse"></span>
-            </h2>
-          </div>
+        <div className="max-w-[1700px] mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="space-y-12"
+            >
+              {activeTab === 'overview' && (
+                <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
+                  <div>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+                      Bom dia, {userProfile?.name?.split(' ')[0] || 'Usuário'}
+                      <span className="w-2 h-2 rounded-full bg-[var(--primary)] ml-1 animate-pulse"></span>
+                    </h2>
+                    <p className="text-sm text-gray-400 font-medium tracking-tight">Aqui está o resumo das suas finanças hoje.</p>
+                  </div>
+                </header>
+              )}
 
-          <div className="flex items-center gap-6">
-            {/* Notifications and Search removed from global header as requested */}
-          </div>
-        </header>
-
-        {globalError && <div className="mb-4"><ErrorBanner message={globalError} onClose={() => setGlobalError(null)} /></div>}
-
-        <div className="max-w-[1700px] mx-auto space-y-12">
-          {renderContent()}
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <footer className="text-center py-16 mt-16 border-t border-gray-100">
@@ -1226,6 +1122,17 @@ const App: React.FC = () => {
         onClose={() => setIsPayBillChoiceModalOpen(false)}
         onSelectQuick={handleSelectQuickAdd}
         onSelectManual={handleSelectManualAdd}
+      />
+
+      <BudgetModal
+        isOpen={isBudgetModalOpen}
+        onClose={() => setIsBudgetModalOpen(false)}
+      />
+
+      <GoalModal
+        isOpen={isGoalModalOpen}
+        onClose={() => setIsGoalModalOpen(false)}
+        goalToEdit={goalToEdit}
       />
 
       <ProfileModal

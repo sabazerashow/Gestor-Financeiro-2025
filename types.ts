@@ -132,3 +132,24 @@ export interface AccountMember {
   role: 'owner' | 'member' | 'viewer';
   created_at?: string;
 }
+
+export interface Budget {
+  id: string;
+  account_id: string;
+  category: string;
+  amount: number;
+  period: 'monthly' | 'yearly';
+  created_at?: string;
+}
+
+export interface FinancialGoal {
+  id: string;
+  account_id: string;
+  title: string;
+  target_amount: number;
+  current_amount: number;
+  deadline?: string;
+  icon?: string;
+  color?: string;
+  created_at?: string;
+}

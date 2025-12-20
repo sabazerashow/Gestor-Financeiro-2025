@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { generateGLMContent } from '../lib/aiClient';
 import { Transaction, TransactionType } from '../types';
 
@@ -14,18 +15,17 @@ interface IntelligentAnalysisCardsProps {
   transactions: Transaction[];
 }
 
-const severityClass: Record<InsightCard['severity'], string> = {
-  ok: 'border-green-300 bg-green-50 text-green-800',
-  atencao: 'border-yellow-300 bg-yellow-50 text-yellow-800',
-  alerta: 'border-red-300 bg-red-50 text-red-800',
+const severityConfig: Record<InsightCard['severity'], { bg: string; text: string; border: string; icon: string }> = {
+  ok: { bg: 'bg-emerald-50/50', text: 'text-emerald-700', border: 'border-emerald-100', icon: 'fa-circle-check' },
+  atencao: { bg: 'bg-amber-50/50', text: 'text-amber-700', border: 'border-amber-100', icon: 'fa-circle-exclamation' },
+  alerta: { bg: 'bg-rose-50/50', text: 'text-rose-700', border: 'border-rose-100', icon: 'fa-triangle-exclamation' },
 };
 
-export default function IntelligentAnalysisCards({ transactions }: IntelligentAnalysisCardsProps) {
+export default function IntelligentAnalysisCards({ transactions = [] }: IntelligentAnalysisCardsProps) {
   const [cards, setCards] = useState<InsightCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Compactar dados para a IA (mantendo foco em IA fazer o raciocínio)
   const compactData = useMemo(() => {
     return transactions.map(t => ({
       date: t.date,
@@ -88,7 +88,6 @@ Regras:
       if (!content) throw new Error('Resposta da IA vazia');
 
       const parsed = JSON.parse(content) as InsightCard[];
-      // Pequena validação
       const cleaned = parsed.slice(0, 4).map(c => ({
         title: c.title || 'Insight',
         severity: (c.severity === 'ok' || c.severity === 'atencao' || c.severity === 'alerta') ? c.severity : 'ok',
@@ -112,60 +111,94 @@ Regras:
 
   if (!transactions.length) {
     return (
-      <div className="text-sm text-[var(--color-text-muted)]">Adicione transações para ver análises inteligentes.</div>
+      <div className="text-sm text-gray-400 font-medium italic p-10 bg-gray-50/50 rounded-[2rem] border-2 border-dashed border-gray-100 flex items-center justify-center">
+        Adicione transações para ver análises inteligentes.
+      </div>
     );
   }
 
   return (
-    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm h-full flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm h-full flex flex-col group"
+    >
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-            <i className="fas fa-wand-magic-sparkles"></i>
+          <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500 shadow-inner group-hover:bg-purple-500 group-hover:text-white transition-all duration-500">
+            <i className="fas fa-wand-magic-sparkles text-sm"></i>
           </div>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Análise IA</h3>
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Cérebro Financeiro (IA)</h3>
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={requestAI}
           disabled={loading}
-          className="px-4 py-2 text-[10px] font-black rounded-xl bg-gray-50 text-gray-500 hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 uppercase tracking-widest border border-gray-100"
+          className="px-4 py-2 text-[9px] font-black rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-900 hover:text-white transition-all disabled:opacity-50 uppercase tracking-[0.1em] border border-gray-100"
         >
-          {loading ? <i className="fas fa-spinner animate-spin"></i> : 'Atualizar'}
-        </button>
+          {loading ? <i className="fas fa-spinner animate-spin"></i> : 'Recalcular'}
+        </motion.button>
       </div>
 
       {error && (
-        <div className="text-sm text-red-500 mb-4 bg-red-50 p-3 rounded-lg font-medium">{error}</div>
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="text-[11px] text-rose-500 mb-6 bg-rose-50 p-4 rounded-2xl font-bold border border-rose-100 flex items-center gap-2"
+        >
+          <i className="fas fa-circle-exclamation"></i>
+          {error}
+        </motion.div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {cards.length === 0 && !loading && (
-          <div className="text-sm text-gray-400 italic text-center col-span-2 py-4">Nenhum insight disponível no momento.</div>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+        <AnimatePresence mode="popLayout">
+          {cards.length === 0 && !loading ? (
+            <div className="text-xs text-gray-400 italic text-center col-span-2 py-10 opacity-50">Nenhum insight disponível.</div>
+          ) : (
+            cards.map((c, idx) => {
+              const config = severityConfig[c.severity];
+              return (
+                <motion.div
+                  key={idx}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className={`rounded-[1.5rem] border ${config.border} p-5 ${config.bg} transition-all duration-500 hover:shadow-lg hover:shadow-gray-200/50 flex flex-col`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`font-black text-[11px] tracking-tight ${config.text}`}>{c.title}</span>
+                    <div className={`w-2 h-2 rounded-full ${c.severity === 'ok' ? 'bg-emerald-400' : c.severity === 'atencao' ? 'bg-amber-400' : 'bg-rose-400'}`}></div>
+                  </div>
+                  <p className="text-[11px] font-medium leading-relaxed text-gray-600 flex-grow">{c.message}</p>
 
-        {cards.map((c, idx) => (
-          <div key={idx} className={`rounded-2xl border p-5 ${severityClass[c.severity]}`}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-bold text-sm tracking-tight">{c.title}</span>
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-70">{c.severity}</span>
+                  {c.actionLabel && (
+                    <button
+                      className={`mt-4 text-[9px] font-black uppercase tracking-widest ${config.text} hover:underline w-fit`}
+                      onClick={() => {
+                        const el = document.querySelector('h2');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      {c.actionLabel} &rarr;
+                    </button>
+                  )}
+                </motion.div>
+              );
+            })
+          )}
+          {loading && (
+            <div className="col-span-2 flex flex-col items-center justify-center py-10 gap-3 opacity-50">
+              <div className="w-8 h-8 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-purple-600">IA Analisando...</p>
             </div>
-            <p className="text-xs font-medium leading-relaxed opacity-90">{c.message}</p>
-            {c.actionLabel && (
-              <button
-                className="mt-4 text-xs font-black uppercase tracking-wide opacity-80 hover:opacity-100 hover:underline"
-                title={c.actionTarget || ''}
-                onClick={() => {
-                  const el = document.querySelector('h2.text-xl.font-bold:text-[var(--color-text)]');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                {c.actionLabel} &rarr;
-              </button>
-            )}
-          </div>
-        ))}
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
+

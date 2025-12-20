@@ -25,8 +25,8 @@ const NavButton: React.FC<{ label: string; icon: string; isActive: boolean; onCl
   <button
     onClick={onClick}
     className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 flex items-center justify-center gap-2 ${isActive
-        ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
-        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/60 hover:text-[var(--color-text)]'
+      ? 'bg-[var(--primary)] text-[var(--primary-foreground)]'
+      : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/60 hover:text-[var(--color-text)]'
       }`}
   >
     <i className={`fas ${icon} w-5 text-center`}></i>
@@ -101,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onQuickAdd, us
               className="text-gray-400 hover:text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
               aria-label="Abrir menu do perfil"
             >
-              {userProfile.photo && userProfile.photo !== defaultPhotoUrl ? (
+              {userProfile?.photo && userProfile.photo !== defaultPhotoUrl ? (
                 <img src={userProfile.photo} alt="Foto do Perfil" className="w-8 h-8 rounded-full object-cover" />
               ) : (
                 <i className="fas fa-user-circle text-2xl"></i>

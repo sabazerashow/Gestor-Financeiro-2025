@@ -29,7 +29,14 @@ const IncomeVsDeductionsChart: React.FC<IncomeVsDeductionsChartProps> = ({ gross
             ))}
           </Pie>
           <Tooltip formatter={(value: any) => currencyFormatter(Number(value))} />
-          <Legend verticalAlign="bottom" />
+          <Legend
+            verticalAlign="bottom"
+            formatter={(value, entry: any) => (
+              <span className="text-xs font-bold text-gray-600">
+                {value}: {currencyFormatter(entry.payload.value)}
+              </span>
+            )}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
