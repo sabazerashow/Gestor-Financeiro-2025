@@ -3,7 +3,7 @@ import { Payslip } from '../types';
 import SimplePieChart from './charts/SimplePieChart';
 
 interface GrossPayCompositionCardProps {
-  payslip: Payslip | null;
+    payslip: Payslip | null;
 }
 
 const GrossPayCompositionCard: React.FC<GrossPayCompositionCardProps> = ({ payslip }) => {
@@ -18,7 +18,7 @@ const GrossPayCompositionCard: React.FC<GrossPayCompositionCardProps> = ({ paysl
 
         const soldoItem = payslip.payments.find(p => p.description.toUpperCase() === 'SOLDO');
         const soldoValue = soldoItem ? soldoItem.value : 0;
-        
+
         const adicionais = payslip.payments.filter(p => p.description.toUpperCase() !== 'SOLDO');
         const adicionaisTotal = adicionais.reduce((sum, item) => sum + item.value, 0);
 
@@ -37,12 +37,17 @@ const GrossPayCompositionCard: React.FC<GrossPayCompositionCardProps> = ({ paysl
 
     if (!compositionData) {
         return (
-            <div className="bg-[var(--card)] p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform overflow-hidden">
-                <h2 className="text-xl font-bold mb-4 text-[var(--color-text)]">Composição da Remuneração</h2>
-                <div className="flex items-center justify-center py-10 text-[var(--color-text-muted)]">
+            <div className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm transition-all hover:shadow-md h-full">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+                        <i className="fas fa-receipt"></i>
+                    </div>
+                    <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">COMPOSIÇÃO DA REMUNERAÇÃO</h2>
+                </div>
+                <div className="flex items-center justify-center py-10 text-gray-300">
                     <div className="text-center">
                         <i className="fas fa-receipt text-4xl mb-3"></i>
-                        <p>Selecione um contracheque para ver a análise.</p>
+                        <p className="italic">Selecione um contracheque para ver a análise.</p>
                     </div>
                 </div>
             </div>
@@ -50,33 +55,39 @@ const GrossPayCompositionCard: React.FC<GrossPayCompositionCardProps> = ({ paysl
     }
 
     return (
-        <div className="bg-[var(--card)] p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform overflow-hidden">
-            <h2 className="text-xl font-bold mb-4 text-[var(--color-text)]">Composição da Remuneração</h2>
-            
-            <div className="flex flex-col text-center mb-4 space-y-3 overflow-x-hidden">
+        <div className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm transition-all hover:shadow-md h-full overflow-hidden">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+                    <i className="fas fa-receipt"></i>
+                </div>
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">COMPOSIÇÃO DA REMUNERAÇÃO</h2>
+            </div>
+
+            <div className="flex flex-col text-center mb-6 space-y-4">
                 <div>
-                    <p className="text-xl sm:text-2xl font-bold text-[var(--color-text)] tabular-nums">{formatCurrency(compositionData.soldoValue)}</p>
-                    <p className="text-sm text-[var(--color-text-muted)]">Soldo</p>
+                    <p className="text-2xl font-bold text-gray-900 tabular-nums">{formatCurrency(compositionData.soldoValue)}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Soldo</p>
                 </div>
                 <div>
-                    <p className="text-xl sm:text-2xl font-bold text-[var(--color-text)] tabular-nums">{formatCurrency(compositionData.adicionaisTotal)}</p>
-                    <p className="text-sm text-[var(--color-text-muted)]">Adicionais</p>
+                    <p className="text-2xl font-bold text-gray-900 tabular-nums">{formatCurrency(compositionData.adicionaisTotal)}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Adicionais</p>
                 </div>
                 <div>
-                    <p className="text-xl sm:text-2xl font-bold text-[var(--color-text)] tabular-nums">{formatCurrency(compositionData.grossTotal)}</p>
-                    <p className="text-sm text-[var(--color-text-muted)]">Total Bruto</p>
+                    <div className="h-px w-full bg-gray-50 my-2"></div>
+                    <p className="text-3xl font-black text-[var(--primary)] tabular-nums">{formatCurrency(compositionData.grossTotal)}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Bruto</p>
                 </div>
             </div>
 
-            <div className="border-t border-[var(--border)] pt-4">
-                <h3 className="text-lg font-semibold text-center mb-3 text-[var(--color-text)]">Composição dos Adicionais</h3>
+            <div className="border-t border-gray-50 pt-6">
+                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center mb-4">Composição dos Adicionais</h3>
                 {compositionData.chartData.values.length > 0 ? (
                     <div className="flex-grow">
                         <SimplePieChart data={compositionData.chartData} />
                     </div>
                 ) : (
                     <div className="flex items-center justify-center h-full text-[var(--color-text-muted)]">
-                         <div className="text-center">
+                        <div className="text-center">
                             <i className="fas fa-pie-chart text-4xl mb-3"></i>
                             <p>Não há valores adicionais neste período.</p>
                         </div>

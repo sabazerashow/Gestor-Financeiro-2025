@@ -20,7 +20,7 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [error, setError] = useState('');
-  
+
   useEffect(() => {
     // When category changes, reset subcategory and set a default if possible
     if (category && categories[category]) {
@@ -44,22 +44,22 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
     }
 
     let billData: Omit<Bill, 'id' | 'recurringTransactionId'> = {
-        description,
-        dueDay: day,
-        isAutoDebit,
+      description,
+      dueDay: day,
+      isAutoDebit,
     };
 
     if (isAutoDebit) {
-        const numericAmount = parseFloat(amount);
-        if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
-            setError('Para débito automático, o valor fixo é obrigatório.');
-            return;
-        }
-        if (!category || !subcategory) {
-            setError('Para débito automático, a categoria e a subcategoria são obrigatórias.');
-            return;
-        }
-        billData = { ...billData, amount: numericAmount, category, subcategory };
+      const numericAmount = parseFloat(amount);
+      if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
+        setError('Para débito automático, o valor fixo é obrigatório.');
+        return;
+      }
+      if (!category || !subcategory) {
+        setError('Para débito automático, a categoria e a subcategoria são obrigatórias.');
+        return;
+      }
+      billData = { ...billData, amount: numericAmount, category, subcategory };
     }
 
     onAddBill(billData);
@@ -74,11 +74,14 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
   };
 
   return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle>Adicionar Conta Recorrente</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm h-fit">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+          <i className="fas fa-file-invoice"></i>
+        </div>
+        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">ADICIONAR CONTA RECORRENTE</h2>
+      </div>
+      <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="bill-description">Descrição da Conta</Label>
@@ -156,8 +159,8 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
           {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
           <Button type="submit" className="w-full">Salvar Conta</Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

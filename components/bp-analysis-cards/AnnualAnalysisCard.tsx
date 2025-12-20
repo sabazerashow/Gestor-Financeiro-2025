@@ -10,10 +10,10 @@ interface AnnualAnalysisCardProps {
 }
 
 const StatCard: React.FC<{ title: string; value: string; colorClass?: string }> = ({ title, value, colorClass = 'text-[var(--color-text)]' }) => (
-    <div className="bg-[var(--surface)] p-3 rounded-lg text-center">
-        <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{title}</p>
-        <p className={`text-xl font-bold ${colorClass}`}>{value}</p>
-    </div>
+  <div className="bg-[var(--surface)] p-3 rounded-lg text-center">
+    <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">{title}</p>
+    <p className={`text-xl font-bold ${colorClass}`}>{value}</p>
+  </div>
 );
 
 
@@ -24,13 +24,13 @@ const AnnualAnalysisCard: React.FC<AnnualAnalysisCardProps> = ({ payslips, trans
   }, [payslips]);
 
   const [selectedYear, setSelectedYear] = useState<number>(() => availableYears[0] || new Date().getFullYear());
-  
+
   useEffect(() => {
     if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
       setSelectedYear(availableYears[0]);
     }
   }, [availableYears, selectedYear]);
-  
+
   const filteredPayslips = useMemo(() => {
     return payslips
       .filter(p => p.year === selectedYear)
@@ -45,31 +45,36 @@ const AnnualAnalysisCard: React.FC<AnnualAnalysisCardProps> = ({ payslips, trans
     const totalDeductions = filteredPayslips.reduce((acc, p) => acc + p.deductionsTotal, 0);
     const totalNet = filteredPayslips.reduce((acc, p) => acc + p.netTotal, 0);
     const averageNet = totalNet / filteredPayslips.length;
-    
+
     return { totalGross, totalDeductions, averageNet };
   }, [filteredPayslips]);
-  
+
   const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
   return (
     <>
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-        <h3 className="text-lg font-bold text-[var(--color-text)]">Análise Anual</h3>
-          {availableYears.length > 0 && (
-            <div className="flex items-center gap-2">
-                <label htmlFor="year-select" className="text-sm font-medium text-[var(--color-text-muted)]">Ano:</label>
-                <select
-                    id="year-select"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(Number(e.target.value))}
-                    className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-1 px-3 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] sm:text-sm"
-                >
-                    {availableYears.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                    ))}
-                </select>
-            </div>
-          )}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+            <i className="fas fa-calendar-alt"></i>
+          </div>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">ANÁLISE ANUAL</h3>
+        </div>
+        {availableYears.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label htmlFor="year-select" className="text-sm font-medium text-[var(--color-text-muted)]">Ano:</label>
+            <select
+              id="year-select"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-1 px-3 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] sm:text-sm"
+            >
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {filteredPayslips.length > 0 ? (
@@ -83,14 +88,14 @@ const AnnualAnalysisCard: React.FC<AnnualAnalysisCardProps> = ({ payslips, trans
 
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
-              <div className="lg:col-span-2">
-                  <h4 className="text-md font-semibold text-center text-[var(--color-text-muted)] mb-2">Rendimentos vs Descontos (Ano)</h4>
-                  <IncomeVsDeductionsChart gross={yearSummary.totalGross} deductions={yearSummary.totalDeductions} />
-              </div>
-              <div className="lg:col-span-3">
-                  <h4 className="text-md font-semibold text-center text-[var(--color-text-muted)] mb-2">Evolução Salário Líquido</h4>
-                  <NetSalaryChart payslips={filteredPayslips} />
-              </div>
+            <div className="lg:col-span-2">
+              <h4 className="text-md font-semibold text-center text-[var(--color-text-muted)] mb-2">Rendimentos vs Descontos (Ano)</h4>
+              <IncomeVsDeductionsChart gross={yearSummary.totalGross} deductions={yearSummary.totalDeductions} />
+            </div>
+            <div className="lg:col-span-3">
+              <h4 className="text-md font-semibold text-center text-[var(--color-text-muted)] mb-2">Evolução Salário Líquido</h4>
+              <NetSalaryChart payslips={filteredPayslips} />
+            </div>
           </div>
 
           {/* Committed Spending Section */}

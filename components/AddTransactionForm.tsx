@@ -49,9 +49,9 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
     setIsSuggesting(true);
     try {
       const availableCategories = JSON.stringify(
-          Object.fromEntries(
-              expenseCategoryList.map(catName => [catName, categories[catName].subcategories])
-          ), null, 2
+        Object.fromEntries(
+          expenseCategoryList.map(catName => [catName, categories[catName].subcategories])
+        ), null, 2
       );
       const prompt = `Dada a descrição de uma transação: "${text}", sugira a categoria e subcategoria mais apropriada.
       Responda APENAS com um objeto JSON contendo "category" e "subcategory".
@@ -65,13 +65,13 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
       });
 
       const suggestion = JSON.parse(cleanJsonString(response.text));
-      
+
       if (suggestion.category && expenseCategoryList.includes(suggestion.category)) {
         setCategory(suggestion.category);
         if (suggestion.subcategory && categories[suggestion.category]?.subcategories.includes(suggestion.subcategory)) {
-            setSubcategory(suggestion.subcategory);
+          setSubcategory(suggestion.subcategory);
         } else {
-            setSubcategory(categories[suggestion.category].subcategories[0]);
+          setSubcategory(categories[suggestion.category].subcategories[0]);
         }
       }
 
@@ -110,7 +110,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
       setInstallments('');
     }
     if (isInstallment && type === TransactionType.EXPENSE) {
-        setPaymentMethod(PaymentMethod.CREDITO);
+      setPaymentMethod(PaymentMethod.CREDITO);
     }
   }, [isInstallment, type]);
 
@@ -132,9 +132,9 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
     }
     const installmentCount = isInstallment ? parseInt(installments, 10) : undefined;
     if (isInstallment && (!installmentCount || installmentCount <= 1)) {
-        setError('O número de parcelas deve ser maior que 1.');
-        setIsSubmitting(false);
-        return;
+      setError('O número de parcelas deve ser maior que 1.');
+      setIsSubmitting(false);
+      return;
     }
 
     onAddTransaction({
@@ -160,15 +160,20 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
     setInstallments('');
     setIsSubmitting(false);
   };
-  
+
   // Importação/Exportação removidas: lançamentos são manuais
-  
+
   const currentCategoryList = type === TransactionType.INCOME ? incomeCategoryList : expenseCategoryList;
 
 
   return (
-    <div className="bg-[var(--card)] p-6 rounded-xl shadow-sm hover:shadow-md transition-transform hover:-translate-y-0.5 will-change-transform">
-      <h2 className="text-xl font-bold mb-4 text-[var(--color-text)]">Adicionar Lançamento</h2>
+    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm min-h-[680px]">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+          <i className="fas fa-plus-circle"></i>
+        </div>
+        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Adicionar Lançamento</h2>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text)]">Descrição</label>
@@ -184,7 +189,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-[var(--color-text)]">
-                Valor {isInstallment ? 'Total' : ''} (R$)
+              Valor {isInstallment ? 'Total' : ''} (R$)
             </label>
             <Input
               type="number"
@@ -199,7 +204,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
           </div>
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-[var(--color-text)]">
-                Data {isInstallment ? 'da Compra' : ''}
+              Data {isInstallment ? 'da Compra' : ''}
             </label>
             <Input
               type="date"
@@ -212,124 +217,124 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div>
             <label htmlFor="category" className="flex items-center text-sm font-medium text-[var(--color-text)]">
-                Categoria
-                {isSuggesting && <i className="fas fa-spinner fa-spin ml-2"></i>}
+              Categoria
+              {isSuggesting && <i className="fas fa-spinner fa-spin ml-2"></i>}
             </label>
             <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
             >
-                <option value="" disabled>Selecione</option>
-                {currentCategoryList.map(cat => (
+              <option value="" disabled>Selecione</option>
+              {currentCategoryList.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
-                ))}
+              ))}
             </select>
-            </div>
-            <div>
-                <label htmlFor="subcategory" className="block text-sm font-medium text-[var(--color-text)]">Subcategoria</label>
-                <select
-                    id="subcategory"
-                    value={subcategory}
-                    onChange={(e) => setSubcategory(e.target.value)}
-                    className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
-                    disabled={!category}
-                >
-                    <option value="" disabled>Selecione</option>
-                    {category && categories[category]?.subcategories.map(subcat => (
-                        <option key={subcat} value={subcat}>{subcat}</option>
-                    ))}
-                </select>
-            </div>
+          </div>
+          <div>
+            <label htmlFor="subcategory" className="block text-sm font-medium text-[var(--color-text)]">Subcategoria</label>
+            <select
+              id="subcategory"
+              value={subcategory}
+              onChange={(e) => setSubcategory(e.target.value)}
+              className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
+              disabled={!category}
+            >
+              <option value="" disabled>Selecione</option>
+              {category && categories[category]?.subcategories.map(subcat => (
+                <option key={subcat} value={subcat}>{subcat}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div>
             <label htmlFor="paymentMethod" className="block text-sm font-medium text-[var(--color-text)]">
-                Método de Pagamento
+              Método de Pagamento
             </label>
             <select
-                id="paymentMethod"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
+              id="paymentMethod"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+              className="mt-1 block w-full bg-[var(--surface)] border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
             >
-                {Object.values(PaymentMethod).map(method => (
+              {Object.values(PaymentMethod).map(method => (
                 <option key={method} value={method}>{method}</option>
-                ))}
+              ))}
             </select>
-            </div>
-             {isInstallment && (
-                <div>
-                    <label htmlFor="installments" className="block text-sm font-medium text-[var(--color-text)]">Nº de Parcelas</label>
-                    <Input
-                      type="number"
-                      id="installments"
-                      value={installments}
-                      onChange={(e) => setInstallments(e.target.value)}
-                      className="mt-1"
-                      placeholder="Ex: 6"
-                      min="2"
-                    />
-                </div>
-            )}
-        </div>
-        
-        <div className="flex justify-between items-center">
+          </div>
+          {isInstallment && (
             <div>
+              <label htmlFor="installments" className="block text-sm font-medium text-[var(--color-text)]">Nº de Parcelas</label>
+              <Input
+                type="number"
+                id="installments"
+                value={installments}
+                onChange={(e) => setInstallments(e.target.value)}
+                className="mt-1"
+                placeholder="Ex: 6"
+                min="2"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between items-center">
+          <div>
             <span className="block text-sm font-medium text-[var(--color-text)]">Tipo</span>
             <div className="mt-2 flex space-x-4">
-                <label className="flex items-center">
+              <label className="flex items-center">
                 <input
-                    type="radio"
-                    name="type"
-                    value={TransactionType.INCOME}
-                    checked={type === TransactionType.INCOME}
-                    onChange={() => setType(TransactionType.INCOME)}
-                    className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
+                  type="radio"
+                  name="type"
+                  value={TransactionType.INCOME}
+                  checked={type === TransactionType.INCOME}
+                  onChange={() => setType(TransactionType.INCOME)}
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
                 />
                 <span className="ml-2 text-sm text-income">Receita</span>
-                </label>
-                <label className="flex items-center">
+              </label>
+              <label className="flex items-center">
                 <input
-                    type="radio"
-                    name="type"
-                    value={TransactionType.EXPENSE}
-                    checked={type === TransactionType.EXPENSE}
-                    onChange={() => setType(TransactionType.EXPENSE)}
-                    className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
+                  type="radio"
+                  name="type"
+                  value={TransactionType.EXPENSE}
+                  checked={type === TransactionType.EXPENSE}
+                  onChange={() => setType(TransactionType.EXPENSE)}
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
                 />
                 <span className="ml-2 text-sm text-expense">Despesa</span>
-                </label>
+              </label>
             </div>
-            </div>
+          </div>
 
-            {type === TransactionType.EXPENSE && (
-                <div className="flex items-center">
-                    <input
-                    id="is-installment"
-                    type="checkbox"
-                    checked={isInstallment}
-                    onChange={(e) => setIsInstallment(e.target.checked)}
-                    className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)] rounded"
-                    />
-                    <label htmlFor="is-installment" className="ml-2 block text-sm text-[var(--color-text)]">
-                        É uma compra parcelada?
-                    </label>
-                </div>
-            )}
+          {type === TransactionType.EXPENSE && (
+            <div className="flex items-center">
+              <input
+                id="is-installment"
+                type="checkbox"
+                checked={isInstallment}
+                onChange={(e) => setIsInstallment(e.target.checked)}
+                className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)] rounded"
+              />
+              <label htmlFor="is-installment" className="ml-2 block text-sm text-[var(--color-text)]">
+                É uma compra parcelada?
+              </label>
+            </div>
+          )}
         </div>
 
         {error && <ErrorBanner message={error} onClose={() => setError('')} />}
         <div className="flex flex-col space-y-2 pt-4 border-t border-[var(--border)]">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Adicionando...' : 'Adicionar'}
-            </Button>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Adicionando...' : 'Adicionar'}
+          </Button>
 
-            {/* Importação/Exportação removidas: apenas adição manual de lançamentos */}
+          {/* Importação/Exportação removidas: apenas adição manual de lançamentos */}
         </div>
       </form>
     </div>

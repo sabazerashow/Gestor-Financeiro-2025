@@ -138,37 +138,42 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
 
   return (
     <div className="space-y-8">
-      <div className="bg-[var(--card)] p-6 rounded-xl shadow-lg">
+      <div className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm">
         <div className="flex flex-wrap justify-between items-center gap-4">
-          <h2 className="text-xl font-bold text-[var(--color-text)]">Análise de Contracheques</h2>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+              <i className="fas fa-file-invoice-dollar"></i>
+            </div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">ANÁLISE DE CONTRACHEQUES</h2>
+          </div>
           {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
           <div className="flex items-center flex-wrap gap-2">
             <div className="flex items-center rounded-md shadow-sm">
-                 <button
-                    onClick={onManualAdd}
-                    className="relative inline-flex items-center px-3 py-1 rounded-l-md border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)]/60 focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
-                >
-                    Lançar Manual
-                </button>
-                <button
-                    onClick={handleImportOCRClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 border border-[var(--border)] bg-[var(--secondary)] text-sm font-medium text-[var(--secondary-foreground)] hover:bg-[var(--accent)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
-                >
-                    Importar OCR
-                </button>
-                <button
-                    onClick={handleImportAIClick}
-                    className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-[var(--border)] bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--color-primary-hover)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
-                >
-                    Importar com IA
-                </button>
+              <button
+                onClick={onManualAdd}
+                className="relative inline-flex items-center px-3 py-1 rounded-l-md border border-[var(--border)] bg-[var(--surface)] text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)]/60 focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
+              >
+                Lançar Manual
+              </button>
+              <button
+                onClick={handleImportOCRClick}
+                className="-ml-px relative inline-flex items-center px-3 py-1 border border-[var(--border)] bg-[var(--secondary)] text-sm font-medium text-[var(--secondary-foreground)] hover:bg-[var(--accent)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
+              >
+                Importar OCR
+              </button>
+              <button
+                onClick={handleImportAIClick}
+                className="-ml-px relative inline-flex items-center px-3 py-1 rounded-r-md border border-[var(--border)] bg-[var(--primary)] text-sm font-medium text-[var(--primary-foreground)] hover:bg-[var(--color-primary-hover)] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[var(--ring)] focus:border-[var(--ring)]"
+              >
+                Importar com IA
+              </button>
             </div>
-             <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/png,image/jpeg,image/webp"
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept="image/png,image/jpeg,image/webp"
             />
             <button
               onClick={() => setIsUnderstandModalOpen(true)}
@@ -178,8 +183,8 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
               <span>Entenda seu BP</span>
             </button>
             <button
-                onClick={() => setIsManageCardsModalOpen(true)}
-                className="px-3 py-1 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[var(--color-surface)]/60 border border-[var(--border)] transition-colors flex items-center gap-2"
+              onClick={() => setIsManageCardsModalOpen(true)}
+              className="px-3 py-1 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[var(--color-surface)]/60 border border-[var(--border)] transition-colors flex items-center gap-2"
             >
               <i className="fas fa-cogs"></i>
               <span>Gerenciar cartões</span>
@@ -195,25 +200,25 @@ const BPAnalysisView: React.FC<BPAnalysisViewProps> = ({ payslips, transactions,
           <p className="text-sm text-[var(--color-text-muted)]">Use um dos botões acima para adicionar um.</p>
         </div>
       ) : visibleCards.length === 0 ? (
-         <div className="text-center py-12 bg-[var(--card)] rounded-xl shadow-lg">
+        <div className="text-center py-12 bg-[var(--card)] rounded-xl shadow-lg">
           <i className="fas fa-grip-horizontal text-5xl text-[var(--color-text-muted)]"></i>
           <p className="mt-4 text-[var(--color-text-muted)]">Nenhum cartão visível.</p>
           <p className="text-sm text-[var(--color-text-muted)]">Use o botão "Gerenciar cartões" para adicionar alguns ao seu painel.</p>
         </div>
       ) : (
         <div className="space-y-8">
-            {visibleCards.map(card => {
-                const CardComponent = card.component;
-                const props = componentProps[card.id as keyof typeof componentProps] || {};
-                return (
-                    <div key={card.id} className="bg-[var(--card)] p-6 rounded-xl shadow-lg">
-                        <CardComponent {...props} />
-                    </div>
-                );
-            })}
+          {visibleCards.map(card => {
+            const CardComponent = card.component;
+            const props = componentProps[card.id as keyof typeof componentProps] || {};
+            return (
+              <div key={card.id} className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm">
+                <CardComponent {...props} />
+              </div>
+            );
+          })}
         </div>
       )}
-      
+
       <UnderstandBPModal
         isOpen={isUnderstandModalOpen}
         onClose={() => setIsUnderstandModalOpen(false)}

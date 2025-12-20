@@ -52,13 +52,24 @@ const TransactionList: React.FC<TransactionListProps> = ({
   onAnalyzePending,
   isAnalyzingPending
 }) => {
+  const [searchTerm, setSearchTerm] = React.useState('');
+
+  const filteredBySearch = React.useMemo(() => {
+    if (!searchTerm) return transactions;
+    const lower = searchTerm.toLowerCase();
+    return transactions.filter(t =>
+      t.description.toLowerCase().includes(lower) ||
+      t.category?.toLowerCase().includes(lower) ||
+      t.amount.toString().includes(lower)
+    );
+  }, [transactions, searchTerm]);
 
   const groupedTransactions = React.useMemo<Record<string, Transaction[]> | null>(() => {
     if (monthFilter !== 'all') {
       return null;
     }
 
-    return transactions.reduce((acc: Record<string, Transaction[]>, transaction) => {
+    return filteredBySearch.reduce((acc: Record<string, Transaction[]>, transaction) => {
       const date = new Date(transaction.date + 'T00:00:00');
       const monthYear = date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
@@ -68,7 +79,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       acc[monthYear].push(transaction);
       return acc;
     }, {});
-  }, [transactions, monthFilter]);
+  }, [filteredBySearch, monthFilter]);
 
 
   const renderTransactionList = (list: Transaction[]) => (
@@ -80,27 +91,47 @@ const TransactionList: React.FC<TransactionListProps> = ({
   );
 
   return (
-    <div className="bg-white p-10 rounded-[32px] border border-gray-100 shadow-sm animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-10 gap-6">
-        <h2 className="text-xl font-bold text-gray-900 tracking-tight">Histórico Financeiro</h2>
+    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm animate-in fade-in duration-700 min-h-[680px]">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+            <i className="fas fa-list-ul"></i>
+          </div>
+          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Histórico de Gastos</h2>
+        </div>
+
         {showFilters && (
-          <div className="flex items-center gap-6">
-            <div className="flex items-center space-x-1 bg-gray-50 p-1.5 rounded-2xl">
-              <button
-                onClick={() => onMonthFilterChange?.('all')}
-                className={`px-5 py-2 text-xs font-bold rounded-xl transition-all ${monthFilter === 'all' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-              >
-                Todos
-              </button>
-              <button className="px-5 py-2 text-xs font-bold rounded-xl text-gray-400 hover:text-gray-600">Entradas</button>
-              <button className="px-5 py-2 text-xs font-bold rounded-xl text-gray-400 hover:text-gray-600">Saídas</button>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative group">
+              <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs group-focus-within:text-[var(--primary)] transition-colors"></i>
+              <input
+                type="text"
+                placeholder="Pesquisar lançamentos..."
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-gray-50 pl-10 pr-4 py-2 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-64 outline-none transition-all hover:bg-gray-100"
+              />
             </div>
+
+            {onMonthFilterChange && (
+              <select
+                value={monthFilter}
+                onChange={(e) => onMonthFilterChange(e.target.value)}
+                className="bg-gray-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/10 cursor-pointer hover:bg-gray-100 transition-all"
+              >
+                <option value="all">Ver Tudo</option>
+                {availableMonths.map(month => {
+                  const [year, m] = month.split('-');
+                  const monthName = new Date(Number(year), Number(m) - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+                  return <option key={month} value={month}>{monthName}</option>
+                })}
+              </select>
+            )}
 
             {onAnalyzePending && (
               <button
                 onClick={onAnalyzePending}
                 disabled={isAnalyzingPending}
-                className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-50 text-gray-400 hover:text-[var(--primary)] transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--primary)] hover:bg-gray-100 transition-all"
                 title="Analisar com IA"
               >
                 {isAnalyzingPending ? (
@@ -113,20 +144,24 @@ const TransactionList: React.FC<TransactionListProps> = ({
           </div>
         )}
       </div>
-      {transactions.length === 0 ? (
-        <p className="text-[var(--color-text-muted)] text-center py-8">Nenhum lançamento registrado para este filtro.</p>
-      ) : groupedTransactions ? (
-        <div className="space-y-6">
-          {(Object.entries(groupedTransactions) as [string, Transaction[]][]).map(([monthYear, monthTransactions]) => (
-            <div key={monthYear}>
-              <h3 className="text-md font-semibold text-[var(--color-text-muted)] mb-2 pb-1 border-b border-[var(--border)] capitalize">{monthYear}</h3>
-              {renderTransactionList(monthTransactions)}
-            </div>
-          ))}
+
+      <div className="w-full text-left border-collapse overflow-y-auto pr-2 custom-scrollbar" style={{ height: '500px' }}>
+        <div className="space-y-2">
+          {filteredBySearch.length === 0 ? (
+            <p className="text-gray-300 text-center py-10 italic">Nenhum lançamento encontrado.</p>
+          ) : monthFilter === 'all' && groupedTransactions ? (
+            Object.entries(groupedTransactions).map(([month, list]) => (
+              <div key={month} className="mb-8">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 pl-4 border-l-2 border-[var(--primary)]">{month}</h3>
+                {renderTransactionList(list as Transaction[])}
+              </div>
+            ))
+          ) : (
+            renderTransactionList(filteredBySearch)
+          )}
         </div>
-      ) : (
-        renderTransactionList(transactions)
-      )}
+      </div>
+
     </div>
   );
 };

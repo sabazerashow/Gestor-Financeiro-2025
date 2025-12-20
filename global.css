@@ -36,6 +36,18 @@
   --font-mono: 'Fira Code', monospace;
 
   /* Aliases compatíveis */
+  /* Chart Colors */
+  --chart-1: #2ab29a;
+  --chart-2: #ff8042;
+  --chart-3: #0088fe;
+  --chart-4: #ffbb28;
+  --chart-5: #00c49f;
+  --chart-6: #8884d8;
+  --chart-7: #ff7300;
+  --chart-8: #d0ed57;
+  --chart-9: #a4de6c;
+  --chart-10: #82ca9d;
+
   --color-bg: var(--background);
   --color-surface: var(--card);
   --color-border: var(--border);

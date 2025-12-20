@@ -8,19 +8,19 @@ export enum Frequency {
 }
 
 export enum PaymentMethod {
-    PIX = 'PIX',
-    DEBITO = 'Débito',
-    CREDITO = 'Crédito',
-    DINHEIRO = 'Dinheiro',
-    OUTRO = 'Outro',
+  PIX = 'PIX',
+  DEBITO = 'Débito',
+  CREDITO = 'Crédito',
+  DINHEIRO = 'Dinheiro',
+  OUTRO = 'Outro',
 }
 
 export const paymentMethodDetails: { [key in PaymentMethod]: { icon: string; color: string } } = {
-    [PaymentMethod.PIX]: { icon: 'fa-brands fa-pix', color: 'text-cyan-500' },
-    [PaymentMethod.DEBITO]: { icon: 'fa-solid fa-credit-card', color: 'text-blue-500' },
-    [PaymentMethod.CREDITO]: { icon: 'fa-regular fa-credit-card', color: 'text-orange-500' },
-    [PaymentMethod.DINHEIRO]: { icon: 'fa-solid fa-money-bill-wave', color: 'text-primary' },
-    [PaymentMethod.OUTRO]: { icon: 'fa-solid fa-circle-question', color: 'text-gray-500' },
+  [PaymentMethod.PIX]: { icon: 'fa-brands fa-pix', color: 'text-cyan-500' },
+  [PaymentMethod.DEBITO]: { icon: 'fa-solid fa-credit-card', color: 'text-blue-500' },
+  [PaymentMethod.CREDITO]: { icon: 'fa-regular fa-credit-card', color: 'text-orange-500' },
+  [PaymentMethod.DINHEIRO]: { icon: 'fa-solid fa-money-bill-wave', color: 'text-primary' },
+  [PaymentMethod.OUTRO]: { icon: 'fa-solid fa-circle-question', color: 'text-gray-500' },
 };
 
 
@@ -40,6 +40,8 @@ export interface Transaction {
     total: number;      // The total number of installments (e.g., 6)
     totalAmount: number;// The total value of the original purchase
   };
+  createdBy?: string;     // user_id from Supabase
+  createdByName?: string; // name to display
 }
 
 export interface RecurringTransaction {
@@ -90,13 +92,13 @@ export interface CategoryIncome {
 }
 
 export interface TransactionToReview {
-    originalDescription: string;
-    description: string;
-    amount: number;
-    category: string;
-    subcategory: string;
-    paymentMethod: PaymentMethod;
-    date?: string;
+  originalDescription: string;
+  description: string;
+  amount: number;
+  category: string;
+  subcategory: string;
+  paymentMethod: PaymentMethod;
+  date?: string;
 }
 
 export interface PayslipLineItem {

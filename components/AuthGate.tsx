@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithGithub, signInWithEmail, signUpWithEmail } from '@/lib/db';
+import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '@/lib/db';
 
 interface AuthGateProps {
   onSignedIn?: () => void;
@@ -32,12 +32,13 @@ const AuthGate: React.FC<AuthGateProps> = ({ onSignedIn }) => {
     }
   };
 
-  const handleGithub = async () => {
+  const handleGoogle = async () => {
     try {
-      await signInWithGithub();
-      onSignedIn?.();
+      await signInWithGoogle();
+      // Nota: OAuth redireciona a página, então onSignedIn pode não ser chamado aqui,
+      // mas o Supabase lidará com a sessão no retorno.
     } catch (e) {
-      alert('Falha ao iniciar login com GitHub');
+      alert('Falha ao iniciar login com Google');
       console.error(e);
     }
   };
@@ -103,11 +104,11 @@ const AuthGate: React.FC<AuthGateProps> = ({ onSignedIn }) => {
         </div>
 
         <button
-          className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-[var(--border)] rounded-lg hover:bg-[var(--surface)] transition-colors active:scale-[0.98]"
-          onClick={handleGithub}
+          className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-[var(--border)] rounded-lg hover:bg-[var(--surface)] transition-all shadow-sm active:scale-[0.98] group"
+          onClick={handleGoogle}
         >
-          <i className="fab fa-github text-xl"></i>
-          <span className="text-sm font-medium">GitHub</span>
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="h-5 w-5" />
+          <span className="text-sm font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">Google</span>
         </button>
 
         <div className="mt-8 text-center text-sm">

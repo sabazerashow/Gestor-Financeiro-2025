@@ -186,6 +186,22 @@ const App: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleSaveProfile = async (newProfile: any) => {
+    setUserProfile(newProfile);
+    try {
+      localStorage.setItem('userProfile', JSON.stringify(newProfile));
+      if (isAuthActive && session?.user?.id) {
+        await db.upsertUserProfile({
+          id: session.user.id,
+          ...newProfile,
+          updated_at: new Date().toISOString()
+        });
+      }
+    } catch (e) {
+      console.error('Falha ao salvar perfil', e);
+    }
+  };
+
   // Supabase Auth: obter sessão e escutar mudanças (apenas quando auth está ativa)
   useEffect(() => {
     if (!isAuthActive) return;
@@ -195,6 +211,7 @@ const App: React.FC = () => {
       if (mounted) setSession(s);
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      console.log('App: Auth State Change:', _event, s?.user?.email);
       setSession(s ?? null);
     });
     return () => { mounted = false; sub?.subscription?.unsubscribe(); };
@@ -206,7 +223,9 @@ const App: React.FC = () => {
     let mounted = true;
     (async () => {
       try {
+        console.log('App: Garantindo conta padrão para o usuário:', session.user.id);
         const { accountId: accId, name } = await ensureDefaultAccount(session.user.id);
+        console.log('App: Conta garantida com ID:', accId);
         if (!mounted) return;
         setAccountId(accId);
         setAccountName(name || null);
@@ -256,6 +275,37 @@ const App: React.FC = () => {
       }
     })();
   }, [transactions, recurringTransactions, bills, payslips, session, accountId]);
+
+  // Carregar perfil do Supabase
+  useEffect(() => {
+    if (!isAuthActive || !session?.user?.id) return;
+    (async () => {
+      try {
+        const profile = await db.fetchUserProfile(session.user.id);
+        if (profile) {
+          setUserProfile({
+            ...profile,
+            email: session.user.email || profile.email
+          });
+        } else {
+          // Novo usuário: inicializar com dados da sessão
+          const initialProfile = {
+            name: session.user.user_metadata?.full_name || 'Novo Usuário',
+            title: 'Membro',
+            email: session.user.email || '',
+            dob: '',
+            gender: 'Outro',
+            photo: session.user.user_metadata?.avatar_url || 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
+          };
+          setUserProfile(initialProfile);
+          // Se for o primeiro login, abre o modal de perfil para configuração
+          setIsProfileModalOpen(true);
+        }
+      } catch (e) {
+        console.error('Falha ao carregar perfil do Supabase', e);
+      }
+    })();
+  }, [session]);
 
   const allDashboardCards: DashboardCardConfig[] = useMemo(() => [
     {
@@ -368,6 +418,7 @@ const App: React.FC = () => {
   const [isBPModalOpen, setIsBPModalOpen] = useState(false);
   const [bpImportMode, setBpImportMode] = useState<'ocr' | 'ai'>('ocr');
   const [isManualBPModalOpen, setIsManualBPModalOpen] = useState(false);
+  const [pendingPayslipData, setPendingPayslipData] = useState<Omit<Payslip, 'id'> | null>(null);
   const [fileContent, setFileContent] = useState<{ content: string; mimeType: string } | null>(null);
   const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
   const [quickAddInitialDescription, setQuickAddInitialDescription] = useState<string | undefined>(undefined);
@@ -382,7 +433,22 @@ const App: React.FC = () => {
     billId?: string;
   } | null>(null);
   const [installmentFilter, setInstallmentFilter] = useState<'all' | 'single' | 'installments'>('all');
-  const [monthFilter, setMonthFilter] = useState<'all' | string>('all');
+  const [monthFilter, setMonthFilter] = useState<'all' | string>(() => {
+    return new Date().toISOString().slice(0, 7); // Default to current month YYYY-MM
+  });
+  const [dashboardMonth, setDashboardMonth] = useState(new Date().toISOString().slice(0, 7));
+
+  const handleDashboardMonthChange = (direction: 'prev' | 'next') => {
+    const [year, month] = dashboardMonth.split('-').map(Number);
+    const date = new Date(year, month - 1);
+    date.setMonth(direction === 'next' ? date.getMonth() + 1 : date.getMonth() - 1);
+    setDashboardMonth(date.toISOString().slice(0, 7));
+  };
+
+  const dashboardMonthDisplay = useMemo(() => {
+    const [year, month] = dashboardMonth.split('-').map(Number);
+    return new Date(year, month - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+  }, [dashboardMonth]);
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | PaymentMethod>('all');
   const [isPayBillChoiceModalOpen, setIsPayBillChoiceModalOpen] = useState(false);
   const [billToPayDescription, setBillToPayDescription] = useState<string | undefined>(undefined);
@@ -550,6 +616,8 @@ const App: React.FC = () => {
           description: `${transaction.description} (${i + 1}/${installmentCount})`,
           amount: installmentAmount,
           date: installmentDate.toISOString().split('T')[0],
+          createdBy: session?.user?.id,
+          createdByName: userProfile?.name,
           installmentDetails: {
             purchaseId,
             current: i + 1,
@@ -563,6 +631,8 @@ const App: React.FC = () => {
       const newTransaction: Transaction = {
         ...transaction,
         id: new Date().getTime().toString(),
+        createdBy: session?.user?.id,
+        createdByName: userProfile?.name,
       };
       setTransactions(prev => [...prev, newTransaction]);
     }
@@ -572,6 +642,8 @@ const App: React.FC = () => {
     const newTransactions: Transaction[] = transactionsToAdd.map((t, index) => ({
       ...t,
       id: `${new Date().getTime()}-${index}`,
+      createdBy: session?.user?.id,
+      createdByName: userProfile?.name,
     }));
     setTransactions(prev => [...prev, ...newTransactions]);
   }
@@ -754,18 +826,14 @@ const App: React.FC = () => {
     setIsStatementModalOpen(false);
     setIsBPModalOpen(false);
     setIsManualBPModalOpen(false);
+    setIsInviteModalOpen(false);
     setFileContent(null);
+    setPendingPayslipData(null);
   }
 
   const currentMonthTransactions = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    return transactions.filter(t => {
-      const transactionDate = new Date(t.date + 'T00:00:00');
-      return transactionDate.getMonth() === currentMonth && transactionDate.getFullYear() === currentYear;
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions]);
+    return transactions.filter(t => t.date.startsWith(dashboardMonth));
+  }, [transactions, dashboardMonth]);
 
   const mainSummary = useMemo(() => {
     const income = currentMonthTransactions
@@ -842,10 +910,32 @@ const App: React.FC = () => {
       case 'overview':
         return (
           <div className="space-y-8">
-            <h2 className="text-center text-lg font-semibold text-[var(--color-text-muted)] tracking-wider">{monthYearDisplay}</h2>
-            <Summary income={mainSummary.income} expense={mainSummary.expense} balance={mainSummary.balance} />
+            <div className="flex items-center justify-center gap-6 mb-8">
+              <button
+                onClick={() => handleDashboardMonthChange('prev')}
+                className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
+              >
+                <i className="fas fa-chevron-left"></i>
+              </button>
+              <h2 className="text-xl font-black text-gray-800 tracking-tight uppercase min-w-[200px] text-center">{dashboardMonthDisplay}</h2>
+              <button
+                onClick={() => handleDashboardMonthChange('next')}
+                className="w-10 h-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
+              >
+                <i className="fas fa-chevron-right"></i>
+              </button>
+            </div>
+
+            <Summary
+              income={mainSummary.income}
+              expense={mainSummary.expense}
+              balance={mainSummary.balance}
+              transactions={currentMonthTransactions}
+              currentMonth={dashboardMonth}
+              onMonthChange={handleDashboardMonthChange}
+            />
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-              <div className="xl:col-span-1 bg-[var(--card)] rounded-xl shadow-lg">
+              <div className="xl:col-span-1 rounded-xl">
                 <UpcomingPayments bills={bills} onPayBill={handlePayBill} transactions={currentMonthTransactions} />
               </div>
               <div className="xl:col-span-2">
@@ -895,10 +985,6 @@ const App: React.FC = () => {
         return (
           <ReportsView
             transactions={transactions}
-            allDashboardCards={sortedDashboardCards}
-            cardVisibility={cardVisibility}
-            onToggleCard={toggleCardVisibility}
-            onSetCardOrder={setCardOrder}
           />
         );
       case 'bp-analysis':
@@ -1003,6 +1089,7 @@ const App: React.FC = () => {
         userProfile={userProfile}
         onOpenProfile={() => setIsProfileModalOpen(true)}
         onOpenInvite={() => setIsInviteModalOpen(true)}
+        isAuthActive={isAuthActive && !!session}
         accountName={accountName || undefined}
         onLogoutClick={async () => {
           if (!isAuthActive) return; // no-op em modo sem autenticação
@@ -1021,27 +1108,12 @@ const App: React.FC = () => {
           <div>
             <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
               Bom dia, {userProfile.name.split(' ')[0]}
-              <span className="text-gray-300 font-medium text-lg ml-2">
-                <i className="fas fa-angles-right text-xs align-middle"></i>
-                <span className="ml-3">{new Date().toLocaleDateString('pt-BR', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-              </span>
+              <span className="w-2 h-2 rounded-full bg-[var(--primary)] ml-1 animate-pulse"></span>
             </h2>
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="relative group">
-              <i className="fas fa-bell text-gray-400 text-lg cursor-pointer hover:text-[var(--primary)] transition-all"></i>
-              <div className="absolute -top-1 -right-0.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#f8f9fa]"></div>
-            </div>
-
-            <div className="relative">
-              <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-              <input
-                type="text"
-                placeholder="Search here"
-                className="bg-white pl-12 pr-6 py-3.5 rounded-2xl text-sm border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-64 tracking-tight outline-none"
-              />
-            </div>
+            {/* Notifications and Search removed from global header as requested */}
           </div>
         </header>
 
@@ -1083,6 +1155,11 @@ const App: React.FC = () => {
           file={fileContent}
           mode={bpImportMode}
           onConfirm={addPayslip}
+          onEdit={(data) => {
+            setPendingPayslipData(data);
+            setIsBPModalOpen(false);
+            setIsManualBPModalOpen(true);
+          }}
         />
       )}
 
@@ -1090,6 +1167,8 @@ const App: React.FC = () => {
         <InviteModal
           isOpen={isInviteModalOpen}
           onClose={handleCloseModals}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
+          hasSession={!!session}
           accountId={accountId}
         />
       )}
@@ -1097,6 +1176,7 @@ const App: React.FC = () => {
       <ManualBPModal
         isOpen={isManualBPModalOpen}
         onClose={handleCloseModals}
+        initialData={pendingPayslipData}
         onConfirm={addPayslip}
       />
 
@@ -1152,9 +1232,8 @@ const App: React.FC = () => {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         userProfile={userProfile}
-        onSave={setUserProfile}
+        onSave={handleSaveProfile}
       />
-      <InviteModal isOpen={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)} />
 
       <ConfirmDialog
         isOpen={isPurgeAllOpen}

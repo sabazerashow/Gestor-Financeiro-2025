@@ -1,14 +1,17 @@
-
 import React, { useEffect, useState } from 'react';
 import { fetchAccountMembers, fetchPendingInvites, createInvite, revokeInvite } from '@/lib/db';
+import { isAuthActive, isSupabaseEnabled } from '@/lib/supabase';
 
 interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenProfile?: () => void;
   accountId?: string | null;
+  hasSession?: boolean;
 }
 
-const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, accountId }) => {
+const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onOpenProfile, accountId, hasSession }) => {
+  console.log('InviteModal: accountId recebido:', accountId);
   if (!isOpen) return null;
 
   const [members, setMembers] = useState<Array<{ id: string; user_id: string; role: string }>>([]);
@@ -90,9 +93,53 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, accountId })
 
         <div className="p-8">
           {!accountId && (
-            <div className="mb-6 p-4 rounded-xl bg-[var(--warning)]/10 text-[var(--warning-foreground)] border border-[var(--warning)]/20 flex items-start gap-3">
-              <i className="fas fa-exclamation-triangle mt-1"></i>
-              <p className="text-sm font-medium">Você precisa estar autenticado para habilitar o compartilhamento de conta.</p>
+            <div className="mb-6 p-6 rounded-2xl bg-orange-500/5 border border-orange-500/10 flex flex-col gap-4">
+              {hasSession ? (
+                <div className="flex items-center gap-4 py-2">
+                  <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center animate-pulse">
+                    <i className="fas fa-spinner fa-spin text-lg"></i>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-orange-700">Configurando sua conta...</h4>
+                    <p className="text-xs text-orange-600/80 leading-relaxed mt-1">
+                      Estamos verificando sua conta na nuvem. Isso deve levar apenas alguns segundos.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center">
+                      <i className="fas fa-exclamation-triangle text-lg"></i>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-orange-700">Atenção: Compartilhamento Desativado</h4>
+                      {!isSupabaseEnabled ? (
+                        <p className="text-xs text-orange-600/80 leading-relaxed mt-1">
+                          O serviço de nuvem (Supabase) não foi detectado. Para compartilhar sua conta com outras pessoas, você precisa configurar as chaves de API no servidor.
+                          Sem a nuvem, seus dados ficam salvos apenas neste dispositivo.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-orange-600/80 leading-relaxed mt-1">
+                          Para usar a <strong>Conta Família</strong>, você precisa estar logado. Isso permite que seus dados sejam sincronizados com segurança na nuvem para que outras pessoas também possam vê-los.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {isSupabaseEnabled && onOpenProfile && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onOpenProfile();
+                      }}
+                      className="w-full py-2.5 text-xs font-black uppercase tracking-widest rounded-xl bg-orange-500 text-white hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
+                    >
+                      <i className="fas fa-sign-in-alt mr-2"></i> Ir para Login / Perfil
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           )}
 

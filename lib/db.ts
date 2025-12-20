@@ -73,13 +73,16 @@ export async function signInWithGithub() {
 // Accounts helpers (workspaces)
 export async function ensureDefaultAccount(userId: string): Promise<{ accountId: string; name: string }> {
   return withSupabase(async () => {
-    // 1. Verifica se já existe um vínculo de membro
+    console.log('DB: Verificando membresia para user:', userId);
     const { data: memberships, error: memErr } = await supabase
       .from('account_members')
       .select('account_id, role')
       .eq('user_id', userId)
       .limit(1);
-    if (memErr) throw memErr;
+    if (memErr) {
+      console.error('DB: Erro ao buscar memberships:', memErr);
+      throw memErr;
+    }
 
     if (memberships && memberships.length > 0) {
       const accountId = memberships[0].account_id as string;
@@ -124,19 +127,26 @@ export async function ensureDefaultAccount(userId: string): Promise<{ accountId:
       }
     }
 
-    // 3. Caso não exista vínculo nem convite, cria uma conta pessoal
+    console.log('DB: Nenhuma conta encontrada. Criando conta pessoal...');
     const { data: createdAcc, error: createErr } = await supabase
       .from('accounts')
       .insert({ name: 'Meu Financeiro', type: 'personal', created_by: userId })
       .select('id, name')
       .single();
-    if (createErr) throw createErr;
+    if (createErr) {
+      console.error('DB: Erro ao criar conta:', createErr);
+      throw createErr;
+    }
     const accountId = (createdAcc as any).id as string;
 
+    console.log('DB: Vinculando usuário como owner da conta:', accountId);
     const { error: addMemErr } = await supabase
       .from('account_members')
       .insert({ account_id: accountId, user_id: userId, role: 'owner' });
-    if (addMemErr) throw addMemErr;
+    if (addMemErr) {
+      console.error('DB: Erro ao vincular membro owner:', addMemErr);
+      throw addMemErr;
+    }
 
     return { accountId, name: (createdAcc as any).name as string };
   });
@@ -175,6 +185,15 @@ export const db = {
   upsertRecurring: (rows: RecurringTransaction[], accountId?: string) => bulkUpsert('recurring_transactions', rows, accountId),
   upsertBills: (rows: Bill[], accountId?: string) => bulkUpsert('bills', rows, accountId),
   upsertPayslips: (rows: Payslip[], accountId?: string) => bulkUpsert('payslips', rows, accountId),
+  fetchUserProfile: (userId: string) => withSupabase(async () => {
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    if (error) throw error;
+    return data;
+  }),
+  upsertUserProfile: (profile: any) => withSupabase(async () => {
+    const { error } = await supabase.from('profiles').upsert(profile);
+    if (error) throw error;
+  }),
 };
 
 export default db;

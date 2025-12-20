@@ -35,13 +35,25 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-bold text-gray-900 truncate tracking-tight text-base">{transaction.description}</p>
-          </div>
+          <p className="font-bold text-gray-900 truncate tracking-tight text-base">{transaction.description}</p>
           <div className="flex items-center space-x-2 mt-1">
             <span className="text-xs text-gray-400 font-medium">{transaction.category}</span>
             <span className="text-gray-200 text-[10px]">•</span>
             <span className="text-xs text-gray-400 font-medium">{formattedDate}</span>
+
+            {transaction.createdByName && (
+              <div className="flex items-center gap-1.5 ml-2 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                <div
+                  className="w-5 h-5 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-[10px] font-bold uppercase shadow-sm"
+                  title={`Lançado por: ${transaction.createdByName}`}
+                >
+                  {transaction.createdByName.charAt(0)}
+                </div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wide max-w-[60px] truncate">
+                  {transaction.createdByName.split(' ')[0]}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -62,7 +74,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
           </button>
         </div>
       </div>
-    </li>
+    </li >
   );
 };
 
