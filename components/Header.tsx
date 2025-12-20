@@ -19,6 +19,8 @@ interface HeaderProps {
   accountName?: string;
   onOpenAccountSwitch?: () => void;
   onPurgeAll?: () => void;
+  onOpenSettings: () => void;
+  onOpenSecurity: () => void;
 }
 
 const NavButton: React.FC<{ label: string; icon: string; isActive: boolean; onClick: () => void; }> = ({ label, icon, isActive, onClick }) => (
@@ -35,7 +37,7 @@ const NavButton: React.FC<{ label: string; icon: string; isActive: boolean; onCl
 );
 
 
-const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite, onLogoutClick, accountName, onOpenAccountSwitch, onPurgeAll }) => {
+const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onQuickAdd, userProfile, onOpenProfile, onOpenInvite, onLogoutClick, accountName, onOpenAccountSwitch, onPurgeAll, onOpenSettings, onOpenSecurity }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const defaultPhotoUrl = 'https://i.ibb.co/6n20d5w/placeholder-profile.png';
@@ -111,6 +113,8 @@ const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onQuickAdd, us
               <ProfileMenu
                 onProfileClick={() => { setIsProfileMenuOpen(false); onOpenProfile(); }}
                 onInviteClick={() => { setIsProfileMenuOpen(false); onOpenInvite(); }}
+                onSettingsClick={() => { setIsProfileMenuOpen(false); onOpenSettings(); }}
+                onSecurityClick={() => { setIsProfileMenuOpen(false); onOpenSecurity(); }}
                 onLogoutClick={() => { setIsProfileMenuOpen(false); onLogoutClick?.(); }}
                 onPurgeClick={() => { setIsProfileMenuOpen(false); onPurgeAll?.(); }}
               />

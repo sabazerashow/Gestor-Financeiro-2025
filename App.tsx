@@ -23,6 +23,8 @@ import ReportsView from './components/ReportsView';
 import PayBillChoiceModal from './components/PayBillChoiceModal';
 import ProfileModal from './components/ProfileModal';
 import InviteModal from './components/InviteModal';
+import SettingsModal from './components/SettingsModal';
+import SecurityModal from './components/SecurityModal';
 import IntelligentAnalysisCards from './components/IntelligentAnalysisCards';
 import FinancialInsights from './components/FinancialInsights';
 import PeriodSummaryCard from './components/PeriodSummaryCard';
@@ -395,6 +397,8 @@ const App: React.FC = () => {
   const [quickAddMode, setQuickAddMode] = useState<'ai' | 'manual'>('ai');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
   const [isPurgeAllOpen, setIsPurgeAllOpen] = useState(false);
 
 
@@ -919,6 +923,8 @@ const App: React.FC = () => {
           }
         }}
         onPurgeAll={() => setIsPurgeAllOpen(true)}
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenSecurity={() => setIsSecurityModalOpen(true)}
       />
 
       <main className="flex-1 h-screen overflow-y-auto px-10 py-8 custom-scrollbar bg-[#f8f9fa]">
@@ -1070,6 +1076,19 @@ const App: React.FC = () => {
         onClose={() => setIsProfileModalOpen(false)}
         userProfile={userProfile}
         onSave={handleSaveProfile}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        accountId={accountId}
+        onDataChanged={fetchData}
+      />
+
+      <SecurityModal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
+        userEmail={session?.user?.email}
       />
 
       <ConfirmDialog

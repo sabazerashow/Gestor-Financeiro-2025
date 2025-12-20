@@ -16,9 +16,10 @@ interface SidebarProps {
     onOpenInvite: () => void;
     onLogoutClick?: () => void;
     isAuthActive?: boolean;
-    accountName?: string;
     onPurgeAll?: () => void;
     onQuickAdd: () => void;
+    onOpenSettings: () => void;
+    onOpenSecurity: () => void;
 }
 
 const SidebarItem: React.FC<{
@@ -69,7 +70,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     isAuthActive,
     accountName,
     onPurgeAll,
-    onQuickAdd
+    onQuickAdd,
+    onOpenSettings,
+    onOpenSecurity
 }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const defaultPhotoUrl = 'https://i.ibb.co/6n20d5w/placeholder-profile.png';

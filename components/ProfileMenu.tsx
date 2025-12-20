@@ -5,12 +5,14 @@ import React, { useState } from 'react';
 interface ProfileMenuProps {
   onProfileClick: () => void;
   onInviteClick: () => void;
+  onSettingsClick: () => void;
+  onSecurityClick: () => void;
   onLogoutClick: () => void;
   onPurgeClick?: () => void;
 }
 
 
-const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick, onLogoutClick, onPurgeClick }) => {
+const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick, onSettingsClick, onSecurityClick, onLogoutClick, onPurgeClick }) => {
 
   return (
     <div
@@ -20,14 +22,24 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick
       aria-labelledby="menu-button"
     >
       <div className="py-1" role="none">
-        <a href="#" onClick={(e) => { e.preventDefault(); onProfileClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)]" role="menuitem">
-          <i className="fas fa-user-edit w-5 mr-2"></i>
-          Perfil
+        <a href="#" onClick={(e) => { e.preventDefault(); onProfileClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
+          <i className="fas fa-user-circle w-5 mr-2 text-[var(--primary)] opacity-70"></i>
+          Meu Perfil
         </a>
 
-        <a href="#" onClick={(e) => { e.preventDefault(); onInviteClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)]" role="menuitem">
-          <i className="fas fa-user-plus w-5 mr-2"></i>
+        <a href="#" onClick={(e) => { e.preventDefault(); onInviteClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
+          <i className="fas fa-user-plus w-5 mr-2 text-[var(--primary)] opacity-70"></i>
           Convidar usuários
+        </a>
+
+        <a href="#" onClick={(e) => { e.preventDefault(); onSecurityClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
+          <i className="fas fa-shield-halved w-5 mr-2 text-[var(--primary)] opacity-70"></i>
+          Segurança
+        </a>
+
+        <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
+          <i className="fas fa-cog w-5 mr-2 text-[var(--primary)] opacity-70"></i>
+          Configurações
         </a>
       </div>
       <div className="border-t border-[var(--border)]"></div>
