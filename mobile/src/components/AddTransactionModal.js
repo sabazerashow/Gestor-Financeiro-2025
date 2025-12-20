@@ -5,6 +5,7 @@ import { db } from '../lib/db';
 import { TransactionType, PaymentMethod, categories, expenseCategoryList, incomeCategoryList } from '../lib/constants';
 import { X, Check, Save, Zap, Edit2, ArrowRight, ChevronDown } from 'lucide-react-native';
 import CategorySelectionModal from './CategorySelectionModal';
+import { COLORS, SHADOWS } from '../constants/theme';
 
 const monthMap = {
     'janeiro': 1, 'jan': 1,

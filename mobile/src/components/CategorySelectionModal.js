@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Modal, ScrollView, FlatList } from 'react-native';
 import { categories } from '../lib/constants';
 import { X, ChevronRight, Check } from 'lucide-react-native';
+import { COLORS } from '../constants/theme';
 
 export default function CategorySelectionModal({ isOpen, onClose, onSelect, selectedCategory, selectedSubcategory, type = 'expense' }) {
     const [step, setStep] = useState('category'); // 'category' or 'subcategory'

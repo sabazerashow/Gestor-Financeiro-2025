@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Modal, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { db } from '../lib/db';
 import { X, Save, User, Calendar, Award, ChevronDown } from 'lucide-react-native';
+import { COLORS, SHADOWS } from '../constants/theme';
 
 const GENDER_OPTIONS = ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'];
 

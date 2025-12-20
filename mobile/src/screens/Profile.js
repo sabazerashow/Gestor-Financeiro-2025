@@ -5,14 +5,19 @@ import { User, LogOut, Share2, Shield, ChevronRight, Calendar, Settings, Award }
 import InviteModal from '../components/InviteModal';
 import EditProfileModal from '../components/EditProfileModal';
 import { db } from '../lib/db';
+import { seedMockData } from '../lib/seed';
 import { COLORS, SHADOWS, SPACING, TYPOGRAPHY } from '../constants/theme';
 import { Squircle } from '../components/common/Squircle';
 import * as Haptics from 'expo-haptics';
+import { Bug, Database } from 'lucide-react-native';
+import AppSettingsModal from '../components/AppSettingsModal';
 
 export default function Profile({ session, accountName, accountId }) {
     const [isInviteOpen, setIsInviteOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [profile, setProfile] = useState(null);
+    const [seeding, setSeeding] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const fetchProfile = async () => {
         if (!session?.user?.id) return;
@@ -52,6 +57,7 @@ export default function Profile({ session, accountName, accountId }) {
             ]
         );
     };
+
 
     const userName = profile?.full_name || session?.user?.email?.split('@')[0];
 
@@ -109,10 +115,11 @@ export default function Profile({ session, accountName, accountId }) {
                     ))}
                 </View>
 
+
                 <View style={styles.menuSection}>
                     <Text style={styles.sectionTitle}>Sobre</Text>
-                    <TouchableOpacity style={styles.menuItem} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
-                        <Squircle color="#F1F5F9" size={44}>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => setIsSettingsOpen(true)}>
+                        <Squircle color="rgba(255,255,255,0.05)" size={44}>
                             <Settings size={20} color={COLORS.textSecondary} strokeWidth={2.5} />
                         </Squircle>
                         <Text style={styles.menuText}>Configurações do App</Text>
@@ -140,6 +147,16 @@ export default function Profile({ session, accountName, accountId }) {
                 userId={session?.user?.id}
                 initialName={profile?.full_name}
                 onUpdated={fetchProfile}
+            />
+
+            <AppSettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                accountId={accountId}
+                onDataChanged={() => {
+                    // Force refresh or just alert
+                    Alert.alert("Sucesso", "Dados atualizados com sucesso!");
+                }}
             />
         </View >
     );

@@ -5,6 +5,7 @@ import { db } from '../lib/db';
 import { categories, expenseCategoryList } from '../lib/constants';
 import { X, Save, Calendar, ChevronDown } from 'lucide-react-native';
 import CategorySelectionModal from './CategorySelectionModal';
+import { COLORS, SHADOWS } from '../constants/theme';
 
 export default function AddBillModal({ isOpen, onClose, accountId, onAdded }) {
     const [loading, setLoading] = useState(false);

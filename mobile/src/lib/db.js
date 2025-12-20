@@ -39,6 +39,23 @@ export const db = {
         return data;
     },
 
+    resetAccountData: async (accountId) => {
+        const tables = ['transactions', 'bills'];
+        let totalDeleted = 0;
+        for (const table of tables) {
+            const { data, error, count } = await supabase
+                .from(table)
+                .delete({ count: 'exact' })
+                .eq('account_id', accountId)
+                .select(); // select() ensures we get data back which helps verify result
+
+            if (error) throw error;
+            console.log(`[DB] Deleted ${count || data?.length || 0} rows from ${table}`);
+            totalDeleted += (count || data?.length || 0);
+        }
+        return totalDeleted;
+    },
+
     addTransaction: async (accountId, transaction) => {
         const { data, error } = await supabase
             .from('transactions')
@@ -58,6 +75,21 @@ export const db = {
             .insert({ ...bill, account_id: accountId })
             .select()
             .single();
+        if (error) throw error;
+        return data;
+    },
+
+    importTransactions: async (accountId, transactions) => {
+        const formatted = transactions.map(tx => ({
+            ...tx,
+            account_id: accountId,
+            // Strip client-side IDs if they exist to let DB generate or ensure consistency
+            id: tx.id || undefined
+        }));
+        const { data, error } = await supabase
+            .from('transactions')
+            .insert(formatted)
+            .select();
         if (error) throw error;
         return data;
     },
@@ -135,5 +167,43 @@ export const db = {
             .single();
         if (error) throw error;
         return data;
+    },
+
+    fetchAccountMembers: async (accountId) => {
+        const { data, error } = await supabase
+            .from('account_members')
+            .select('id, user_id, role')
+            .eq('account_id', accountId);
+        if (error) throw error;
+        return data;
+    },
+
+    fetchPendingInvites: async (accountId) => {
+        const { data, error } = await supabase
+            .from('invites')
+            .select('*')
+            .eq('account_id', accountId)
+            .eq('status', 'pending');
+        if (error) throw error;
+        return data;
+    },
+
+    createInvite: async (accountId, email, role = 'member') => {
+        const { data, error } = await supabase
+            .from('invites')
+            .insert({ account_id: accountId, email, role, status: 'pending' })
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
+    revokeInvite: async (inviteId) => {
+        const { error } = await supabase
+            .from('invites')
+            .delete()
+            .eq('id', inviteId);
+        if (error) throw error;
+        return true;
     }
 };
