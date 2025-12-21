@@ -4,9 +4,10 @@ import { Bill } from '../types';
 interface BillListProps {
   bills: Bill[];
   onDelete: (id: string) => void;
+  onEdit: (bill: Bill) => void;
 }
 
-const BillItem: React.FC<{ bill: Bill; onDelete: (id: string) => void }> = ({ bill, onDelete }) => {
+const BillItem: React.FC<{ bill: Bill; onDelete: (id: string) => void; onEdit: (bill: Bill) => void }> = ({ bill, onDelete, onEdit }) => {
   return (
     <li className="flex items-center justify-between p-3 bg-[var(--surface)] rounded-lg transition-shadow hover:shadow-md">
       <div className="flex-grow min-w-0 flex items-center space-x-3">
@@ -22,6 +23,13 @@ const BillItem: React.FC<{ bill: Bill; onDelete: (id: string) => void }> = ({ bi
       </div>
       <div className="flex items-center space-x-4 ml-4">
         <button
+          onClick={() => onEdit(bill)}
+          className="text-[var(--color-text-muted)] hover:text-[var(--primary)] transition-colors"
+          aria-label={`Editar conta ${bill.description}`}
+        >
+          <i className="fas fa-edit"></i>
+        </button>
+        <button
           onClick={() => onDelete(bill.id)}
           className="text-[var(--color-text-muted)] hover:text-[var(--danger)] transition-colors"
           aria-label={`Deletar conta ${bill.description}`}
@@ -33,7 +41,7 @@ const BillItem: React.FC<{ bill: Bill; onDelete: (id: string) => void }> = ({ bi
   );
 };
 
-const BillList: React.FC<BillListProps> = ({ bills, onDelete }) => {
+const BillList: React.FC<BillListProps> = ({ bills, onDelete, onEdit }) => {
   const sortedBills = [...bills].sort((a, b) => a.dueDay - b.dueDay);
 
   return (
@@ -49,7 +57,7 @@ const BillList: React.FC<BillListProps> = ({ bills, onDelete }) => {
       ) : (
         <ul className="space-y-3">
           {sortedBills.map(bill => (
-            <BillItem key={bill.id} bill={bill} onDelete={onDelete} />
+            <BillItem key={bill.id} bill={bill} onDelete={onDelete} onEdit={onEdit} />
           ))}
         </ul>
       )}

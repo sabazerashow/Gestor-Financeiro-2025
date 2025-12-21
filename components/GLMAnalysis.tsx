@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { generateGLMContent, GLMRequest } from '../lib/aiClient';
+import { generateDeepSeekContent, GLMRequest } from '../lib/aiClient';
 import { Button } from './ui/button';
 
 interface GLMAnalysisProps {
@@ -16,7 +16,7 @@ export default function GLMAnalysis({ transactions = [], categories = [], period
   const generateAnalysis = async () => {
     setLoading(true);
     setError('');
-    
+
     try {
       // Preparar dados para análise
       const transactionsSummary = transactions.reduce((acc, t) => {
@@ -30,7 +30,7 @@ export default function GLMAnalysis({ transactions = [], categories = [], period
       const totalIncome = transactions
         .filter(t => t.amount > 0)
         .reduce((sum, t) => sum + t.amount, 0);
-      
+
       const totalExpense = Math.abs(transactions
         .filter(t => t.amount < 0)
         .reduce((sum, t) => sum + t.amount, 0));
@@ -42,9 +42,9 @@ Despesa total: R$ ${totalExpense.toFixed(2)}
 Saldo: R$ ${(totalIncome - totalExpense).toFixed(2)}
 
 Transações por categoria:
-${Object.entries(transactionsSummary).map(([cat, data]) => 
-  `- ${cat}: ${data.count} transações, total R$ ${data.total.toFixed(2)}`
-).join('\n')}
+${(Object.entries(transactionsSummary) as [string, { count: number; total: number }][]).map(([cat, data]) =>
+        `- ${cat}: ${data.count} transações, total R$ ${data.total.toFixed(2)}`
+      ).join('\n')}
 
 Forneça uma análise financeira concisa com:
 1. Principais insights sobre os gastos
@@ -54,7 +54,7 @@ Forneça uma análise financeira concisa com:
 Responda em português de forma clara e objetiva.`;
 
       const request: GLMRequest = {
-        model: 'glm-4',
+        model: 'deepseek-chat',
         messages: [
           { role: 'system', content: 'Você é um especialista em análise financeira pessoal.' },
           { role: 'user', content: prompt }
@@ -63,8 +63,8 @@ Responda em português de forma clara e objetiva.`;
         max_tokens: 800
       };
 
-      const response = await generateGLMContent(request);
-      
+      const response = await generateDeepSeekContent(request);
+
       if (response.choices && response.choices.length > 0) {
         setAnalysis(response.choices[0].message.content);
       } else {
@@ -89,19 +89,19 @@ Responda em português de forma clara e objetiva.`;
           {loading ? 'Analisando...' : 'Gerar Análise'}
         </Button>
       </div>
-      
+
       {transactions.length === 0 && (
         <div className="text-gray-500 text-center py-4">
           Adicione transações para gerar uma análise financeira.
         </div>
       )}
-      
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
-      
+
       {analysis && (
         <div className="bg-gray-50 p-4 rounded-md">
           <h3 className="font-medium text-gray-800 mb-2">Análise Gerada:</h3>

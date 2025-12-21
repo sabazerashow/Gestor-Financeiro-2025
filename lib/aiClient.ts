@@ -37,8 +37,8 @@ export async function generateContent(req: GenerateRequest, options?: { token?: 
   return data as { text: string };
 }
 
-export async function generateGLMContent(req: GLMRequest, options?: { token?: string }) {
-  const res = await fetch('/api/ai/glm', {
+export async function generateDeepSeekContent(req: GLMRequest, options?: { token?: string }) {
+  const res = await fetch('/api/ai/deepseek', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ export async function generateGLMContent(req: GLMRequest, options?: { token?: st
     body: JSON.stringify(req),
   });
   if (!res.ok) {
-    let errorMessage = 'Falha ao chamar GLM API';
+    let errorMessage = 'Falha ao chamar DeepSeek API';
     const resClone = res.clone();
     try {
       const errorData = await res.json();
@@ -55,10 +55,14 @@ export async function generateGLMContent(req: GLMRequest, options?: { token?: st
     } catch {
       errorMessage = await resClone.text() || errorMessage;
     }
-    console.error(`AI Client GLM Error [${res.status}]:`, errorMessage);
+    console.error(`AI Client DeepSeek Error [${res.status}]:`, errorMessage);
     throw new Error(errorMessage);
   }
   const data = await res.json();
   return data;
+}
+
+export function cleanJsonString(s: string): string {
+  return s.replace(/```json/g, '').replace(/```/g, '').trim();
 }
 

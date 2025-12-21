@@ -5,9 +5,9 @@ const hostUri = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHos
 const host = hostUri.split(':')[0] || '10.0.2.2'; // 10.0.2.2 is the default for Android emulator to reach host
 const BASE_URL = `http://${host}:4000`;
 
-export async function generateGLMContent(req) {
-    console.log('Calling mobile AI GLM:', `${BASE_URL}/api/ai/glm`);
-    const res = await fetch(`${BASE_URL}/api/ai/glm`, {
+export async function generateDeepSeekContent(req) {
+    console.log('Calling mobile AI DeepSeek:', `${BASE_URL}/api/ai/deepseek`);
+    const res = await fetch(`${BASE_URL}/api/ai/deepseek`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -16,7 +16,7 @@ export async function generateGLMContent(req) {
     });
 
     if (!res.ok) {
-        let errorMessage = 'Falha ao chamar GLM API';
+        let errorMessage = 'Falha ao chamar DeepSeek API';
         try {
             const errorData = await res.json();
             errorMessage = errorData.error || errorMessage;

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { generateGLMContent } from '../lib/aiClient';
+import { generateDeepSeekContent, cleanJsonString } from '../lib/aiClient';
 import { Transaction, TransactionType } from '../types';
 
 type InsightCard = {
@@ -68,8 +68,8 @@ Regras:
 - Se faltar dados para um card, ainda assim produza um insight útil e curto.
 - Apenas JSON; não explique.`;
 
-      const response = await generateGLMContent({
-        model: 'glm-4',
+      const response = await generateDeepSeekContent({
+        model: 'deepseek-chat',
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: user },
@@ -87,15 +87,16 @@ Regras:
 
       if (!content) throw new Error('Resposta da IA vazia');
 
-      const parsed = JSON.parse(content) as InsightCard[];
-      const cleaned = parsed.slice(0, 4).map(c => ({
+      const cleanedContent = cleanJsonString(content);
+      const parsed = JSON.parse(cleanedContent) as InsightCard[];
+      const finalCards = parsed.slice(0, 4).map(c => ({
         title: c.title || 'Insight',
         severity: (c.severity === 'ok' || c.severity === 'atencao' || c.severity === 'alerta') ? c.severity : 'ok',
         message: (c.message || '').slice(0, 220),
         actionLabel: c.actionLabel || 'Ver detalhes',
         actionTarget: c.actionTarget || 'reports:financialInsights',
       }));
-      setCards(cleaned);
+      setCards(finalCards);
     } catch (e) {
       console.error(e);
       setError('Não foi possível gerar os cards com IA agora.');
@@ -104,10 +105,12 @@ Regras:
     }
   };
 
+  /* 
   useEffect(() => {
     requestAI();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compactData.length]);
+  */
 
   if (!transactions.length) {
     return (

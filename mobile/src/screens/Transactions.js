@@ -7,7 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import { COLORS, SHADOWS, SPACING, TYPOGRAPHY } from '../constants/theme';
 import { Squircle } from '../components/common/Squircle';
 import * as Haptics from 'expo-haptics';
-import { generateGLMContent } from '../lib/aiClient';
+import { generateDeepSeekContent } from '../lib/aiClient';
 import { categories } from '../lib/constants';
 import { ActivityIndicator, Alert, Dimensions } from 'react-native';
 import TransactionDetailModal from '../components/TransactionDetailModal';
@@ -92,15 +92,15 @@ export default function Transactions({ accountId }) {
                     { role: 'user', content: `Descrição: ${t.description}\nEstrutura:\n${availableCategories}` }
                 ];
 
-                const glmResp = await generateGLMContent({
-                    model: 'glm-4',
+                const deepseekResp = await generateDeepSeekContent({
+                    model: 'deepseek-chat',
                     messages: glmMessages,
                     temperature: 0.1
                 });
 
-                const content = glmResp?.choices?.[0]?.message?.content || '';
-                const cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
-                const suggestion = JSON.parse(cleanJson);
+                const content = deepseekResp?.choices?.[0]?.message?.content || '';
+                const cleaned = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                const suggestion = JSON.parse(cleaned);
 
                 if (suggestion.category && categories[suggestion.category]) {
                     const chosenSub = suggestion.subcategory && categories[suggestion.category].subcategories.includes(suggestion.subcategory)

@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Transaction } from '../types';
-import { generateContent, generateGLMContent } from '../lib/aiClient';
+import { generateContent, generateDeepSeekContent, cleanJsonString } from '../lib/aiClient';
 import { categories } from '../categories';
 
 export function useAIAnalysis() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-    const cleanJsonString = (s: string) => s.replace(/```json/g, '').replace(/```/g, '').trim();
 
     const analyzeTransactions = async (
         transactions: Transaction[],
@@ -41,9 +40,9 @@ export function useAIAnalysis() {
                     let suggestion: { category?: string; subcategory?: string } = {};
 
                     try {
-                        const glmResp = await generateGLMContent({ model: 'glm-4', messages: glmMessages, temperature: 0.1 });
-                        const glmText = glmResp?.choices?.[0]?.message?.content || '';
-                        suggestion = JSON.parse(cleanJsonString(glmText));
+                        const deepseekResp = await generateDeepSeekContent({ model: 'deepseek-chat', messages: glmMessages, temperature: 0.1 });
+                        const deepseekText = deepseekResp?.choices?.[0]?.message?.content || '';
+                        suggestion = JSON.parse(cleanJsonString(deepseekText));
                     } catch (e) {
                         // Fallback to Gemini
                         const prompt = `Dada a descrição: "${t.description}", sugira categoria/subcategoria em JSON.\nEstrutura:\n${availableCategories}`;

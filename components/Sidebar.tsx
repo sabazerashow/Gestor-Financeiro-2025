@@ -172,12 +172,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                         isActive={activeTab === 'bp-analysis'} onClick={() => setActiveTab('bp-analysis')}
                         isCollapsed={isCollapsed}
                     />
-                    <div className="h-px w-full bg-white/5 my-4"></div>
-                    <SidebarItem
-                        label="Conta Família" icon="fa-user-group"
-                        isActive={false} onClick={onOpenInvite}
-                        isCollapsed={isCollapsed}
-                    />
                 </div>
             </nav>
 

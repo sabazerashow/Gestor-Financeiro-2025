@@ -27,12 +27,13 @@ import SettingsModal from './components/SettingsModal';
 import SecurityModal from './components/SecurityModal';
 import IntelligentAnalysisCards from './components/IntelligentAnalysisCards';
 import FinancialInsights from './components/FinancialInsights';
+import EditBillModal from './components/EditBillModal';
 import PeriodSummaryCard from './components/PeriodSummaryCard';
 import ExpenseBreakdown from './components/ExpenseBreakdown';
 import IncomeBreakdown from './components/IncomeBreakdown';
 import SpendingByCategoryCard from './components/report-cards/SpendingByCategoryCard';
 import PendingInstallmentsCard from './components/report-cards/PendingInstallmentsCard';
-import { generateContent, generateGLMContent } from '@/lib/aiClient';
+import { generateContent, generateDeepSeekContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
 import supabase, { isSupabaseEnabled, isAuthActive } from '@/lib/supabase';
 import db, { getSession, signOut, ensureDefaultAccount, purgeAccountData } from '@/lib/db';
@@ -71,7 +72,7 @@ const App: React.FC = () => {
     recurringTransactions, setRecurringTransactions,
     bills, setBills,
     userProfile, setUserProfile,
-    updateTransaction,
+    updateTransaction, updateBill,
     fetchData, syncData
   } = useFinanceStore();
 
@@ -368,7 +369,9 @@ const App: React.FC = () => {
   const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
   const [quickAddInitialDescription, setQuickAddInitialDescription] = useState<string | undefined>(undefined);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditBillModalOpen, setIsEditBillModalOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+  const [billToEdit, setBillToEdit] = useState<Bill | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [isDeleteInstallmentModalOpen, setIsDeleteInstallmentModalOpen] = useState(false);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
@@ -732,6 +735,16 @@ const App: React.FC = () => {
     setIsEditModalOpen(false);
   };
 
+  const handleOpenEditBillModal = (bill: Bill) => {
+    console.log('Abrindo modal de edição para conta:', bill);
+    setBillToEdit(bill);
+    setIsEditBillModalOpen(true);
+  };
+
+  const handleUpdateBill = (id: string, updates: Partial<Bill>) => {
+    updateBill(id, updates);
+  };
+
 
 
   const handleFileSelected = (selectedFile: { content: string; mimeType: string }, type: 'nfe' | 'statement' | 'bp') => {
@@ -864,7 +877,7 @@ const App: React.FC = () => {
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <AddBillForm onAddBill={addBill} />
-            <BillList bills={bills} onDelete={handleAttemptDeleteBill} />
+            <BillList bills={bills} onDelete={handleAttemptDeleteBill} onEdit={handleOpenEditBillModal} />
           </div>
         );
       case 'reports':
@@ -1034,6 +1047,16 @@ const App: React.FC = () => {
           onClose={handleCloseEditModal}
           transaction={transactionToEdit}
           onUpdate={updateTransaction}
+        />
+      )}
+
+      {billToEdit && (
+        <EditBillModal
+          key={billToEdit.id}
+          isOpen={isEditBillModalOpen}
+          onClose={() => { setIsEditBillModalOpen(false); setBillToEdit(null); }}
+          bill={billToEdit}
+          onUpdate={handleUpdateBill}
         />
       )}
 

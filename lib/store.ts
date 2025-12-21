@@ -31,6 +31,7 @@ interface FinanceState {
     updateTransaction: (id: string, updates: Partial<Transaction>) => void;
     deleteTransaction: (id: string) => void;
 
+    updateBill: (id: string, updates: Partial<Bill>) => void;
     // Hydration / Sync
     fetchData: (accountId: string) => Promise<void>;
     syncData: (accountId: string) => Promise<void>;
@@ -114,6 +115,16 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     deleteTransaction: (id) => set((state) => ({
         transactions: state.transactions.filter(t => t.id !== id)
     })),
+
+    updateBill: (id, updates) => set((state) => {
+        const updatedBills = state.bills.map(b => b.id === id ? { ...b, ...updates } : b);
+
+        // Se mudou algo no billing que afeta a recorrência (valor, categoria, subcategoria)
+        // e essa conta tem uma recorrência vinculada, precisamos avisar/atualizar
+        // Para simplificar agora, apenas atualizamos a lista de contas.
+
+        return { bills: updatedBills };
+    }),
 
     syncData: async (accountId) => {
         const { transactions, recurringTransactions, bills, payslips, budgets, goals } = get();
