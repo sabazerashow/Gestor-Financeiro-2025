@@ -168,8 +168,9 @@ const toSnakeCase = (str: string) => str.replace(/[A-Z]/g, letter => `_${letter.
 const mapKeysToSnakeCase = (obj: any) => {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
   const newObj: any = {};
+  const excludedKeys = ['createdBy', 'createdByName']; // Prevent sending columns that don't exist in DB
   for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key) && !excludedKeys.includes(key)) {
       // Map key and handle nested installmentDetails specifically if it exists
       const value = obj[key];
       newObj[toSnakeCase(key)] = (key === 'installmentDetails' && value) ? mapKeysToSnakeCase(value) : value;

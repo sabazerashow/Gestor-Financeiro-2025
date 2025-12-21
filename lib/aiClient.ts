@@ -23,11 +23,12 @@ export async function generateContent(req: GenerateRequest, options?: { token?: 
   });
   if (!res.ok) {
     let errorMessage = 'Falha ao chamar IA';
+    const resClone = res.clone();
     try {
       const errorData = await res.json();
       errorMessage = errorData.error || errorMessage;
     } catch {
-      errorMessage = await res.text() || errorMessage;
+      errorMessage = await resClone.text() || errorMessage;
     }
     console.error(`AI Client Gemini Error [${res.status}]:`, errorMessage);
     throw new Error(errorMessage);
@@ -47,11 +48,12 @@ export async function generateGLMContent(req: GLMRequest, options?: { token?: st
   });
   if (!res.ok) {
     let errorMessage = 'Falha ao chamar GLM API';
+    const resClone = res.clone();
     try {
       const errorData = await res.json();
       errorMessage = errorData.error || errorMessage;
     } catch {
-      errorMessage = await res.text() || errorMessage;
+      errorMessage = await resClone.text() || errorMessage;
     }
     console.error(`AI Client GLM Error [${res.status}]:`, errorMessage);
     throw new Error(errorMessage);

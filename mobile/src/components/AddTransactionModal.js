@@ -185,7 +185,7 @@ export default function AddTransactionModal({ isOpen, onClose, accountId, initia
                             {step === 'input' ? 'Lançamento Rápido' : (step === 'edit' ? 'Editar Lançamento' : 'Confirme os detalhes')}
                         </Text>
                         <TouchableOpacity onPress={onClose}>
-                            <X size={24} color="#000" />
+                            <X size={24} color={COLORS.text} />
                         </TouchableOpacity>
                     </View>
 

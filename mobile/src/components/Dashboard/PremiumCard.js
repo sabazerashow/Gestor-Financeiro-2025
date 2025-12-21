@@ -8,7 +8,7 @@ export const PremiumCard = ({ balance, income, expense }) => {
     return (
         <View style={styles.outerContainer}>
             <LinearGradient
-                colors={[COLORS.primary, '#05D69E', '#00BFA5']}
+                colors={balance < 0 ? ['#D9534F', '#C1413E', '#A92F2D'] : [COLORS.primary, '#05C392', '#00A87E']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.card}

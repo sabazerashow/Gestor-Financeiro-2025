@@ -198,6 +198,8 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         marginBottom: 16,
         gap: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.15)', // White border with low opacity
     },
     actionTextContent: {
         flex: 1,

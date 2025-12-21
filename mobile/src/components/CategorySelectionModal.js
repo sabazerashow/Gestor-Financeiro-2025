@@ -38,7 +38,7 @@ export default function CategorySelectionModal({ isOpen, onClose, onSelect, sele
                             {step === 'category' ? 'Selecionar Categoria' : `Subcategorias de ${tempCategory}`}
                         </Text>
                         <TouchableOpacity onPress={resetAndClose}>
-                            <X size={24} color="#000" />
+                            <X size={24} color={COLORS.text} />
                         </TouchableOpacity>
                     </View>
 
@@ -51,9 +51,6 @@ export default function CategorySelectionModal({ isOpen, onClose, onSelect, sele
                                     style={[styles.item, selectedCategory === item.name && styles.itemSelected]}
                                     onPress={() => handleCategorySelect(item.name)}
                                 >
-                                    <View style={[styles.iconBox, { backgroundColor: item.color + '20' }]}>
-                                        <Text style={{ fontSize: 18 }}>{item.icon === 'utensils' ? '🍴' : item.icon === 'home' ? '🏠' : '📦'}</Text>
-                                    </View>
                                     <Text style={styles.itemText}>{item.name}</Text>
                                     {selectedCategory === item.name && <Check size={18} color="#1a73e8" />}
                                     <ChevronRight size={18} color="#ccc" />

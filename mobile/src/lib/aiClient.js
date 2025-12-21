@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 
 // Get the host IP to reach the local server from the emulator/device
-const host = Constants.expoConfig?.hostUri?.split(':')[0] || 'localhost';
+const hostUri = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost || '';
+const host = hostUri.split(':')[0] || '10.0.2.2'; // 10.0.2.2 is the default for Android emulator to reach host
 const BASE_URL = `http://${host}:4000`;
 
 export async function generateGLMContent(req) {

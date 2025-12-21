@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, ScrollView, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, Platform, ScrollView, StatusBar, Image } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { User, LogOut, Share2, Shield, ChevronRight, Calendar, Settings, Award } from 'lucide-react-native';
 import InviteModal from '../components/InviteModal';
@@ -11,6 +11,7 @@ import { Squircle } from '../components/common/Squircle';
 import * as Haptics from 'expo-haptics';
 import { Bug, Database } from 'lucide-react-native';
 import AppSettingsModal from '../components/AppSettingsModal';
+import SecurityModal from '../components/SecurityModal';
 
 export default function Profile({ session, accountName, accountId }) {
     const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -18,6 +19,7 @@ export default function Profile({ session, accountName, accountId }) {
     const [profile, setProfile] = useState(null);
     const [seeding, setSeeding] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isSecurityOpen, setIsSecurityOpen] = useState(false);
 
     const fetchProfile = async () => {
         if (!session?.user?.id) return;
@@ -41,25 +43,11 @@ export default function Profile({ session, accountName, accountId }) {
 
     const handleSecurity = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        Alert.alert(
-            "Segurança",
-            "Deseja receber um e-mail para redefinir sua senha?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                {
-                    text: "Enviar E-mail",
-                    onPress: async () => {
-                        const { error } = await supabase.auth.resetPasswordForEmail(session?.user?.email);
-                        if (error) Alert.alert("Erro", error.message);
-                        else Alert.alert("Sucesso", "Link de redefinição enviado!");
-                    }
-                }
-            ]
-        );
+        setIsSecurityOpen(true);
     };
 
 
-    const userName = profile?.full_name || session?.user?.email?.split('@')[0];
+    const userName = profile?.name || profile?.full_name || session?.user?.email?.split('@')[0];
 
     return (
         <View style={styles.container}>
@@ -67,14 +55,18 @@ export default function Profile({ session, accountName, accountId }) {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
                     <Squircle color={COLORS.secondary} size={100} style={styles.avatar}>
-                        <Text style={styles.avatarText}>{userName.substring(0, 1).toUpperCase()}</Text>
+                        {profile?.photo ? (
+                            <Image source={{ uri: profile.photo }} style={styles.avatarImage} />
+                        ) : (
+                            <Text style={styles.avatarText}>{userName.substring(0, 1).toUpperCase()}</Text>
+                        )}
                     </Squircle>
                     <Text style={styles.userName}>{userName}</Text>
                     <Text style={styles.userEmail}>{session?.user?.email}</Text>
 
                     <View style={styles.rankBadge}>
                         <Award size={14} color={COLORS.primary} strokeWidth={2.5} />
-                        <Text style={styles.rankText}>{profile?.rank || 'Piloto Aprendiz'}</Text>
+                        <Text style={styles.rankText}>{profile?.title || profile?.rank || 'Piloto Aprendiz'}</Text>
                     </View>
                 </View>
 
@@ -145,7 +137,7 @@ export default function Profile({ session, accountName, accountId }) {
                 isOpen={isEditOpen}
                 onClose={() => setIsEditOpen(false)}
                 userId={session?.user?.id}
-                initialName={profile?.full_name}
+                profile={profile}
                 onUpdated={fetchProfile}
             />
 
@@ -157,6 +149,11 @@ export default function Profile({ session, accountName, accountId }) {
                     // Force refresh or just alert
                     Alert.alert("Sucesso", "Dados atualizados com sucesso!");
                 }}
+            />
+            <SecurityModal
+                isOpen={isSecurityOpen}
+                onClose={() => setIsSecurityOpen(false)}
+                userEmail={session?.user?.email}
             />
         </View >
     );
@@ -182,6 +179,12 @@ const styles = StyleSheet.create({
     avatar: {
         marginBottom: SPACING.md,
         ...SHADOWS.premium,
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 30, // matches squircle roughly
     },
     avatarText: {
         fontSize: 36,

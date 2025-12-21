@@ -5,8 +5,9 @@ const toSnakeCase = (str) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerC
 const mapKeysToSnakeCase = (obj) => {
     if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
     const newObj = {};
+    const excludedKeys = ['createdBy', 'createdByName']; // Prevent sending columns that don't exist in DB
     for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key) && !excludedKeys.includes(key)) {
             const value = obj[key];
             newObj[toSnakeCase(key)] = (key === 'installmentDetails' && value) ? mapKeysToSnakeCase(value) : value;
         }
@@ -155,7 +156,7 @@ export const db = {
     },
 
     ensureDefaultAccount: async (userId) => {
-        // Mesma lógica da web para garantir que o usuário tenha uma conta
+        // 1. Verifica membros
         const { data: memberships, error: memErr } = await supabase
             .from('account_members')
             .select('account_id, role')
@@ -175,7 +176,36 @@ export const db = {
             return { accountId: acc.id, name: acc.name };
         }
 
-        // Criar se não existir (fallback)
+        // 2. Verifica convites pendentes pelo e-mail
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+            const { data: invite, error: inviteErr } = await supabase
+                .from('pending_invites')
+                .select('account_id, role, id')
+                .eq('email', user.email)
+                .limit(1)
+                .maybeSingle();
+
+            if (!inviteErr && invite) {
+                // Aceita convite
+                await supabase.from('account_members').insert({
+                    account_id: invite.account_id,
+                    user_id: userId,
+                    role: invite.role
+                });
+                await supabase.from('pending_invites').delete().eq('id', invite.id);
+
+                const { data: acc } = await supabase
+                    .from('accounts')
+                    .select('id, name')
+                    .eq('id', invite.account_id)
+                    .single();
+
+                return { accountId: invite.account_id, name: acc?.name || 'Conta Compartilhada' };
+            }
+        }
+
+        // 3. Criar se não existir
         const { data: createdAcc, error: createErr } = await supabase
             .from('accounts')
             .insert({ name: 'Meu Financeiro', type: 'personal', created_by: userId })
@@ -221,18 +251,17 @@ export const db = {
 
     fetchPendingInvites: async (accountId) => {
         const { data, error } = await supabase
-            .from('invites')
+            .from('pending_invites')
             .select('*')
-            .eq('account_id', accountId)
-            .eq('status', 'pending');
+            .eq('account_id', accountId);
         if (error) throw error;
         return data;
     },
 
     createInvite: async (accountId, email, role = 'member') => {
         const { data, error } = await supabase
-            .from('invites')
-            .insert({ account_id: accountId, email, role, status: 'pending' })
+            .from('pending_invites')
+            .insert({ account_id: accountId, email, role })
             .select()
             .single();
         if (error) throw error;
@@ -241,7 +270,7 @@ export const db = {
 
     revokeInvite: async (inviteId) => {
         const { error } = await supabase
-            .from('invites')
+            .from('pending_invites')
             .delete()
             .eq('id', inviteId);
         if (error) throw error;

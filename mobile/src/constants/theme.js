@@ -1,7 +1,7 @@
 export const COLORS = {
     // Premium Mint Palette
-    primary: '#00D09C',        // The main Mint
-    primaryLight: 'rgba(0, 208, 156, 0.1)',   // Soft mint glow
+    primary: '#00A87E',        // Slightly darker Mint
+    primaryLight: 'rgba(0, 168, 126, 0.1)',   // Soft mint glow
     primaryDark: '#008F6B',    // Darker mint
 
     // Core Neutrals
@@ -12,8 +12,8 @@ export const COLORS = {
     // Utilities
     background: '#0B0E11',     // Main background
     white: '#161B22',          // Surface / Card background (renamed conceptually)
-    danger: '#FF5A5A',         // Vibrant red for dark
-    success: '#00D09C',
+    danger: '#D9534F',         // Less vibrant red
+    success: '#00A87E',
     warning: '#F59E0B',
     gray: '#21262D',
 

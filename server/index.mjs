@@ -127,6 +127,6 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend de IA rodando em http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend de IA rodando em http://0.0.0.0:${PORT}`);
 });

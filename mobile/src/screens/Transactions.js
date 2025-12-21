@@ -10,6 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { generateGLMContent } from '../lib/aiClient';
 import { categories } from '../lib/constants';
 import { ActivityIndicator, Alert, Dimensions } from 'react-native';
+import TransactionDetailModal from '../components/TransactionDetailModal';
 import Svg, { Circle, G } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
@@ -23,6 +24,8 @@ export default function Transactions({ accountId }) {
     const [search, setSearch] = useState('');
     const [refreshing, setRefreshing] = useState(false);
     const [activeFilter, setActiveFilter] = useState('Todas');
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
 
     const fetchData = async () => {
         if (!accountId) return;
@@ -125,7 +128,11 @@ export default function Transactions({ accountId }) {
         return (
             <TouchableOpacity
                 style={styles.card}
-                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+                onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSelectedTransaction(item);
+                    setIsDetailOpen(true);
+                }}
             >
                 <Squircle
                     color={item.type === 'income' ? COLORS.primaryLight : '#FFEBEE'}
@@ -331,6 +338,16 @@ export default function Transactions({ accountId }) {
                     </View>
                 </ScrollView>
             )}
+
+            <TransactionDetailModal
+                isOpen={isDetailOpen}
+                onClose={() => setIsDetailOpen(false)}
+                transaction={selectedTransaction}
+                onUpdated={() => {
+                    fetchData();
+                    setIsDetailOpen(false);
+                }}
+            />
         </View>
     );
 }
