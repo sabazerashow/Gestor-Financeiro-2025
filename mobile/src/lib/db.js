@@ -1,5 +1,18 @@
-
 import { supabase } from './supabase';
+
+const toSnakeCase = (str) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+
+const mapKeysToSnakeCase = (obj) => {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+    const newObj = {};
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = obj[key];
+            newObj[toSnakeCase(key)] = (key === 'installmentDetails' && value) ? mapKeysToSnakeCase(value) : value;
+        }
+    }
+    return newObj;
+};
 
 export const db = {
     fetchTransactions: async (accountId) => {
@@ -57,9 +70,10 @@ export const db = {
     },
 
     addTransaction: async (accountId, transaction) => {
+        const mapped = mapKeysToSnakeCase(transaction);
         const { data, error } = await supabase
             .from('transactions')
-            .insert({ ...transaction, account_id: accountId })
+            .insert({ ...mapped, account_id: accountId })
             .select()
             .single();
         if (error) {
@@ -70,9 +84,10 @@ export const db = {
     },
 
     addBill: async (accountId, bill) => {
+        const mapped = mapKeysToSnakeCase(bill);
         const { data, error } = await supabase
             .from('bills')
-            .insert({ ...bill, account_id: accountId })
+            .insert({ ...mapped, account_id: accountId })
             .select()
             .single();
         if (error) throw error;
@@ -89,6 +104,32 @@ export const db = {
         const { data, error } = await supabase
             .from('transactions')
             .insert(formatted)
+            .select();
+        if (error) throw error;
+        return data;
+    },
+
+    upsertTransactions: async (accountId, transactions) => {
+        const formatted = transactions.map(tx => {
+            const mapped = mapKeysToSnakeCase(tx);
+            return { ...mapped, account_id: accountId };
+        });
+        const { data, error } = await supabase
+            .from('transactions')
+            .upsert(formatted)
+            .select();
+        if (error) throw error;
+        return data;
+    },
+
+    upsertBills: async (accountId, bills) => {
+        const formatted = bills.map(bill => {
+            const mapped = mapKeysToSnakeCase(bill);
+            return { ...mapped, account_id: accountId };
+        });
+        const { data, error } = await supabase
+            .from('bills')
+            .upsert(formatted)
             .select();
         if (error) throw error;
         return data;

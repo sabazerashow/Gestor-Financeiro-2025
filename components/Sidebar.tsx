@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './Logo';
+import ProfileMenu from './ProfileMenu';
 
 interface ProfileData {
     name: string;
@@ -75,7 +76,19 @@ const Sidebar: React.FC<SidebarProps> = ({
     onOpenSecurity
 }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
     const defaultPhotoUrl = 'https://i.ibb.co/6n20d5w/placeholder-profile.png';
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <motion.aside
@@ -181,36 +194,58 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {!isCollapsed && <span>Sair do Sistema</span>}
                 </motion.button>
 
-                <motion.div
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
-                    className={`flex items-center ${isCollapsed ? 'justify-center py-4' : 'gap-4 p-4'} rounded-[1.5rem] bg-white/[0.02] border border-white/[0.05] transition-all cursor-pointer group relative overflow-hidden`}
-                    onClick={onOpenProfile}
-                >
-                    <div className="relative z-10">
-                        {userProfile?.photo && userProfile.photo !== defaultPhotoUrl ? (
-                            <img src={userProfile?.photo || defaultPhotoUrl} alt="P" className="w-12 h-12 rounded-[1rem] object-cover border-2 border-white/10 group-hover:border-[var(--primary)]/50 transition-all shadow-xl" />
-                        ) : (
-                            <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-white font-black text-xl border-2 border-white/10 group-hover:border-[var(--primary)]/50 shadow-xl">
-                                {userProfile?.name?.charAt(0) || 'U'}
+                <div className="relative" ref={menuRef}>
+                    <motion.div
+                        whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                        className={`flex items-center ${isCollapsed ? 'justify-center py-4' : 'gap-4 p-4'} rounded-[1.5rem] bg-white/[0.02] border border-white/[0.05] transition-all cursor-pointer group relative overflow-hidden`}
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
+                        <div className="relative z-10">
+                            {userProfile?.photo && userProfile.photo !== defaultPhotoUrl ? (
+                                <img src={userProfile?.photo || defaultPhotoUrl} alt="P" className="w-12 h-12 rounded-[1rem] object-cover border-2 border-white/10 group-hover:border-[var(--primary)]/50 transition-all shadow-xl" />
+                            ) : (
+                                <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-white font-black text-xl border-2 border-white/10 group-hover:border-[var(--primary)]/50 shadow-xl">
+                                    {userProfile?.name?.charAt(0) || 'U'}
+                                </div>
+                            )}
+                            {/* Status Dot */}
+                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-[3px] border-[#0A0A0A] shadow-sm flex items-center justify-center ${isAuthActive ? 'bg-emerald-500' : 'bg-gray-500'}`}>
+                                {isAuthActive && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>}
+                            </div>
+                        </div>
+                        {!isCollapsed && (
+                            <div className="flex-1 min-w-0 z-10">
+                                <p className="text-sm font-black text-white truncate leading-none mb-1">{userProfile?.name || 'Visitante'}</p>
+                                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${isAuthActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}>
+                                    {isAuthActive ? 'Sincronizado' : 'Offline'}
+                                </div>
                             </div>
                         )}
-                        {/* Status Dot */}
-                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-[3px] border-[#0A0A0A] shadow-sm flex items-center justify-center ${isAuthActive ? 'bg-emerald-500' : 'bg-gray-500'}`}>
-                            {isAuthActive && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>}
-                        </div>
-                    </div>
-                    {!isCollapsed && (
-                        <div className="flex-1 min-w-0 z-10">
-                            <p className="text-sm font-black text-white truncate leading-none mb-1">{userProfile?.name || 'Visitante'}</p>
-                            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${isAuthActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-gray-500 border border-white/10'}`}>
-                                {isAuthActive ? 'Sincronizado' : 'Offline'}
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Hover Glow */}
-                    {!isCollapsed && <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--primary)] opacity-0 group-hover:opacity-[0.05] blur-3xl rounded-full -mr-12 -mt-12 transition-opacity duration-500"></div>}
-                </motion.div>
+                        {/* Hover Glow */}
+                        {!isCollapsed && <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--primary)] opacity-0 group-hover:opacity-[0.05] blur-3xl rounded-full -mr-12 -mt-12 transition-opacity duration-500"></div>}
+                    </motion.div>
+
+                    <AnimatePresence>
+                        {isMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                className="absolute bottom-full left-0 w-full min-w-[220px] mb-2 z-[100]"
+                            >
+                                <ProfileMenu
+                                    onProfileClick={() => { setIsMenuOpen(false); onOpenProfile(); }}
+                                    onInviteClick={() => { setIsMenuOpen(false); onOpenInvite(); }}
+                                    onSettingsClick={() => { setIsMenuOpen(false); onOpenSettings(); }}
+                                    onSecurityClick={() => { setIsMenuOpen(false); onOpenSecurity(); }}
+                                    onLogoutClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
+                                    onPurgeClick={onPurgeAll}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
             {/* Collapse Toggle Button (Subtle & Floating) */}

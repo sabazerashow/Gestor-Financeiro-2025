@@ -163,15 +163,33 @@ export async function fetchAll<T>(table: TableName, accountId?: string): Promise
     return (data ?? []) as T[];
   });
 }
+const toSnakeCase = (str: string) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+
+const mapKeysToSnakeCase = (obj: any) => {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+  const newObj: any = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      // Map key and handle nested installmentDetails specifically if it exists
+      const value = obj[key];
+      newObj[toSnakeCase(key)] = (key === 'installmentDetails' && value) ? mapKeysToSnakeCase(value) : value;
+    }
+  }
+  return newObj;
+};
 
 export async function bulkUpsert<T extends { id: string }>(table: TableName, rows: T[], accountId?: string) {
   return withSupabase(async () => {
     if (!rows || rows.length === 0) return;
-    const payload = rows.map((r: any) => (
-      accountId && !('account_id' in r) ? { ...r, account_id: accountId } : r
-    ));
+    const payload = rows.map((r: any) => {
+      const mapped = mapKeysToSnakeCase(r);
+      return (accountId && !('account_id' in mapped) ? { ...mapped, account_id: accountId } : mapped);
+    });
     const { error } = await supabase.from(table).upsert(payload, { onConflict: 'id' });
-    if (error) throw error;
+    if (error) {
+      console.error(`DB: Error upserting to ${table}:`, error);
+      throw error;
+    }
   });
 }
 
@@ -202,13 +220,20 @@ export const db = {
 
 export default db;
 
-// Danger zone: purge all account data (transactions, recurring, bills, payslips)
+// Danger zone: purge all account data (transactions, recurring, bills, payslips, budgets, goals)
 export async function purgeAccountData(accountId: string) {
   return withSupabase(async () => {
     const tables: TableName[] = ['transactions', 'recurring_transactions', 'bills', 'payslips', 'budgets', 'financial_goals'];
     for (const t of tables) {
-      const { error } = await supabase.from(t).delete().eq('account_id', accountId);
-      if (error) throw error;
+      try {
+        const { error } = await supabase.from(t).delete().eq('account_id', accountId);
+        // Ignore error 404/PGRST116 (table not found) or similar schema cache issues
+        if (error) {
+          console.warn(`DB: Non-critical error while purging ${t}:`, error.message);
+        }
+      } catch (e: any) {
+        console.warn(`DB: Failed to purge table ${t}, skipping...`, e.message);
+      }
     }
   });
 }

@@ -23,13 +23,13 @@ const SettingsOption: React.FC<{
         onClick={onClick}
         disabled={loading}
         className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 group flex items-start gap-4 mb-3 ${variant === 'danger'
-                ? 'bg-red-500/5 border-red-500/10 hover:bg-red-500/10 hover:border-red-500/20'
-                : 'bg-[var(--card)] border-[var(--border)] hover:bg-[var(--surface)] hover:border-[var(--primary)]/30'
+            ? 'bg-red-500/5 border-red-500/10 hover:bg-red-500/10 hover:border-red-500/20'
+            : 'bg-[var(--card)] border-[var(--border)] hover:bg-[var(--surface)] hover:border-[var(--primary)]/30'
             }`}
     >
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${variant === 'danger'
-                ? 'bg-red-500 text-white'
-                : 'bg-[var(--surface)] text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-white'
+            ? 'bg-red-500 text-white'
+            : 'bg-[var(--surface)] text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-white'
             }`}>
             {loading ? (
                 <i className="fas fa-spinner fa-spin text-lg"></i>
@@ -88,13 +88,32 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
         if (!accountId) return;
         setLoading(true);
         try {
-            const transactions = await db.fetchTransactions(accountId);
-            const dataStr = JSON.stringify(transactions, null, 2);
+            const [transactions, recurring, bills, payslips, budgets, goals] = await Promise.all([
+                db.fetchTransactions(accountId),
+                db.fetchRecurring(accountId),
+                db.fetchBills(accountId),
+                db.fetchPayslips(accountId),
+                db.fetchBudgets(accountId),
+                db.fetchGoals(accountId),
+            ]);
+
+            const backupData = {
+                version: '1.2.0',
+                timestamp: new Date().toISOString(),
+                transactions,
+                recurring_transactions: recurring,
+                bills,
+                payslips,
+                budgets,
+                financial_goals: goals
+            };
+
+            const dataStr = JSON.stringify(backupData, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `backup_financeiro_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `backup_financeiro_completo_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -103,6 +122,46 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!accountId || !e.target.files?.[0]) return;
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        setLoading(true);
+        reader.onload = async (event) => {
+            try {
+                const content = event.target?.result as string;
+                const data = JSON.parse(content);
+
+                // Suporte para o formato antigo (apenas array de transações)
+                if (Array.isArray(data)) {
+                    await db.upsertTransactions(data as any, accountId);
+                } else if (data && typeof data === 'object') {
+                    // Novo formato: objeto com múltiplas coleções
+                    const tasks = [];
+                    if (data.transactions) tasks.push(db.upsertTransactions(data.transactions, accountId));
+                    if (data.recurring_transactions) tasks.push(db.upsertRecurring(data.recurring_transactions, accountId));
+                    if (data.bills) tasks.push(db.upsertBills(data.bills, accountId));
+                    if (data.payslips) tasks.push(db.upsertPayslips(data.payslips, accountId));
+                    if (data.budgets) tasks.push(db.upsertBudgets(data.budgets, accountId));
+                    if (data.financial_goals) tasks.push(db.upsertGoals(data.financial_goals, accountId));
+
+                    await Promise.all(tasks);
+                } else {
+                    throw new Error("Formato de arquivo de backup inválido.");
+                }
+
+                alert("Backup importado com sucesso! O aplicativo será recarregado.");
+                window.location.reload();
+            } catch (err: any) {
+                alert("Erro ao importar: " + err.message);
+            } finally {
+                setLoading(false);
+                e.target.value = '';
+            }
+        };
+        reader.readAsText(file);
     };
 
     if (!isOpen) return null;
@@ -144,6 +203,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                                 onClick={handleExport}
                                 loading={loading}
                             />
+                            <div className="relative">
+                                <input
+                                    type="file"
+                                    id="import-backup"
+                                    className="hidden"
+                                    accept=".json"
+                                    onChange={handleImport}
+                                />
+                                <SettingsOption
+                                    title="Importar Backup (JSON)"
+                                    description="Selecione um arquivo de backup JSON para restaurar seus dados."
+                                    icon="fa-file-import"
+                                    onClick={() => document.getElementById('import-backup')?.click()}
+                                    loading={loading}
+                                />
+                            </div>
                         </section>
 
                         <section className="pt-4 border-t border-white/5">

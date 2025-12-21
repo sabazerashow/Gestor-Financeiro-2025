@@ -12,13 +12,13 @@ interface QuickAddModalProps {
 }
 
 interface ParsedTransaction {
-    description: string;
-    amount: number;
-    category: string;
-    subcategory: string;
-    paymentMethod: PaymentMethod;
-    date: string;
-    installments: number;
+  description: string;
+  amount: number;
+  category: string;
+  subcategory: string;
+  paymentMethod: PaymentMethod;
+  date: string;
+  installments: number;
 }
 
 const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -68,8 +68,9 @@ const parseDateFromText = (text: string, todayISO: string): string => {
   if (named) {
     const d = parseInt(named[1]);
     const m = monthMap[named[2]] || today.getMonth() + 1;
-    const yearHint = raw.match(/\b(\d{4})\b/);
-    const y = yearHint ? parseInt(yearHint[1]) : today.getFullYear();
+    // Limit year hint to reasonable years (2020-2030) to avoid catching amounts like "2050 reais"
+    const yearHintMatch = raw.match(/\b(202\d|2030)\b/);
+    const y = yearHintMatch ? parseInt(yearHintMatch[1]) : today.getFullYear();
     return toISO(y, m, d);
   }
 
@@ -89,35 +90,35 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
   const [error, setError] = useState<string | null>(null);
   const [parsedTransaction, setParsedTransaction] = useState<ParsedTransaction | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   useEffect(() => {
     if (isOpen) {
-        if (initialDescription) {
-            setInputValue(initialDescription + ' ');
-        }
-        if (initialMode === 'manual' && initialDescription) {
-            setIsEditing(true);
-            
-            // Try to find a sensible default category based on bill description.
-            let cat = 'Casa/Moradia';
-            let sub = 'Contas Domésticas';
-            const lowerDesc = initialDescription.toLowerCase();
-            if (lowerDesc.includes('saúde') || lowerDesc.includes('plano')) {
-                cat = 'Saúde'; sub = 'Consultas/Médicos';
-            } else if (lowerDesc.includes('carro') || lowerDesc.includes('seguro')) {
-                cat = 'Transporte'; sub = 'Combustível/Manutenção';
-            }
+      if (initialDescription) {
+        setInputValue(initialDescription + ' ');
+      }
+      if (initialMode === 'manual' && initialDescription) {
+        setIsEditing(true);
 
-            setParsedTransaction({
-                description: initialDescription,
-                amount: 0,
-                category: cat,
-                subcategory: sub,
-                paymentMethod: PaymentMethod.DEBITO,
-                date: new Date().toISOString().split('T')[0],
-                installments: 1,
-            });
+        // Try to find a sensible default category based on bill description.
+        let cat = 'Casa/Moradia';
+        let sub = 'Contas Domésticas';
+        const lowerDesc = initialDescription.toLowerCase();
+        if (lowerDesc.includes('saúde') || lowerDesc.includes('plano')) {
+          cat = 'Saúde'; sub = 'Consultas/Médicos';
+        } else if (lowerDesc.includes('carro') || lowerDesc.includes('seguro')) {
+          cat = 'Transporte'; sub = 'Combustível/Manutenção';
         }
+
+        setParsedTransaction({
+          description: initialDescription,
+          amount: 0,
+          category: cat,
+          subcategory: sub,
+          paymentMethod: PaymentMethod.DEBITO,
+          date: new Date().toISOString().split('T')[0],
+          installments: 1,
+        });
+      }
     }
   }, [isOpen, initialDescription, initialMode]);
 
@@ -125,14 +126,14 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
 
   const handleProcessInput = async () => {
     if (!inputValue.trim()) {
-        setError("Por favor, digite uma descrição do seu gasto.");
-        return;
+      setError("Por favor, digite uma descrição do seu gasto.");
+      return;
     }
     setIsProcessing(true);
     setError(null);
     setParsedTransaction(null);
     setIsEditing(false);
-    
+
     // Mantemos lista de categorias para edição manual, mas não chamamos IA
 
     const today = new Date().toISOString().split('T')[0];
@@ -154,7 +155,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
 
       let category = 'Outros';
       let subcategory = 'Presentes';
-      const map: Array<{k: RegExp, c: string, s: string}> = [
+      const map: Array<{ k: RegExp, c: string, s: string }> = [
         { k: /(cinema|filme|movie)/, c: 'Lazer', s: 'Entretenimento' },
         { k: /(restaurante|jantar|almoço|ifood|delivery)/, c: 'Alimentação', s: 'Delivery/Apps' },
         { k: /(supermercado|mercado|compras)/, c: 'Alimentação', s: 'Supermercado/Compras' },
@@ -189,22 +190,22 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
       setIsProcessing(false);
     }
   };
-  
+
   const handleConfirm = () => {
     if (!parsedTransaction) return;
-    
+
     onAddTransaction({
-        description: parsedTransaction.description,
-        amount: parsedTransaction.amount,
-        category: parsedTransaction.category,
-        subcategory: parsedTransaction.subcategory,
-        paymentMethod: parsedTransaction.paymentMethod,
-        type: TransactionType.EXPENSE,
-        date: parsedTransaction.date,
+      description: parsedTransaction.description,
+      amount: parsedTransaction.amount,
+      category: parsedTransaction.category,
+      subcategory: parsedTransaction.subcategory,
+      paymentMethod: parsedTransaction.paymentMethod,
+      type: TransactionType.EXPENSE,
+      date: parsedTransaction.date,
     }, parsedTransaction.installments > 1 ? parsedTransaction.installments : undefined);
     handleClose();
   };
-  
+
   const handleClose = () => {
     setInputValue('');
     setIsProcessing(false);
@@ -215,16 +216,16 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
   };
 
   const handleEditChange = (field: keyof ParsedTransaction, value: string | number) => {
-      if (!parsedTransaction) return;
-      
-      const updatedTransaction = { ...parsedTransaction, [field]: value };
+    if (!parsedTransaction) return;
 
-      // If category changes, reset subcategory
-      if (field === 'category') {
-          updatedTransaction.subcategory = categories[value as string]?.subcategories[0] || '';
-      }
+    const updatedTransaction = { ...parsedTransaction, [field]: value };
 
-      setParsedTransaction(updatedTransaction);
+    // If category changes, reset subcategory
+    if (field === 'category') {
+      updatedTransaction.subcategory = categories[value as string]?.subcategories[0] || '';
+    }
+
+    setParsedTransaction(updatedTransaction);
   }
 
   if (!isOpen) return null;
@@ -234,121 +235,121 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
 
   const renderContent = () => {
     if (isEditing && parsedTransaction) {
-        return (
-            <div className="space-y-3 animate-fade-in">
-                 <div>
-                    <label className="text-xs text-[var(--color-text-muted)]">Descrição</label>
-                    <input type="text" value={parsedTransaction.description} onChange={e => handleEditChange('description', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
-                 </div>
-                 <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="text-xs text-[var(--color-text-muted)]">Valor Total</label>
-                        <input type="number" placeholder="0,00" value={parsedTransaction.amount || ''} onChange={e => handleEditChange('amount', parseFloat(e.target.value) || 0)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
-                    </div>
-                     <div>
-                        <label className="text-xs text-[var(--color-text-muted)]">Data</label>
-                        <input type="date" value={parsedTransaction.date} onChange={e => handleEditChange('date', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
-                    </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="text-xs text-[var(--color-text-muted)]">Categoria</label>
-                        <select value={parsedTransaction.category} onChange={e => handleEditChange('category', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
-                            {expenseCategoryList.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-                     <div>
-                        <label className="text-xs text-[var(--color-text-muted)]">Subcategoria</label>
-                        <select value={parsedTransaction.subcategory} onChange={e => handleEditChange('subcategory', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
-                            {categories[parsedTransaction.category]?.subcategories.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                    </div>
-                 </div>
-                 <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="text-xs text-[var(--color-text-muted)]">Nº de Parcelas</label>
-                        <input type="number" value={parsedTransaction.installments} min="1" onChange={e => handleEditChange('installments', parseInt(e.target.value) || 1)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2"/>
-                    </div>
-                    <div>
-                        <label className="text-xs text-[var(--color-text-muted)]">Método de Pagamento</label>
-                        <select value={parsedTransaction.paymentMethod} onChange={e => handleEditChange('paymentMethod', e.target.value as PaymentMethod)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
-                            {paymentMethods.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                    </div>
-                 </div>
+      return (
+        <div className="space-y-3 animate-fade-in">
+          <div>
+            <label className="text-xs text-[var(--color-text-muted)]">Descrição</label>
+            <input type="text" value={parsedTransaction.description} onChange={e => handleEditChange('description', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)]">Valor Total</label>
+              <input type="number" placeholder="0,00" value={parsedTransaction.amount || ''} onChange={e => handleEditChange('amount', parseFloat(e.target.value) || 0)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2" />
             </div>
-        );
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)]">Data</label>
+              <input type="date" value={parsedTransaction.date} onChange={e => handleEditChange('date', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)]">Categoria</label>
+              <select value={parsedTransaction.category} onChange={e => handleEditChange('category', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
+                {expenseCategoryList.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)]">Subcategoria</label>
+              <select value={parsedTransaction.subcategory} onChange={e => handleEditChange('subcategory', e.target.value)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
+                {categories[parsedTransaction.category]?.subcategories.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)]">Nº de Parcelas</label>
+              <input type="number" value={parsedTransaction.installments} min="1" onChange={e => handleEditChange('installments', parseInt(e.target.value) || 1)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2" />
+            </div>
+            <div>
+              <label className="text-xs text-[var(--color-text-muted)]">Método de Pagamento</label>
+              <select value={parsedTransaction.paymentMethod} onChange={e => handleEditChange('paymentMethod', e.target.value as PaymentMethod)} className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md py-1 px-2">
+                {paymentMethods.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+      );
     }
-    
+
     if (parsedTransaction) {
-        const isInstallment = parsedTransaction.installments > 1;
-        const installmentAmount = isInstallment ? parsedTransaction.amount / parsedTransaction.installments : parsedTransaction.amount;
-        return (
-            <div className="space-y-4 animate-fade-in">
-                <h3 className="text-lg font-medium text-[var(--color-text)]">Confirme os detalhes:</h3>
-                <div className="p-4 bg-[var(--surface)] rounded-lg space-y-3">
-                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-[var(--color-text-muted)]">Descrição</span>
-                        <span className="font-semibold text-[var(--color-text)]">{parsedTransaction.description}</span>
-                    </div>
-                     <div className="flex justify-between items-center">
-                        <span className="text-sm text-[var(--color-text-muted)]">Valor</span>
-                        <div className="text-right">
-                           <span className="font-bold text-expense">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parsedTransaction.amount)}
-                                {isInstallment && ` (Total)`}
-                            </span>
-                            {isInstallment && (
-                                <p className="text-xs text-[var(--color-text-muted)]">
-                                    {parsedTransaction.installments}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(installmentAmount)}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm text-[var(--color-text-muted)]">Data da Compra</span>
-                        <span className="font-semibold text-[var(--color-text)]">{new Date(parsedTransaction.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm text-[var(--color-text-muted)]">Categoria</span>
-                        {categoryInfo && (
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]`}>
-                                <i className={`fas ${categoryInfo.icon} mr-1`}></i>
-                                {parsedTransaction.category} {'>'} {parsedTransaction.subcategory}
-                            </span>
-                        )}
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm text-[var(--color-text-muted)]">Pagamento</span>
-                        {paymentInfo && (
-                            <span className={`text-xs font-medium flex items-center ${paymentInfo.color}`}>
-                                <i className={`fas ${paymentInfo.icon} mr-1`}></i>
-                                {parsedTransaction.paymentMethod}
-                            </span>
-                        )}
-                    </div>
-                </div>
+      const isInstallment = parsedTransaction.installments > 1;
+      const installmentAmount = isInstallment ? parsedTransaction.amount / parsedTransaction.installments : parsedTransaction.amount;
+      return (
+        <div className="space-y-4 animate-fade-in">
+          <h3 className="text-lg font-medium text-[var(--color-text)]">Confirme os detalhes:</h3>
+          <div className="p-4 bg-[var(--surface)] rounded-lg space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-[var(--color-text-muted)]">Descrição</span>
+              <span className="font-semibold text-[var(--color-text)]">{parsedTransaction.description}</span>
             </div>
-        );
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-[var(--color-text-muted)]">Valor</span>
+              <div className="text-right">
+                <span className="font-bold text-expense">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parsedTransaction.amount)}
+                  {isInstallment && ` (Total)`}
+                </span>
+                {isInstallment && (
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    {parsedTransaction.installments}x de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(installmentAmount)}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-[var(--color-text-muted)]">Data da Compra</span>
+              <span className="font-semibold text-[var(--color-text)]">{new Date(parsedTransaction.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-[var(--color-text-muted)]">Categoria</span>
+              {categoryInfo && (
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]`}>
+                  <i className={`fas ${categoryInfo.icon} mr-1`}></i>
+                  {parsedTransaction.category} {'>'} {parsedTransaction.subcategory}
+                </span>
+              )}
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-[var(--color-text-muted)]">Pagamento</span>
+              {paymentInfo && (
+                <span className={`text-xs font-medium flex items-center ${paymentInfo.color}`}>
+                  <i className={`fas ${paymentInfo.icon} mr-1`}></i>
+                  {parsedTransaction.paymentMethod}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      );
     }
 
     return (
-        <div className="space-y-4">
-            <label htmlFor="quick-add-input" className="block text-sm font-medium text-[var(--color-text)]">
-                O que você pagou? (Ex: Tênis 600 em 6x no crédito)
-            </label>
-            <input
-                type="text"
-                id="quick-add-input"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ex: cinema 45 reais no crédito dia 15"
-                className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-3 px-4 text-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-                disabled={isProcessing}
-                autoFocus
-            />
-            {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
-        </div>
+      <div className="space-y-4">
+        <label htmlFor="quick-add-input" className="block text-sm font-medium text-[var(--color-text)]">
+          O que você pagou? (Ex: Tênis 600 em 6x no crédito)
+        </label>
+        <input
+          type="text"
+          id="quick-add-input"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Ex: cinema 45 reais no crédito dia 15"
+          className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-3 px-4 text-lg focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+          disabled={isProcessing}
+          autoFocus
+        />
+        {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
+      </div>
     );
   }
 
@@ -357,54 +358,54 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
       <div className="bg-[var(--card)] rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col transition-all duration-300">
         <div className="p-5 border-b border-[var(--border)] flex justify-between items-center">
           <h2 className="text-xl font-bold text-[var(--color-text)]">{initialMode === 'manual' && isEditing ? 'Lançar Pagamento Manual' : 'Lançamento Rápido'}</h2>
-           <button onClick={handleClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-                <i className="fas fa-times"></i>
-            </button>
+          <button onClick={handleClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+            <i className="fas fa-times"></i>
+          </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto flex-grow">
-            {renderContent()}
+          {renderContent()}
         </div>
-        
+
         <div className="p-4 bg-[var(--surface)] border-t border-[var(--border)] flex justify-end space-x-3">
+          <button
+            onClick={handleClose}
+            className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[color-mix(in oklab, var(--surface) 85%, black)] border border-[var(--border)] transition-colors"
+          >
+            Cancelar
+          </button>
+
+          {!parsedTransaction ? (
             <button
-                onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[color-mix(in oklab, var(--surface) 85%, black)] border border-[var(--border)] transition-colors"
+              onClick={handleProcessInput}
+              disabled={isProcessing}
+              className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] disabled:bg-[color-mix(in oklab, var(--primary) 60%, transparent)] disabled:cursor-not-allowed transition-colors w-32"
             >
-                Cancelar
+              {isProcessing ? <i className="fas fa-spinner fa-spin"></i> : 'Analisar Gasto'}
             </button>
-            
-            {!parsedTransaction ? (
+          ) : isEditing ? (
+            <button
+              onClick={handleConfirm}
+              className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
+            >
+              Salvar
+            </button>
+          ) : (
+            <div className="flex space-x-3">
               <button
-                onClick={handleProcessInput}
-                disabled={isProcessing}
-                className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] disabled:bg-[color-mix(in oklab, var(--primary) 60%, transparent)] disabled:cursor-not-allowed transition-colors w-32"
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[color-mix(in oklab, var(--surface) 85%, black)] border border-[var(--border)] transition-colors"
               >
-                {isProcessing ? <i className="fas fa-spinner fa-spin"></i> : 'Analisar Gasto'}
+                <i className="fas fa-pencil-alt mr-2"></i>Editar
               </button>
-            ) : isEditing ? (
-                 <button
-                    onClick={handleConfirm}
-                    className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors"
-                  >
-                    Salvar
-                  </button>
-            ) : (
-                <div className="flex space-x-3">
-                    <button
-                        onClick={() => setIsEditing(true)}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--color-text)] bg-[var(--surface)] hover:bg-[color-mix(in oklab, var(--surface) 85%, black)] border border-[var(--border)] transition-colors"
-                    >
-                        <i className="fas fa-pencil-alt mr-2"></i>Editar
-                    </button>
-                    <button
-                        onClick={handleConfirm}
-                        className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] transition-colors"
-                    >
-                        Confirmar e Adicionar
-                    </button>
-                </div>
-            )}
+              <button
+                onClick={handleConfirm}
+                className="px-4 py-2 text-sm font-medium rounded-md text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] transition-colors"
+              >
+                Confirmar e Adicionar
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -41,14 +41,12 @@ const GoalsView: React.FC<GoalsViewProps> = ({ onAddGoal, onEditGoal }) => {
                         </div>
                         <h3 className="text-xl font-black text-gray-800 mb-2">Qual seu próximo grande objetivo?</h3>
                         <p className="text-gray-500 text-center max-w-xs mb-8 font-medium">Capture seus sonhos, de uma reserva de emergência àquela viagem inesquecível.</p>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                        <button
                             onClick={onAddGoal}
-                            className="px-8 py-3 bg-[var(--primary)] text-white rounded-2xl font-black text-sm shadow-xl shadow-blue-500/25"
+                            className="px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
                         >
-                            Começar agora
-                        </motion.button>
+                            Começar Agora
+                        </button>
                     </motion.div>
                 ) : (
                     goals.map((goal, index) => {

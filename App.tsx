@@ -241,8 +241,11 @@ const App: React.FC = () => {
           };
           setUserProfile(initialProfile);
           // Se for o primeiro login, abre o modal de perfil para configuração
-          setIsProfileModalOpen(true);
+          if (!hasCheckedProfile) {
+            setIsProfileModalOpen(true);
+          }
         }
+        setHasCheckedProfile(true);
       } catch (e) {
         console.error('Falha ao carregar perfil do Supabase', e);
       }
@@ -400,6 +403,7 @@ const App: React.FC = () => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
   const [isPurgeAllOpen, setIsPurgeAllOpen] = useState(false);
+  const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
 
 
 

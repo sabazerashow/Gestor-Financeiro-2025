@@ -16,42 +16,42 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick
 
   return (
     <div
-      className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-[var(--card)] ring-1 ring-black ring-opacity-5 focus:outline-none transition ease-out duration-100 transform opacity-100 scale-100"
+      className="w-full rounded-[1.5rem] shadow-2xl bg-[#1A1A1A] border border-white/10 focus:outline-none transition-all duration-200"
       role="menu"
       aria-orientation="vertical"
       aria-labelledby="menu-button"
     >
       <div className="py-1" role="none">
-        <a href="#" onClick={(e) => { e.preventDefault(); onProfileClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
-          <i className="fas fa-user-circle w-5 mr-2 text-[var(--primary)] opacity-70"></i>
+        <a href="#" onClick={(e) => { e.preventDefault(); onProfileClick(); }} className="text-gray-300 block px-4 py-3 text-sm hover:bg-white/5 hover:text-white transition-all font-bold" role="menuitem">
+          <i className="fas fa-user-circle w-5 mr-3 text-[var(--primary)] opacity-80"></i>
           Meu Perfil
         </a>
 
-        <a href="#" onClick={(e) => { e.preventDefault(); onInviteClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
-          <i className="fas fa-user-plus w-5 mr-2 text-[var(--primary)] opacity-70"></i>
+        <a href="#" onClick={(e) => { e.preventDefault(); onInviteClick(); }} className="text-gray-300 block px-4 py-3 text-sm hover:bg-white/5 hover:text-white transition-all font-bold" role="menuitem">
+          <i className="fas fa-user-plus w-5 mr-3 text-[var(--primary)] opacity-80"></i>
           Convidar usuários
         </a>
 
-        <a href="#" onClick={(e) => { e.preventDefault(); onSecurityClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
-          <i className="fas fa-shield-halved w-5 mr-2 text-[var(--primary)] opacity-70"></i>
+        <a href="#" onClick={(e) => { e.preventDefault(); onSecurityClick(); }} className="text-gray-300 block px-4 py-3 text-sm hover:bg-white/5 hover:text-white transition-all font-bold" role="menuitem">
+          <i className="fas fa-shield-halved w-5 mr-3 text-[var(--primary)] opacity-80"></i>
           Segurança
         </a>
 
-        <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)] transition-colors" role="menuitem">
-          <i className="fas fa-cog w-5 mr-2 text-[var(--primary)] opacity-70"></i>
+        <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }} className="text-gray-300 block px-4 py-3 text-sm hover:bg-white/5 hover:text-white transition-all font-bold" role="menuitem">
+          <i className="fas fa-cog w-5 mr-3 text-[var(--primary)] opacity-80"></i>
           Configurações
         </a>
       </div>
       <div className="border-t border-[var(--border)]"></div>
-      <div className="py-1" role="none">
+      <div className="py-2" role="none">
         {onPurgeClick && (
-          <a href="#" onClick={(e) => { e.preventDefault(); onPurgeClick(); }} className="text-[var(--destructive)] block px-4 py-2 text-sm hover:bg-[var(--destructive)]/10" role="menuitem">
-            <i className="fas fa-trash-alt w-5 mr-2"></i>
+          <a href="#" onClick={(e) => { e.preventDefault(); onPurgeClick(); }} className="text-red-400 font-bold block px-4 py-3 text-sm hover:bg-red-500/10 transition-all" role="menuitem">
+            <i className="fas fa-trash-alt w-5 mr-3"></i>
             Apagar todos os dados
           </a>
         )}
-        <a href="#" onClick={(e) => { e.preventDefault(); onLogoutClick(); }} className="text-[var(--color-text)] block px-4 py-2 text-sm hover:bg-[var(--surface)]" role="menuitem">
-          <i className="fas fa-sign-out-alt w-5 mr-2"></i>
+        <a href="#" onClick={(e) => { e.preventDefault(); onLogoutClick(); }} className="text-gray-300 font-bold block px-4 py-3 text-sm hover:bg-white/5 hover:text-white transition-all" role="menuitem">
+          <i className="fas fa-sign-out-alt w-5 mr-3"></i>
           Logout
         </a>
       </div>
