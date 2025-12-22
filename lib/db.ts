@@ -159,7 +159,13 @@ export async function fetchAll<T>(table: TableName, accountId?: string): Promise
   return withSupabase(async () => {
     const query = supabase.from(table).select('*');
     const { data, error } = accountId ? await query.eq('account_id', accountId) : await query;
-    if (error) throw error;
+    if (error) {
+      if (error.code === 'PGRST116' || error.message.includes('not found')) {
+        console.warn(`DB: Table ${table} not found in schema, returning empty array.`);
+        return [];
+      }
+      throw error;
+    }
     return (data ?? []) as T[];
   });
 }
@@ -244,13 +250,33 @@ export async function purgeAccountData(accountId: string) {
 // Members & Invites helpers
 export async function fetchAccountMembers(accountId: string) {
   return withSupabase(async () => {
-    const { data, error } = await supabase
+    // Busca membros sem join para evitar erro de relacionamento no cache do Supabase
+    const { data: members, error: memErr } = await supabase
       .from('account_members')
-      .select('id, user_id, role, created_at, profiles(name, email)')
+      .select('id, user_id, role, created_at')
       .eq('account_id', accountId)
       .order('created_at', { ascending: true });
-    if (error) throw error;
-    return (data ?? []) as any;
+
+    if (memErr) throw memErr;
+    if (!members || members.length === 0) return [];
+
+    // Busca perfis separadamente
+    const userIds = members.map(m => m.user_id);
+    const { data: profiles, error: profErr } = await supabase
+      .from('profiles')
+      .select('id, name, email')
+      .in('id', userIds);
+
+    if (profErr) {
+      console.warn('DB: Erro ao buscar perfis dos membros:', profErr.message);
+      return members;
+    }
+
+    // Mescla perfis com membros em memória
+    return members.map(m => ({
+      ...m,
+      profiles: profiles?.find(p => p.id === m.user_id) || null
+    }));
   });
 }
 
@@ -273,6 +299,20 @@ export async function acceptInvite(inviteId: string, userId: string) {
       .eq('id', inviteId)
       .single();
     if (fetchErr || !invite) throw new Error('Convite não encontrado');
+
+    // Verifica se já é membro antes de inserir para evitar Unique Constraint Error
+    const { data: existingMember } = await supabase
+      .from('account_members')
+      .select('id')
+      .eq('account_id', invite.account_id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (existingMember) {
+      // Se já for membro, apenas apaga o convite e retorna o account_id
+      await supabase.from('pending_invites').delete().eq('id', inviteId);
+      return invite.account_id;
+    }
 
     const { error: memErr } = await supabase
       .from('account_members')

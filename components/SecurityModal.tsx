@@ -6,10 +6,13 @@ interface SecurityModalProps {
     isOpen: boolean;
     onClose: () => void;
     userEmail?: string;
+    lastSignIn?: string;
+    onPurgeData?: () => Promise<void>;
 }
 
-const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmail }) => {
+const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmail, lastSignIn, onPurgeData }) => {
     const [loading, setLoading] = useState(false);
+    const [purgeLoading, setPurgeLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const handleResetPassword = async () => {
@@ -26,6 +29,21 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
             setMessage({ type: 'error', text: e.message });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePurge = async () => {
+        if (!onPurgeData) return;
+        if (!confirm('ATENÇÃO: Isso apagará TODOS os seus dados financeiros (transações, contas, etc). Esta ação é irreversível. Deseja continuar?')) return;
+
+        setPurgeLoading(true);
+        try {
+            await onPurgeData();
+            setMessage({ type: 'success', text: 'Todos os dados foram apagados com sucesso.' });
+        } catch (e: any) {
+            setMessage({ type: 'error', text: e.message || 'Falha ao apagar dados.' });
+        } finally {
+            setPurgeLoading(false);
         }
     };
 
@@ -68,6 +86,9 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
                                 <div>
                                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-0.5">E-mail de Acesso</p>
                                     <p className="text-sm font-bold text-white tracking-tight">{userEmail || 'Não disponível'}</p>
+                                    {lastSignIn && (
+                                        <p className="text-[9px] text-gray-500 mt-1 uppercase font-bold tracking-tighter">Último acesso: {new Date(lastSignIn).toLocaleString('pt-BR')}</p>
+                                    )}
                                 </div>
                             </div>
 
@@ -96,6 +117,18 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
                             <p className="text-xs text-amber-500/80 font-medium leading-relaxed">
                                 Sempre utilize senhas fortes e evite repetir senhas usadas em outros serviços. O Finance Pilot utiliza criptografia de ponta a ponta via Supabase Auth.
                             </p>
+                        </div>
+
+                        <div className="pt-4 border-t border-white/5">
+                            <h4 className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em] mb-4 px-2">Zona Perigosa</h4>
+                            <button
+                                onClick={handlePurge}
+                                disabled={purgeLoading || !onPurgeData}
+                                className="w-full py-4 rounded-2xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 text-red-500 text-sm font-bold transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {purgeLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-trash-can"></i>}
+                                Apagar Todos os Dados
+                            </button>
                         </div>
                     </div>
                 </div>

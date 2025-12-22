@@ -232,15 +232,17 @@ const App: React.FC = () => {
     (async () => {
       try {
         const invites = await db.fetchMyInvites(session.user.email);
-        if (invites && invites.length > 0) {
-          setPendingInvites(invites);
+        // Filtra convites para contas que não sejam a atual
+        const filteredInvites = invites ? invites.filter((i: any) => i.account_id !== accountId) : [];
+        if (filteredInvites.length > 0) {
+          setPendingInvites(filteredInvites);
           setIsAcceptInviteModalOpen(true);
         }
       } catch (e) {
         console.error('Falha ao checar convites', e);
       }
     })();
-  }, [session]);
+  }, [session, accountId]);
 
   const allDashboardCards: DashboardCardConfig[] = useMemo(() => [
     {
@@ -1125,6 +1127,21 @@ const App: React.FC = () => {
         isOpen={isSecurityModalOpen}
         onClose={() => setIsSecurityModalOpen(false)}
         userEmail={session?.user?.email}
+        lastSignIn={session?.user?.last_sign_in_at}
+        onPurgeData={async () => {
+          if (!accountId) throw new Error('Conta não definida');
+          await purgeAccountData(accountId);
+          setTransactions([]);
+          setRecurringTransactions([]);
+          setBills([]);
+          setPayslips([]);
+          try {
+            localStorage.removeItem('transactions');
+            localStorage.removeItem('recurringTransactions');
+            localStorage.removeItem('bills');
+            localStorage.removeItem('payslips');
+          } catch { }
+        }}
       />
 
       <ConfirmDialog

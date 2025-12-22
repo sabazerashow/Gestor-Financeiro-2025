@@ -68,7 +68,7 @@ const AcceptInviteModal: React.FC<AcceptInviteModalProps> = ({ isOpen, onClose, 
                             <div key={invite.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{invite.accounts.name}</h3>
+                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{invite.accounts?.name || 'Conta Compartilhada'}</h3>
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Nível: {invite.role}</p>
                                     </div>
                                 </div>

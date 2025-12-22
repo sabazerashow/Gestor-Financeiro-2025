@@ -232,8 +232,8 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onOpenProfil
                         {(m as any).profiles?.name?.substring(0, 2).toUpperCase() || m.user_id.substring(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm font-bold text-[var(--color-text)] truncate">{(m as any).profiles?.name || 'Usuário'}</div>
-                        <div className="text-[10px] text-[var(--color-text-muted)] truncate">{(m as any).profiles?.email || m.user_id}</div>
+                        <div className="text-sm font-bold text-[var(--color-text)] truncate">{((m as any).profiles && (m as any).profiles.name) || 'Usuário'}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] truncate">{((m as any).profiles && (m as any).profiles.email) || m.user_id}</div>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
