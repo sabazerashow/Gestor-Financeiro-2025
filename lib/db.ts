@@ -217,6 +217,8 @@ export const db = {
     const { error } = await supabase.from('profiles').upsert(profile);
     if (error) throw error;
   }),
+  fetchMyInvites: (email: string) => fetchMyInvites(email),
+  acceptInvite: (inviteId: string, userId: string) => acceptInvite(inviteId, userId),
 };
 
 export default db;
@@ -240,15 +242,49 @@ export async function purgeAccountData(accountId: string) {
 }
 
 // Members & Invites helpers
-export async function fetchAccountMembers(accountId: string): Promise<Array<{ id: string; user_id: string; role: string; created_at?: string }>> {
+export async function fetchAccountMembers(accountId: string) {
   return withSupabase(async () => {
     const { data, error } = await supabase
       .from('account_members')
-      .select('id, user_id, role, created_at')
+      .select('id, user_id, role, created_at, profiles(name, email)')
       .eq('account_id', accountId)
       .order('created_at', { ascending: true });
     if (error) throw error;
     return (data ?? []) as any;
+  });
+}
+
+export async function fetchMyInvites(email: string) {
+  return withSupabase(async () => {
+    const { data, error } = await supabase
+      .from('pending_invites')
+      .select('*, accounts(name)')
+      .eq('email', email);
+    if (error) throw error;
+    return (data ?? []) as any;
+  });
+}
+
+export async function acceptInvite(inviteId: string, userId: string) {
+  return withSupabase(async () => {
+    const { data: invite, error: fetchErr } = await supabase
+      .from('pending_invites')
+      .select('*')
+      .eq('id', inviteId)
+      .single();
+    if (fetchErr || !invite) throw new Error('Convite não encontrado');
+
+    const { error: memErr } = await supabase
+      .from('account_members')
+      .insert({
+        account_id: invite.account_id,
+        user_id: userId,
+        role: invite.role
+      });
+    if (memErr) throw memErr;
+
+    await supabase.from('pending_invites').delete().eq('id', inviteId);
+    return invite.account_id;
   });
 }
 

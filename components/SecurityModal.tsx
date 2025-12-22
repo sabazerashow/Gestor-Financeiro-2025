@@ -100,16 +100,7 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
                     </div>
                 </div>
 
-                <div className="p-6 bg-white/[0.02] border-t border-white/5 flex justify-center gap-6">
-                    <button className="text-[10px] text-gray-400 hover:text-white font-bold uppercase tracking-widest transition-colors flex items-center gap-2">
-                        <i className="fas fa-history"></i>
-                        Log de Acessos
-                    </button>
-                    <button className="text-[10px] text-gray-400 hover:text-white font-bold uppercase tracking-widest transition-colors flex items-center gap-2">
-                        <i className="fas fa-lock"></i>
-                        Sessões Ativas
-                    </button>
-                </div>
+
             </div>
         </div>
     );

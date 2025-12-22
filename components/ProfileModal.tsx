@@ -4,7 +4,6 @@ import ErrorBanner from './ui/error-banner';
 
 interface ProfileData {
   name: string;
-  title: string;
   email: string;
   dob: string;
   gender: string;
@@ -111,18 +110,14 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
             </div>
             <div>
               <h3 className="text-2xl font-bold text-[var(--color-text)]">{editableProfile?.name || 'Usuário'}</h3>
-              <p className="text-[var(--color-text-muted)]">{editableProfile?.title || 'Cargo/Posto'}</p>
+              <p className="text-[var(--color-text-muted)]">{editableProfile?.email}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-4">
-            <div>
+            <div className="md:col-span-2">
               <label htmlFor="name" className="block text-sm font-medium text-[var(--color-text-muted)]">Nome Completo</label>
               <input type="text" id="name" name="name" value={editableProfile.name} onChange={handleInputChange} className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm" />
-            </div>
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-[var(--color-text-muted)]">Posto/Graduação</label>
-              <input type="text" id="title" name="title" value={editableProfile.title} onChange={handleInputChange} className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm" />
             </div>
             <div>
               <label htmlFor="dob" className="block text-sm font-medium text-[var(--color-text-muted)]">Data de Nascimento</label>

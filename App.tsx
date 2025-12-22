@@ -23,6 +23,7 @@ import ReportsView from './components/ReportsView';
 import PayBillChoiceModal from './components/PayBillChoiceModal';
 import ProfileModal from './components/ProfileModal';
 import InviteModal from './components/InviteModal';
+import AcceptInviteModal from './components/AcceptInviteModal';
 import SettingsModal from './components/SettingsModal';
 import SecurityModal from './components/SecurityModal';
 import IntelligentAnalysisCards from './components/IntelligentAnalysisCards';
@@ -54,11 +55,10 @@ export interface DashboardCardConfig {
 }
 
 const defaultProfile = {
-  name: 'Diego Sabá',
-  title: 'Capitão de Corveta',
-  email: 'diego.saba@email.com',
-  dob: '1986-08-25',
-  gender: 'Masculino',
+  name: 'Seu Nome',
+  email: '',
+  dob: '',
+  gender: 'Outro',
   photo: 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
 };
 
@@ -181,42 +181,16 @@ const App: React.FC = () => {
     return () => { mounted = false; };
   }, [session]);
 
+
+
   // Ao autenticar, buscar dados do Supabase e preencher estados (apenas quando auth está ativa)
   useEffect(() => {
-    if (!isAuthActive || !session || !accountId) return;
-    (async () => {
-      try {
-        const [tx, rec, bl, ps] = await Promise.all([
-          db.fetchTransactions(accountId),
-          db.fetchRecurring(accountId),
-          db.fetchBills(accountId),
-          db.fetchPayslips(accountId),
-        ]);
-        if (tx && tx.length >= 0) setTransactions(tx as any);
-        if (rec && rec.length >= 0) setRecurringTransactions(rec as any);
-        if (bl && bl.length >= 0) setBills(bl as any);
-        if (ps && ps.length >= 0) setPayslips(ps as any);
-      } catch (e) {
-        console.error('Falha ao buscar dados do Supabase', e);
-      }
-    })();
-    // não depende dos estados locais para evitar loops iniciais
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (accountId) fetchData(accountId);
   }, [session, accountId]);
 
   // Sincronizar alterações locais com Supabase (apenas quando auth está ativa)
   useEffect(() => {
-    if (!isAuthActive || !session || !accountId) return;
-    (async () => {
-      try {
-        await db.upsertTransactions(transactions as any, accountId);
-        await db.upsertRecurring(recurringTransactions as any, accountId);
-        await db.upsertBills(bills as any, accountId);
-        await db.upsertPayslips(payslips as any, accountId);
-      } catch (e) {
-        console.error('Falha ao sincronizar dados com Supabase', e);
-      }
-    })();
+    if (accountId) syncData(accountId);
   }, [transactions, recurringTransactions, bills, payslips, session, accountId]);
 
   // Carregar perfil do Supabase
@@ -234,21 +208,36 @@ const App: React.FC = () => {
           // Novo usuário: inicializar com dados da sessão
           const initialProfile = {
             name: session.user.user_metadata?.full_name || 'Novo Usuário',
-            title: 'Membro',
             email: session.user.email || '',
             dob: '',
             gender: 'Outro',
             photo: session.user.user_metadata?.avatar_url || 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
           };
           setUserProfile(initialProfile);
-          // Se for o primeiro login, abre o modal de perfil para configuração
-          if (!hasCheckedProfile) {
+          // Se for o primeiro login E não tem nome definido, abre o modal
+          if (!hasCheckedProfile && (!initialProfile.name || initialProfile.name === 'Novo Usuário')) {
             setIsProfileModalOpen(true);
           }
         }
         setHasCheckedProfile(true);
       } catch (e) {
         console.error('Falha ao carregar perfil do Supabase', e);
+      }
+    })();
+  }, [session]);
+
+  // Checar por convites pendentes
+  useEffect(() => {
+    if (!isAuthActive || !session?.user?.email) return;
+    (async () => {
+      try {
+        const invites = await db.fetchMyInvites(session.user.email);
+        if (invites && invites.length > 0) {
+          setPendingInvites(invites);
+          setIsAcceptInviteModalOpen(true);
+        }
+      } catch (e) {
+        console.error('Falha ao checar convites', e);
       }
     })();
   }, [session]);
@@ -407,6 +396,8 @@ const App: React.FC = () => {
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
   const [isPurgeAllOpen, setIsPurgeAllOpen] = useState(false);
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
+  const [isAcceptInviteModalOpen, setIsAcceptInviteModalOpen] = useState(false);
 
 
 
@@ -959,7 +950,12 @@ const App: React.FC = () => {
                 <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
                   <div>
                     <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                      Bom dia, {userProfile?.name?.split(' ')[0] || 'Usuário'}
+                      {(() => {
+                        const hour = new Date().getHours();
+                        if (hour < 12) return 'Bom dia';
+                        if (hour < 18) return 'Boa tarde';
+                        return 'Boa noite';
+                      })()}, {userProfile?.name?.split(' ')[0] || 'Usuário'}
                       <span className="w-2 h-2 rounded-full bg-[var(--primary)] ml-1 animate-pulse"></span>
                     </h2>
                     <p className="text-sm text-gray-400 font-medium tracking-tight">Aqui está o resumo das suas finanças hoje.</p>
@@ -1104,6 +1100,19 @@ const App: React.FC = () => {
         userProfile={userProfile}
         onSave={handleSaveProfile}
       />
+
+      {isAcceptInviteModalOpen && session && (
+        <AcceptInviteModal
+          isOpen={isAcceptInviteModalOpen}
+          onClose={() => setIsAcceptInviteModalOpen(false)}
+          invites={pendingInvites}
+          userId={session.user.id}
+          onAccepted={(newAccountId) => {
+            setAccountId(newAccountId);
+            fetchData(newAccountId);
+          }}
+        />
+      )}
 
       <SettingsModal
         isOpen={isSettingsModalOpen}

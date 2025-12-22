@@ -228,17 +228,20 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onOpenProfil
                 ) : members.map(m => (
                   <div key={m.id} className="bg-[var(--surface)] border border-[var(--border)] rounded-xl px-5 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold">
-                        {m.user_id.substring(0, 2).toUpperCase()}
+                      <div className="h-10 w-10 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center font-bold overflow-hidden">
+                        {(m as any).profiles?.name?.substring(0, 2).toUpperCase() || m.user_id.substring(0, 2).toUpperCase()}
                       </div>
-                      <div>
-                        <div className="text-sm font-bold text-[var(--color-text)] truncate max-w-[120px]">{m.user_id}</div>
-                        <div className="text-[10px] uppercase font-black text-[var(--primary)] tracking-widest">{m.role}</div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold text-[var(--color-text)] truncate">{(m as any).profiles?.name || 'Usuário'}</div>
+                        <div className="text-[10px] text-[var(--color-text-muted)] truncate">{(m as any).profiles?.email || m.user_id}</div>
                       </div>
                     </div>
-                    {m.role === 'owner' && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] font-bold">Dono</span>
-                    )}
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="text-[10px] uppercase font-black text-[var(--primary)] tracking-widest">{m.role}</div>
+                      {m.role === 'owner' && (
+                        <span className="text-[9px] px-2 py-0.5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] font-bold">Dono</span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
