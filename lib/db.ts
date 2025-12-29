@@ -53,6 +53,12 @@ export async function signInWithGoogle() {
       },
     });
     if (error) throw error;
+
+    // Providenciando redirecionamento manual caso o SDK não o faça automaticamente no ambiente atual
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+
     return data;
   });
 }
