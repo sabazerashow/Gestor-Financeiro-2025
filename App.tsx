@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction, TransactionType, RecurringTransaction, Frequency, Bill, Payslip, PaymentMethod, FinancialGoal, Budget } from './types';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import Logo from './components/Logo';
 import ErrorBanner from './components/ui/error-banner';
 import TransactionList from './components/TransactionList';
 import AddTransactionForm from './components/AddTransactionForm';
@@ -45,6 +46,7 @@ import BudgetModal from './components/BudgetModal';
 import GoalsView from './components/GoalsView';
 import GoalModal from './components/GoalModal';
 import { useAIAnalysis } from './hooks/useAIAnalysis';
+import MobileNavbar from './components/MobileNavbar';
 
 export interface DashboardCardConfig {
   id: string;
@@ -53,6 +55,8 @@ export interface DashboardCardConfig {
   icon: string;
   component: React.FC<any>;
 }
+
+const defaultPhotoUrl = 'https://i.ibb.co/6n20d5w/placeholder-profile.png';
 
 const defaultProfile = {
   name: 'Seu Nome',
@@ -83,6 +87,7 @@ const App: React.FC = () => {
   const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [goalToEdit, setGoalToEdit] = useState<FinancialGoal | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   // Seed desativado: zerar dados locais caso estejam vazios
   useEffect(() => {
@@ -148,15 +153,22 @@ const App: React.FC = () => {
 
   // Supabase Auth: obter sessão e escutar mudanças (apenas quando auth está ativa)
   useEffect(() => {
-    if (!isAuthActive) return;
+    if (!isAuthActive) {
+      setIsCheckingSession(false);
+      return;
+    }
     let mounted = true;
     (async () => {
-      const s = await getSession();
-      if (mounted) setSession(s);
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (mounted) {
+        setSession(s);
+        setIsCheckingSession(false);
+      }
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       console.log('App: Auth State Change:', _event, s?.user?.email);
       setSession(s ?? null);
+      setIsCheckingSession(false);
     });
     return () => { mounted = false; sub?.subscription?.unsubscribe(); };
   }, []);
@@ -929,13 +941,30 @@ const App: React.FC = () => {
     await analyzeTransactions(transactions, updateTransaction);
   };
 
+  // Placeholder de carregamento enquanto valida sessão
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4">
+        <Logo size={80} color="white" className="animate-pulse mb-8" />
+        <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="h-full bg-[var(--primary)]"
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Gate de autenticação: só exibe login quando auth está ativa
   if (isAuthActive && !session) {
     return <AuthGate onSignedIn={() => { /* sessão será atualizada via listener */ }} />;
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-row overflow-hidden">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-col lg:flex-row overflow-x-hidden">
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -946,57 +975,71 @@ const App: React.FC = () => {
         isAuthActive={isAuthActive && !!session}
         accountName={accountName || undefined}
         onLogoutClick={async () => {
-          if (!isAuthActive) return; // no-op em modo sem autenticação
-          try {
-            await signOut();
-          } catch (e) {
-            console.error('Falha ao sair', e);
-          }
+          if (!isAuthActive) return;
+          try { await signOut(); } catch (e) { console.error('Falha ao sair', e); }
         }}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenSecurity={() => setIsSecurityModalOpen(true)}
       />
 
-      <main className="flex-1 h-screen overflow-y-auto px-10 py-8 custom-scrollbar bg-[#f8f9fa]">
-        <div className="max-w-[1700px] mx-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="space-y-12"
-            >
-              {activeTab === 'overview' && (
-                <header className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
-                  <div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                      {(() => {
-                        const hour = new Date().getHours();
-                        if (hour < 12) return 'Bom dia';
-                        if (hour < 18) return 'Boa tarde';
-                        return 'Boa noite';
-                      })()}, {userProfile?.name?.split(' ')[0] || 'Usuário'}
-                      <span className="w-2 h-2 rounded-full bg-[var(--primary)] ml-1 animate-pulse"></span>
-                    </h2>
-                    <p className="text-sm text-gray-400 font-medium tracking-tight">Aqui está o resumo das suas finanças hoje.</p>
-                  </div>
-                </header>
-              )}
-
-              {renderContent()}
-            </motion.div>
-          </AnimatePresence>
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden flex items-center justify-between p-6 pb-4 bg-white/50 backdrop-blur-md sticky top-0 z-30 border-b border-gray-100/50">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 bg-[#0A0A0A] rounded-[1rem] flex items-center justify-center border border-white/10 shadow-lg">
+            <Logo size={28} color="white" />
+          </div>
+          <div>
+            <h1 className="text-sm font-black tracking-[0.2em] text-gray-900 uppercase leading-none">
+              FINANCE
+            </h1>
+            <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.3em] uppercase">PILOT</span>
+          </div>
         </div>
+        <button
+          onClick={() => setIsProfileModalOpen(true)}
+          className="relative active:scale-95 transition-all"
+        >
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-xl ring-1 ring-gray-100">
+            {userProfile?.photo && userProfile.photo !== defaultPhotoUrl ? (
+              <img src={userProfile.photo} alt="P" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-white font-black text-xs">
+                {userProfile?.name?.charAt(0) || 'U'}
+              </div>
+            )}
+          </div>
+          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></div>
+        </button>
+      </div>
 
-        <footer className="text-center py-16 mt-16 border-t border-gray-100">
-          <p className="text-xs text-gray-300 font-bold uppercase tracking-[0.2em]">
-            Gestor Financeiro <span className="text-[var(--primary)] mx-2">•</span> PC Version 1.0
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 lg:pt-10 pb-32 lg:pb-10 min-h-screen overflow-y-auto custom-scrollbar">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="w-full"
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
+
+        <footer className="text-center py-16 mt-16 border-t border-gray-100/50">
+          <p className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.2em]">
+            Finance Pilot <span className="text-[var(--primary)] mx-2">•</span> 2025
           </p>
         </footer>
       </main>
 
+      <MobileNavbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onQuickAdd={() => setIsQuickAddModalOpen(true)}
+      />
+
+      {/* Modals */}
       {isNFeModalOpen && (
         <ImportNFeModal
           isOpen={isNFeModalOpen}
@@ -1164,8 +1207,6 @@ const App: React.FC = () => {
         }}
       />
 
-
-      {/* ExportModal e ImportTransactionsModal removidos */}
       <ConfirmDialog
         isOpen={isConfirmAnalyzeOpen}
         onClose={() => setIsConfirmAnalyzeOpen(false)}

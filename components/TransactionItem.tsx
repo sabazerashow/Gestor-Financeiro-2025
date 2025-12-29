@@ -32,7 +32,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       whileHover={{ y: -2 }}
-      className="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-50/50 hover:border-[var(--primary)]/30 hover:shadow-md transition-all group cursor-pointer"
+      className="flex items-center justify-between p-3 md:p-5 bg-white rounded-2xl border border-gray-50/50 hover:border-[var(--primary)]/30 hover:shadow-md transition-all group cursor-pointer"
       onClick={() => onEdit(transaction)}
     >
       <div className="flex items-center gap-5 flex-1 min-w-0">

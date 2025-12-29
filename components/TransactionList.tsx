@@ -93,7 +93,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
   );
 
   return (
-    <div className="bg-white p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] flex flex-col min-h-[680px]">
+    <div className="bg-white p-4 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] flex flex-col min-h-[500px] md:min-h-[680px]">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">

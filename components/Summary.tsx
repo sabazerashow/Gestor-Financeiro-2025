@@ -83,7 +83,7 @@ const Summary: React.FC<SummaryProps> = ({ income, expense, balance, transaction
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="bg-white p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-all flex flex-col justify-between h-72 relative overflow-hidden group"
+        className="bg-white p-6 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-all flex flex-col justify-between min-h-[18rem] md:h-72 relative overflow-hidden group"
       >
         <div className="z-10">
           <div className="flex items-center gap-3 mb-4">
@@ -115,7 +115,7 @@ const Summary: React.FC<SummaryProps> = ({ income, expense, balance, transaction
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}
-        className="bg-white rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-all flex flex-col items-center justify-center h-72 relative overflow-hidden text-center p-8 group"
+        className="bg-white p-4 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-all flex flex-col items-center justify-center min-h-[18rem] md:h-72 relative overflow-hidden text-center group"
       >
         <div className="z-10 relative">
           <div className="w-14 h-14 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center mb-4 mx-auto group-hover:rotate-12 transition-transform">
@@ -136,7 +136,7 @@ const Summary: React.FC<SummaryProps> = ({ income, expense, balance, transaction
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, delay: 0.3 }}
-        className="bg-white p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-all flex flex-col h-72 relative overflow-hidden group"
+        className="bg-white p-6 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] hover:shadow-[var(--card-shadow-hover)] transition-all flex flex-col min-h-[18rem] md:h-72 relative overflow-hidden group"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">

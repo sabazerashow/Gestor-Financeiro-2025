@@ -94,7 +94,7 @@ const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ bills, onPayBill, t
     .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
   return (
-    <div className="bg-white p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] h-full flex flex-col min-h-[680px]">
+    <div className="bg-white p-6 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] h-full flex flex-col min-h-[400px] md:min-h-[680px]">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
