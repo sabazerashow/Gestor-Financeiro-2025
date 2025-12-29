@@ -73,6 +73,14 @@ const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, goalToEdit }) =>
         onClose();
     };
 
+    const handleDelete = () => {
+        if (!goalToEdit) return;
+        if (confirm('Deseja realmente excluir esta meta?')) {
+            setGoals(prev => prev.filter(g => g.id !== goalToEdit.id));
+            onClose();
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
@@ -159,6 +167,15 @@ const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, goalToEdit }) =>
                 </div>
 
                 <div className="p-6 bg-gray-50 flex gap-3">
+                    {goalToEdit && (
+                        <button
+                            onClick={handleDelete}
+                            className="w-12 h-12 rounded-xl flex items-center justify-center text-red-500 hover:bg-red-50 transition-all border-2 border-transparent hover:border-red-100"
+                            title="Excluir Meta"
+                        >
+                            <i className="fas fa-trash-alt"></i>
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
                         className="flex-1 h-12 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
