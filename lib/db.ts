@@ -191,6 +191,16 @@ const mapKeysToCamelCase = (obj: any): any => {
       newObj[camelKey] = (key === 'installment_details' && value) ? mapKeysToCamelCase(value) : value;
     }
   }
+
+  // Log critical fields to debug report issues
+  if ('payment_method' in obj || 'paymentMethod' in newObj) {
+    console.log('[DB] Mapped keys (Camel):', {
+      raw: obj.payment_method,
+      mapped: newObj.paymentMethod,
+      allKeys: Object.keys(newObj)
+    });
+  }
+
   return newObj;
 };
 
@@ -205,6 +215,14 @@ const mapKeysToSnakeCase = (obj: any) => {
       newObj[toSnakeCase(key)] = (key === 'installmentDetails' && value) ? mapKeysToSnakeCase(value) : value;
     }
   }
+
+  // Log to debug why paymentMethod might be null
+  if ('paymentMethod' in obj) {
+    if (obj.paymentMethod === null || obj.paymentMethod === undefined) {
+      console.warn('[DB] Warning: paymentMethod is empty in object to be saved', obj.description);
+    }
+  }
+
   return newObj;
 };
 

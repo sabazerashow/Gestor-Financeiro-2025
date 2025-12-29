@@ -47,8 +47,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     userProfile: (() => {
         try {
             const saved = localStorage.getItem('userProfile');
-            return saved ? JSON.parse(saved) : null;
-        } catch { return null; }
+            return saved ? JSON.parse(saved) : { name: '', email: '', dob: '', gender: 'Outro', photo: '' };
+        } catch { return { name: '', email: '', dob: '', gender: 'Outro', photo: '' }; }
     })(),
     accountId: localStorage.getItem('accountId') || null,
     accountName: localStorage.getItem('accountName') || null,
@@ -66,9 +66,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         else localStorage.removeItem('accountName');
         set({ accountName });
     },
-    setUserProfile: (userProfile) => {
-        if (userProfile) localStorage.setItem('userProfile', JSON.stringify(userProfile));
-        set({ userProfile });
+    setUserProfile: (update) => {
+        set((state) => {
+            const nextProfile = typeof update === 'function' ? update(state.userProfile) : update;
+            if (nextProfile) localStorage.setItem('userProfile', JSON.stringify(nextProfile));
+            return { userProfile: nextProfile };
+        });
     },
 
     setTransactions: (val) => set((state) => ({

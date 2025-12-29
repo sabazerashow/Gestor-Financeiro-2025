@@ -75,6 +75,7 @@ export const seedMockData = async (accountId: string) => {
         }
     };
 
+    console.log(`[SEED] Seeding ${mockTransactions.length} transactions...`);
     results.transactions = await safeUpsert('transactions', () => db.upsertTransactions(mockTransactions, accountId));
     results.bills = await safeUpsert('bills', () => db.upsertBills(mockBills, accountId));
     results.recurring = await safeUpsert('recurring_transactions', () => db.upsertRecurring(mockRecurring as any, accountId));
