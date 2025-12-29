@@ -50,8 +50,10 @@ const GoalsView: React.FC<GoalsViewProps> = ({ onAddGoal, onEditGoal }) => {
                     </motion.div>
                 ) : (
                     goals.map((goal, index) => {
-                        const percentage = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
-                        const isCompleted = goal.current_amount >= goal.target_amount;
+                        const target = goal.targetAmount ?? (goal as any).target_amount ?? 0;
+                        const current = goal.currentAmount ?? (goal as any).current_amount ?? 0;
+                        const percentage = Math.min((current / target) * 100, 100);
+                        const isCompleted = current >= target;
 
                         return (
                             <motion.div
@@ -73,7 +75,7 @@ const GoalsView: React.FC<GoalsViewProps> = ({ onAddGoal, onEditGoal }) => {
                                 )}
 
                                 <div className="flex items-center gap-5 mb-8">
-                                    <div className={`w-16 h-16 rounded-[1.25rem] ${goal.color || 'bg-blue-500'} flex items-center justify-center text-white text-2xl shadow-xl shadow-${goal.color?.split('-')[1] || 'blue'}-500/30 group-hover:rotate-6 transition-transform duration-500`}>
+                                    <div className={`w-16 h-16 rounded-[1.25rem] ${goal.color?.startsWith('bg-') ? goal.color : 'bg-blue-500'} flex items-center justify-center text-white text-2xl shadow-xl shadow-black/10 group-hover:rotate-6 transition-transform duration-500`}>
                                         <i className={`fas ${goal.icon || 'fa-star'}`}></i>
                                     </div>
                                     <div>
@@ -82,7 +84,7 @@ const GoalsView: React.FC<GoalsViewProps> = ({ onAddGoal, onEditGoal }) => {
                                             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-50 rounded-lg w-fit">
                                                 <i className="far fa-calendar-alt text-[10px] text-gray-400"></i>
                                                 <span className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">
-                                                    {new Date(goal.deadline).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                                    {new Date(goal.deadline + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                                                 </span>
                                             </div>
                                         )}
@@ -94,13 +96,13 @@ const GoalsView: React.FC<GoalsViewProps> = ({ onAddGoal, onEditGoal }) => {
                                         <div className="space-y-1">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Acumulado</p>
                                             <p className="text-2xl font-black text-gray-900 tracking-tighter">
-                                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(goal.current_amount)}
+                                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(current)}
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Meta</p>
                                             <p className="text-sm font-bold text-gray-500">
-                                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(goal.target_amount)}
+                                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(target)}
                                             </p>
                                         </div>
                                     </div>
@@ -111,7 +113,7 @@ const GoalsView: React.FC<GoalsViewProps> = ({ onAddGoal, onEditGoal }) => {
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${percentage}%` }}
                                                 transition={{ duration: 1.5, ease: "circOut" }}
-                                                className={`h-full rounded-full relative ${isCompleted ? 'bg-emerald-500' : goal.color || 'bg-blue-500'}`}
+                                                className={`h-full rounded-full relative ${isCompleted ? 'bg-emerald-500' : goal.color?.startsWith('bg-') ? goal.color : 'bg-blue-500'}`}
                                             >
                                                 <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
                                             </motion.div>
@@ -123,7 +125,7 @@ const GoalsView: React.FC<GoalsViewProps> = ({ onAddGoal, onEditGoal }) => {
                                             </span>
                                             {!isCompleted && (
                                                 <span className="text-[11px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                                    falta {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(goal.target_amount - goal.current_amount)}
+                                                    falta {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(target - current)}
                                                 </span>
                                             )}
                                         </div>

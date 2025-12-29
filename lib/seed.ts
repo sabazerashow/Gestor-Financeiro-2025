@@ -46,13 +46,13 @@ export const seedMockData = async (accountId: string) => {
     ];
 
     const mockBudgets = [
-        { id: generateUUID(), category: 'Alimentação', amount: 1500, period: 'monthly' },
-        { id: generateUUID(), category: 'Transporte', amount: 800, period: 'monthly' },
+        { id: 'seed-budget-1', category: 'Alimentação', amount: 1500, period: 'monthly' },
+        { id: 'seed-budget-2', category: 'Transporte', amount: 800, period: 'monthly' },
     ];
 
     const mockGoals = [
-        { id: generateUUID(), title: 'Reserva de Emergência', target_amount: 10000, current_amount: 2500, color: '#10b981' },
-        { id: generateUUID(), title: 'Viagem Japão', target_amount: 25000, current_amount: 1200, color: '#f59e0b' },
+        { id: 'seed-goal-1', title: 'Reserva de Emergência', targetAmount: 10000, currentAmount: 2500, color: 'bg-emerald-500', icon: 'fa-piggy-bank' },
+        { id: 'seed-goal-2', title: 'Viagem Japão', targetAmount: 25000, currentAmount: 1200, color: 'bg-amber-500', icon: 'fa-plane' },
     ];
 
     const results = {

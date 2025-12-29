@@ -21,8 +21,8 @@ const colors = [
 const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, goalToEdit }) => {
     const { accountId, setGoals } = useFinanceStore();
     const [title, setTitle] = useState(goalToEdit?.title || '');
-    const [targetAmount, setTargetAmount] = useState(goalToEdit?.target_amount?.toString() || '');
-    const [currentAmount, setCurrentAmount] = useState(goalToEdit?.current_amount?.toString() || '0');
+    const [targetAmount, setTargetAmount] = useState((goalToEdit?.targetAmount || (goalToEdit as any)?.target_amount)?.toString() || '');
+    const [currentAmount, setCurrentAmount] = useState((goalToEdit?.currentAmount || (goalToEdit as any)?.current_amount)?.toString() || '0');
     const [deadline, setDeadline] = useState(goalToEdit?.deadline || '');
     const [icon, setIcon] = useState(goalToEdit?.icon || icons[0]);
     const [color, setColor] = useState(goalToEdit?.color || colors[0].class);
@@ -30,8 +30,10 @@ const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, goalToEdit }) =>
     useEffect(() => {
         if (goalToEdit) {
             setTitle(goalToEdit.title);
-            setTargetAmount(goalToEdit.target_amount.toString());
-            setCurrentAmount(goalToEdit.current_amount.toString());
+            const target = goalToEdit.targetAmount ?? (goalToEdit as any).target_amount;
+            const current = goalToEdit.currentAmount ?? (goalToEdit as any).current_amount;
+            setTargetAmount(target?.toString() || '');
+            setCurrentAmount(current?.toString() || '0');
             setDeadline(goalToEdit.deadline || '');
             setIcon(goalToEdit.icon || icons[0]);
             setColor(goalToEdit.color || colors[0].class);
@@ -52,10 +54,10 @@ const GoalModal: React.FC<GoalModalProps> = ({ isOpen, onClose, goalToEdit }) =>
 
         const newGoal: FinancialGoal = {
             id: goalToEdit?.id || `goal-${new Date().getTime()}`,
-            account_id: accountId,
+            accountId: accountId,
             title,
-            target_amount: parseFloat(targetAmount),
-            current_amount: parseFloat(currentAmount),
+            targetAmount: parseFloat(targetAmount),
+            currentAmount: parseFloat(currentAmount),
             deadline: deadline || undefined,
             icon,
             color

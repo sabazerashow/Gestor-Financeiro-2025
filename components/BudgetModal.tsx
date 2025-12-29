@@ -14,6 +14,16 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, budgetToEdit
     const [category, setCategory] = useState(budgetToEdit?.category || expenseCategoryList[0]);
     const [amount, setAmount] = useState(budgetToEdit?.amount?.toString() || '');
 
+    React.useEffect(() => {
+        if (budgetToEdit) {
+            setCategory(budgetToEdit.category);
+            setAmount(budgetToEdit.amount.toString());
+        } else {
+            setCategory(expenseCategoryList[0]);
+            setAmount('');
+        }
+    }, [budgetToEdit, isOpen]);
+
     if (!isOpen) return null;
 
     const handleSave = () => {
@@ -21,23 +31,35 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, budgetToEdit
 
         const newBudget: Budget = {
             id: budgetToEdit?.id || `budget-${new Date().getTime()}`,
-            account_id: accountId,
+            accountId: accountId,
             category,
             amount: parseFloat(amount),
             period: 'monthly'
         };
 
         setBudgets(prev => {
-            const exists = prev.findIndex(b => b.category === category);
-            if (exists > -1) {
+            if (budgetToEdit) {
+                return prev.map(b => b.id === budgetToEdit.id ? newBudget : b);
+            }
+
+            const categoryExists = prev.findIndex(b => b.category === category);
+            if (categoryExists > -1) {
                 const updated = [...prev];
-                updated[exists] = newBudget;
+                updated[categoryExists] = newBudget;
                 return updated;
             }
             return [...prev, newBudget];
         });
 
         onClose();
+    };
+
+    const handleDelete = () => {
+        if (!budgetToEdit) return;
+        if (confirm('Deseja realmente excluir este limite?')) {
+            setBudgets(prev => prev.filter(b => b.id !== budgetToEdit.id));
+            onClose();
+        }
     };
 
     return (
@@ -86,6 +108,15 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, budgetToEdit
                 </div>
 
                 <div className="p-6 bg-gray-50 flex gap-3">
+                    {budgetToEdit && (
+                        <button
+                            onClick={handleDelete}
+                            className="w-12 h-12 rounded-xl flex items-center justify-center text-red-500 hover:bg-red-50 transition-all border-2 border-transparent hover:border-red-100"
+                            title="Excluir Limite"
+                        >
+                            <i className="fas fa-trash-alt"></i>
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
                         className="flex-1 h-12 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
@@ -97,7 +128,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({ isOpen, onClose, budgetToEdit
                         disabled={!amount}
                         className="flex-1 h-12 rounded-xl font-bold bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20 hover:opacity-90 disabled:opacity-50 transition-all"
                     >
-                        Salvar Limite
+                        {budgetToEdit ? 'Atualizar' : 'Salvar Limite'}
                     </button>
                 </div>
             </div>

@@ -2,13 +2,14 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useFinanceStore } from '../lib/store';
 import { categories, expenseCategoryList } from '../categories';
-import { TransactionType } from '../types';
+import { TransactionType, Budget } from '../types';
 
 interface BudgetManagementProps {
     onAddBudget: () => void;
+    onEditBudget: (budget: Budget) => void;
 }
 
-const BudgetManagement: React.FC<BudgetManagementProps> = ({ onAddBudget }) => {
+const BudgetManagement: React.FC<BudgetManagementProps> = ({ onAddBudget, onEditBudget }) => {
     const { transactions, budgets, accountId } = useFinanceStore();
 
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -88,6 +89,13 @@ const BudgetManagement: React.FC<BudgetManagementProps> = ({ onAddBudget }) => {
                                             <i className="fas fa-exclamation-triangle text-xs"></i>
                                         </div>
                                     )}
+                                    <button
+                                        onClick={() => onEditBudget(budget)}
+                                        className="w-8 h-8 rounded-full bg-gray-50 text-gray-400 opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-gray-100 hover:text-[var(--primary)] transition-all"
+                                        title="Editar Limite"
+                                    >
+                                        <i className="fas fa-pen text-[10px]"></i>
+                                    </button>
                                 </div>
 
                                 <div className="space-y-4 mt-auto">

@@ -80,6 +80,7 @@ const App: React.FC = () => {
   const { analyzeTransactions, isAnalyzing, analysisError, setAnalysisError } = useAIAnalysis();
   const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [goalToEdit, setGoalToEdit] = useState<FinancialGoal | null>(null);
 
@@ -725,6 +726,11 @@ const App: React.FC = () => {
     setIsQuickAddModalOpen(true);
   };
 
+  const handleOpenEditBudgetModal = (budget: Budget) => {
+    setBudgetToEdit(budget);
+    setIsBudgetModalOpen(true);
+  };
+
   const handleOpenEditModal = (transaction: Transaction) => {
     setTransactionToEdit(transaction);
     setIsEditModalOpen(true);
@@ -883,7 +889,15 @@ const App: React.FC = () => {
       case 'reports':
         return <ReportsView transactions={transactions} />;
       case 'budgets':
-        return <BudgetManagement onAddBudget={() => setIsBudgetModalOpen(true)} />;
+        return (
+          <BudgetManagement
+            onAddBudget={() => {
+              setBudgetToEdit(null);
+              setIsBudgetModalOpen(true);
+            }}
+            onEditBudget={handleOpenEditBudgetModal}
+          />
+        );
       case 'goals':
         return (
           <GoalsView
@@ -1094,6 +1108,7 @@ const App: React.FC = () => {
       <BudgetModal
         isOpen={isBudgetModalOpen}
         onClose={() => setIsBudgetModalOpen(false)}
+        budgetToEdit={budgetToEdit}
       />
 
       <GoalModal

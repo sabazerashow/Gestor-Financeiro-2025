@@ -135,21 +135,21 @@ export interface AccountMember {
 
 export interface Budget {
   id: string;
-  account_id: string;
+  accountId: string;
   category: string;
   amount: number;
   period: 'monthly' | 'yearly';
-  created_at?: string;
+  createdAt?: string;
 }
 
 export interface FinancialGoal {
   id: string;
-  account_id: string;
+  accountId: string;
   title: string;
-  target_amount: number;
-  current_amount: number;
+  targetAmount: number;
+  currentAmount: number;
   deadline?: string;
   icon?: string;
   color?: string;
-  created_at?: string;
+  createdAt?: string;
 }
