@@ -76,8 +76,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
       <div className="bg-[var(--card)] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-[var(--border)] animate-in fade-in zoom-in duration-300">
         <div className="p-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-black text-[var(--color-text)] uppercase tracking-widest flex items-center gap-2">
-              <i className="fas fa-user-circle text-[var(--primary)] text-2xl"></i>
+            <h2 className="text-2xl font-black text-[var(--color-text)] uppercase tracking-widest flex items-center gap-3">
+              <i className="fas fa-user-circle text-[var(--primary)]"></i>
               Meu Perfil
             </h2>
             <button

@@ -44,9 +44,14 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     payslips: [],
     budgets: [],
     goals: [],
-    userProfile: null,
-    accountId: null,
-    accountName: null,
+    userProfile: (() => {
+        try {
+            const saved = localStorage.getItem('userProfile');
+            return saved ? JSON.parse(saved) : null;
+        } catch { return null; }
+    })(),
+    accountId: localStorage.getItem('accountId') || null,
+    accountName: localStorage.getItem('accountName') || null,
     session: null,
     isAuthActive: true,
 

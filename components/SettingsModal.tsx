@@ -52,7 +52,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
     const [loading, setLoading] = useState(false);
 
     const handleSeed = async () => {
-        if (!accountId) return;
+        if (!accountId) {
+            alert("A conta ainda não está pronta. Tente fazer login ou aguarde um momento.");
+            return;
+        }
         if (!window.confirm("Deseja popular a conta com dados fictícios para teste?")) return;
 
         setLoading(true);
@@ -67,22 +70,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
         }
     };
 
-    const handleReset = async () => {
-        if (!accountId) return;
-        if (!window.confirm("CUIDADO: Isso apagará TODOS os seus lançamentos e contas. Esta ação não tem volta. Tem certeza?")) return;
-
-        setLoading(true);
-        try {
-            const { purgeAccountData } = await import('@/lib/db');
-            await purgeAccountData(accountId);
-            alert("Sucesso! Sua conta foi limpa. O app será reiniciado.");
-            window.location.reload();
-        } catch (e: any) {
-            alert("Erro: " + e.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleExport = async () => {
         if (!accountId) return;
@@ -172,7 +159,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                 <div className="p-8">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-3">
+                            <h2 className="text-2xl font-black text-[var(--color-text)] uppercase tracking-widest flex items-center gap-3">
                                 <i className="fas fa-cog text-[var(--primary)]"></i>
                                 Configurações
                             </h2>
@@ -221,17 +208,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                             </div>
                         </section>
 
-                        <section className="pt-4 border-t border-white/5">
-                            <h4 className="text-[10px] font-black text-red-500/50 uppercase tracking-[0.2em] mb-4 ml-1">Zona de Perigo</h4>
-                            <SettingsOption
-                                title="Apagar todos os dados"
-                                description="Remove permanentemente todos os lançamentos, contas e configurações desta conta."
-                                icon="fa-trash-alt"
-                                onClick={handleReset}
-                                variant="danger"
-                                loading={loading}
-                            />
-                        </section>
                     </div>
                 </div>
 

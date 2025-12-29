@@ -8,11 +8,10 @@ interface ProfileMenuProps {
   onSettingsClick: () => void;
   onSecurityClick: () => void;
   onLogoutClick: () => void;
-  onPurgeClick?: () => void;
 }
 
 
-const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick, onSettingsClick, onSecurityClick, onLogoutClick, onPurgeClick }) => {
+const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick, onSettingsClick, onSecurityClick, onLogoutClick }) => {
 
   return (
     <div
@@ -44,12 +43,6 @@ const ProfileMenu: React.FC<ProfileMenuProps> = ({ onProfileClick, onInviteClick
       </div>
       <div className="border-t border-[var(--border)]"></div>
       <div className="py-2" role="none">
-        {onPurgeClick && (
-          <a href="#" onClick={(e) => { e.preventDefault(); onPurgeClick(); }} className="text-red-400 font-bold block px-4 py-3 text-sm hover:bg-red-500/10 transition-all" role="menuitem">
-            <i className="fas fa-trash-alt w-5 mr-3"></i>
-            Apagar todos os dados
-          </a>
-        )}
         <a href="#" onClick={(e) => { e.preventDefault(); onLogoutClick(); }} className="text-gray-300 font-bold block px-4 py-3 text-sm hover:bg-white/5 hover:text-white transition-all" role="menuitem">
           <i className="fas fa-sign-out-alt w-5 mr-3"></i>
           Logout

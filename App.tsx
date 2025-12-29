@@ -396,7 +396,6 @@ const App: React.FC = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
-  const [isPurgeAllOpen, setIsPurgeAllOpen] = useState(false);
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
   const [isAcceptInviteModalOpen, setIsAcceptInviteModalOpen] = useState(false);
@@ -932,7 +931,6 @@ const App: React.FC = () => {
             console.error('Falha ao sair', e);
           }
         }}
-        onPurgeAll={() => setIsPurgeAllOpen(true)}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenSecurity={() => setIsSecurityModalOpen(true)}
       />
@@ -1122,7 +1120,6 @@ const App: React.FC = () => {
         accountId={accountId}
         onDataChanged={fetchData}
       />
-
       <SecurityModal
         isOpen={isSecurityModalOpen}
         onClose={() => setIsSecurityModalOpen(false)}
@@ -1144,36 +1141,6 @@ const App: React.FC = () => {
         }}
       />
 
-      <ConfirmDialog
-        isOpen={isPurgeAllOpen}
-        onClose={() => setIsPurgeAllOpen(false)}
-        onConfirm={async () => {
-          try {
-            if (isAuthActive) {
-              if (!accountId) throw new Error('Conta não definida');
-              await purgeAccountData(accountId);
-            }
-            // Em modo sem autenticação, apenas limpa localmente
-            setTransactions([]);
-            setRecurringTransactions([]);
-            setBills([]);
-            setPayslips([]);
-            try {
-              localStorage.removeItem('transactions');
-              localStorage.removeItem('recurringTransactions');
-              localStorage.removeItem('bills');
-              localStorage.removeItem('payslips');
-            } catch { }
-            setIsPurgeAllOpen(false);
-          } catch (e) {
-            console.error('Falha ao apagar dados', e);
-            alert('Falha ao apagar dados. Verifique políticas do Supabase.');
-          }
-        }}
-        title={'Apagar todos os dados da conta'}
-        message={'Isso removerá todos os lançamentos, recorrências, contas e contracheques desta conta. Esta ação é irreversível. Deseja continuar?'}
-        confirmText={'Apagar tudo'}
-      />
 
       {/* ExportModal e ImportTransactionsModal removidos */}
       <ConfirmDialog

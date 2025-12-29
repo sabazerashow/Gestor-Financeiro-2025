@@ -25,8 +25,12 @@ const AuthGate: React.FC<AuthGateProps> = ({ onSignedIn }) => {
       }
       onSignedIn?.();
     } catch (e: any) {
-      setError(e?.message || 'Falha na autenticação');
-      console.error(e);
+      let msg = e?.message || 'Falha na autenticação';
+      if (msg.includes('fetch') || msg.includes('NetworkError') || e instanceof TypeError) {
+        msg = 'Erro de conexão (Failed to fetch). Verifique sua internet ou as variáveis de ambiente do Supabase.';
+      }
+      setError(msg);
+      console.error('Auth Error:', e);
     } finally {
       setLoading(false);
     }

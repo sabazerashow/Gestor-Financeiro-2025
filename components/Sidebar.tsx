@@ -17,7 +17,6 @@ interface SidebarProps {
     onOpenInvite: () => void;
     onLogoutClick?: () => void;
     isAuthActive?: boolean;
-    onPurgeAll?: () => void;
     onQuickAdd: () => void;
     onOpenSettings: () => void;
     onOpenSecurity: () => void;
@@ -70,7 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     onLogoutClick,
     isAuthActive,
     accountName,
-    onPurgeAll,
     onQuickAdd,
     onOpenSettings,
     onOpenSecurity
@@ -234,7 +232,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     onSettingsClick={() => { setIsMenuOpen(false); onOpenSettings(); }}
                                     onSecurityClick={() => { setIsMenuOpen(false); onOpenSecurity(); }}
                                     onLogoutClick={() => { setIsMenuOpen(false); onLogoutClick?.(); }}
-                                    onPurgeClick={onPurgeAll}
                                 />
                             </motion.div>
                         )}

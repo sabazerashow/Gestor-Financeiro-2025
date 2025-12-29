@@ -77,15 +77,10 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onOpenProfil
     <div className="fixed inset-0 bg-[var(--overlay)] z-[60] flex justify-center items-center p-4 backdrop-blur-sm">
       <div className="bg-[var(--card)] rounded-2xl shadow-2xl w-full max-w-2xl border border-[var(--border)] overflow-hidden">
         <div className="p-6 border-b border-[var(--border)] flex justify-between items-center bg-[var(--surface)]">
-          <div className="flex items-center">
-            <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-[var(--primary)] text-[var(--primary-foreground)] mr-4 shadow-lg shadow-[var(--primary)]/20">
-              <i className="fas fa-user-plus text-lg"></i>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-[var(--color-text)]">Compartilhar Conta</h3>
-              <p className="text-xs text-[var(--color-text-muted)]">Convide seu parceiro(a) para gerenciar as finanças juntos.</p>
-            </div>
-          </div>
+          <h2 className="text-2xl font-black text-[var(--color-text)] uppercase tracking-widest flex items-center gap-3">
+            <i className="fas fa-user-plus text-[var(--primary)]"></i>
+            Compartilhar Conta
+          </h2>
           <button onClick={onClose} className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors">
             <i className="fas fa-times text-xl"></i>
           </button>

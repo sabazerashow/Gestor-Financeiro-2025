@@ -1,8 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Helper to clean environment variables (trims spaces and removes surrounding quotes)
+const cleanEnvVar = (val: string | undefined) => {
+  if (!val) return undefined;
+  return val.trim().replace(/^["']|["']$/g, '');
+};
+
 // Vite expõe variáveis com prefixo VITE_ no client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const supabaseUrl = cleanEnvVar(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+const supabaseAnonKey = cleanEnvVar(import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
 
 // Flag para desabilitar autenticação (bypass). Por padrão, desabilita em localhost.
 const rawDisable = (import.meta as any).env?.VITE_AUTH_DISABLED as string | undefined;
