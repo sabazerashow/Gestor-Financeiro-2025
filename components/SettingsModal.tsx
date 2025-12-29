@@ -50,22 +50,32 @@ const SettingsOption: React.FC<{
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountId, onDataChanged }) => {
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [showConfirmSeed, setShowConfirmSeed] = useState(false);
 
     const handleSeed = async () => {
+        console.log('[Settings] handleSeed called. accountId:', accountId);
         if (!accountId) {
-            alert("A conta ainda não está pronta. Tente fazer login ou aguarde um momento.");
+            setMessage({ type: 'error', text: "A conta ainda não está pronta. Tente fazer login novamente." });
             return;
         }
-        if (!window.confirm("Deseja popular a conta com dados fictícios para teste?")) return;
+        setShowConfirmSeed(true);
+    };
 
+    const confirmSeed = async () => {
+        setShowConfirmSeed(false);
         setLoading(true);
+        setMessage(null);
         try {
-            await seedMockData(accountId);
-            alert("Sucesso! Dados populados. O app será reiniciado.");
-            window.location.reload();
+            console.log('[Settings] Starting seedMockData for:', accountId);
+            await seedMockData(accountId!);
+            setMessage({ type: 'success', text: "Sucesso! Dados populados. Recarregando..." });
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         } catch (e: any) {
-            alert("Erro: " + e.message);
-        } finally {
+            console.error('[Settings] Seed error:', e);
+            setMessage({ type: 'error', text: "Erro: " + e.message });
             setLoading(false);
         }
     };
@@ -105,7 +115,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
             link.click();
             document.body.removeChild(link);
         } catch (e: any) {
-            alert("Erro ao exportar: " + e.message);
+            setMessage({ type: 'error', text: "Erro ao exportar: " + e.message });
         } finally {
             setLoading(false);
         }
@@ -139,10 +149,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                     throw new Error("Formato de arquivo de backup inválido.");
                 }
 
-                alert("Backup importado com sucesso! O aplicativo será recarregado.");
-                window.location.reload();
+                setMessage({ type: 'success', text: "Backup importado com sucesso! Recarregando..." });
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
             } catch (err: any) {
-                alert("Erro ao importar: " + err.message);
+                setMessage({ type: 'error', text: "Erro ao importar: " + err.message });
             } finally {
                 setLoading(false);
                 e.target.value = '';
@@ -174,6 +186,36 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                     </div>
 
                     <div className="space-y-4">
+                        {message && (
+                            <div className={`p-4 rounded-2xl mb-6 text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                                }`}>
+                                <i className={`fas ${message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+                                {message.text}
+                            </div>
+                        )}
+
+                        {showConfirmSeed && (
+                            <div className="p-6 rounded-3xl mb-6 bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-in zoom-in-95 duration-200">
+                                <p className="text-sm font-bold text-[var(--color-text)] mb-4">
+                                    Deseja popular a conta com dados fictícios para teste?
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowConfirmSeed(false)}
+                                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-bold transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={confirmSeed}
+                                        className="flex-[2] py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold transition-all hover:brightness-110"
+                                    >
+                                        Confirmar Popular
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <section>
                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 ml-1">Ferramentas</h4>
                             <SettingsOption

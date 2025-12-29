@@ -17,6 +17,7 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showDirectChange, setShowDirectChange] = useState(false);
+    const [showConfirmPurge, setShowConfirmPurge] = useState(false);
 
     const handleResetPassword = async () => {
         if (!userEmail) return;
@@ -62,15 +63,23 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
         }
     };
 
-    const handlePurge = async () => {
-        if (!onPurgeData) return;
-        if (!confirm('ATENÇÃO: Isso apagará TODOS os seus dados financeiros (transações, contas, etc). Esta ação é irreversível. Deseja continuar?')) return;
+    const handlePurgeClick = () => {
+        console.log('[Security] handlePurgeClick');
+        setShowConfirmPurge(true);
+        setMessage(null);
+    };
 
+    const confirmPurge = async () => {
+        if (!onPurgeData) return;
+        setShowConfirmPurge(false);
         setPurgeLoading(true);
+        setMessage(null);
         try {
+            console.log('[Security] Executing onPurgeData');
             await onPurgeData();
             setMessage({ type: 'success', text: 'Todos os dados foram apagados com sucesso.' });
         } catch (e: any) {
+            console.error('[Security] Purge error:', e);
             setMessage({ type: 'error', text: e.message || 'Falha ao apagar dados.' });
         } finally {
             setPurgeLoading(false);
@@ -191,14 +200,37 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
 
                         <div className="pt-4 border-t border-white/5">
                             <h4 className="text-xs font-black text-red-500 uppercase tracking-[0.2em] mb-4 px-2">Zona Perigosa</h4>
-                            <button
-                                onClick={handlePurge}
-                                disabled={purgeLoading || !onPurgeData}
-                                className="w-full py-4 rounded-2xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 text-red-500 text-sm font-bold transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
-                            >
-                                {purgeLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-trash-can"></i>}
-                                Apagar Todos os Dados
-                            </button>
+
+                            {showConfirmPurge ? (
+                                <div className="p-6 rounded-3xl mb-4 bg-red-500/10 border border-red-500/20 animate-in zoom-in-95 duration-200">
+                                    <p className="text-xs font-bold text-red-500 mb-4 leading-relaxed">
+                                        ATENÇÃO: Isso apagará TODOS os seus dados financeiros permanentemente. Deseja continuar?
+                                    </p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setShowConfirmPurge(false)}
+                                            className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-bold transition-all"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={confirmPurge}
+                                            className="flex-[2] py-3 rounded-xl bg-red-500 text-white text-xs font-bold transition-all hover:bg-red-600 shadow-lg shadow-red-500/20"
+                                        >
+                                            Sim, Apagar Tudo
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handlePurgeClick}
+                                    disabled={purgeLoading || !onPurgeData}
+                                    className="w-full py-4 rounded-2xl bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 text-red-500 text-sm font-bold transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                                >
+                                    {purgeLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-trash-can"></i>}
+                                    Apagar Todos os Dados
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
