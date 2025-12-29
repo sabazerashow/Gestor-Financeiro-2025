@@ -160,21 +160,44 @@ export async function fetchAll<T>(table: TableName, accountId?: string): Promise
     const query = supabase.from(table).select('*');
     const { data, error } = accountId ? await query.eq('account_id', accountId) : await query;
     if (error) {
-      if (error.code === 'PGRST116' || error.message.includes('not found')) {
-        console.warn(`DB: Table ${table} not found in schema, returning empty array.`);
+      console.error(`DB: Fetch Error from ${table}:`, {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        accountId
+      });
+      if (error.code === 'PGRST116' || error.code === 'PGRST205' || error.message.includes('not found')) {
+        console.warn(`DB: Table ${table} not found or inaccessible, returning empty array.`);
         return [];
       }
       throw error;
     }
-    return (data ?? []) as T[];
+    return (data ?? []).map(row => mapKeysToCamelCase(row)) as T[];
   });
 }
+
 const toSnakeCase = (str: string) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+const toCamelCase = (str: string) => str.replace(/_([a-z])/g, g => g[1].toUpperCase());
+
+const mapKeysToCamelCase = (obj: any): any => {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+  const newObj: any = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const camelKey = toCamelCase(key);
+      const value = obj[key];
+      // Special handling for installmentDetails if it's nested
+      newObj[camelKey] = (key === 'installment_details' && value) ? mapKeysToCamelCase(value) : value;
+    }
+  }
+  return newObj;
+};
 
 const mapKeysToSnakeCase = (obj: any) => {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
   const newObj: any = {};
-  const excludedKeys = ['createdBy', 'createdByName']; // Prevent sending columns that don't exist in DB
+  const excludedKeys = ['createdByName']; // Prevent sending columns that don't exist in DB
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key) && !excludedKeys.includes(key)) {
       // Map key and handle nested installmentDetails specifically if it exists
@@ -190,11 +213,21 @@ export async function bulkUpsert<T extends { id: string }>(table: TableName, row
     if (!rows || rows.length === 0) return;
     const payload = rows.map((r: any) => {
       const mapped = mapKeysToSnakeCase(r);
-      return (accountId && !('account_id' in mapped) ? { ...mapped, account_id: accountId } : mapped);
+      // Ensure account_id is present
+      if (accountId && !mapped.account_id) {
+        mapped.account_id = accountId;
+      }
+      return mapped;
     });
     const { error } = await supabase.from(table).upsert(payload, { onConflict: 'id' });
     if (error) {
-      console.error(`DB: Error upserting to ${table}:`, error);
+      console.error(`DB: Bulk Upsert Error in ${table}:`, {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        payloadSize: payload.length
+      });
       throw error;
     }
   });

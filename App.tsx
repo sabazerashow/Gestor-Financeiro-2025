@@ -200,22 +200,30 @@ const App: React.FC = () => {
       try {
         const profile = await db.fetchUserProfile(session.user.id);
         if (profile) {
-          setUserProfile({
+          // Mesclar com o que já temos localmente (ou defaults)
+          setUserProfile(prev => ({
+            ...prev,
             ...profile,
-            email: session.user.email || profile.email
-          });
-        } else {
-          // Novo usuário: inicializar com dados da sessão
-          const initialProfile = {
+            email: session.user.email || profile.email || prev.email
+          }));
+        } else if (!hasCheckedProfile) {
+          // Primeiro login e sem perfil no banco: usa dados da rede social mas não reseta o que o user já pode ter editado na sessão atual
+          const socialProfile = {
             name: session.user.user_metadata?.full_name || 'Novo Usuário',
             email: session.user.email || '',
             dob: '',
             gender: 'Outro',
             photo: session.user.user_metadata?.avatar_url || 'https://i.ibb.co/6n20d5w/placeholder-profile.png'
           };
-          setUserProfile(initialProfile);
+
+          setUserProfile(prev => {
+            // Se o nome atual ainda for o default "Seu Nome", usa o da rede social
+            if (prev.name === 'Seu Nome' || !prev.name) return socialProfile;
+            return prev;
+          });
+
           // Se for o primeiro login E não tem nome definido, abre o modal
-          if (!hasCheckedProfile && (!initialProfile.name || initialProfile.name === 'Novo Usuário')) {
+          if (!userProfile.name || userProfile.name === 'Seu Nome') {
             setIsProfileModalOpen(true);
           }
         }

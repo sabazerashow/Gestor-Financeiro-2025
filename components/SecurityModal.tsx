@@ -188,18 +188,9 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
                             )}
                         </div>
 
-                        <div className="bg-amber-500/5 border border-amber-500/10 p-6 rounded-3xl">
-                            <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                <i className="fas fa-fingerprint"></i>
-                                Dica de Segurança
-                            </h4>
-                            <p className="text-xs text-amber-500/80 font-medium leading-relaxed">
-                                Sempre utilize senhas fortes e evite repetir senhas usadas em outros serviços. O Finance Pilot utiliza criptografia de ponta a ponta via Supabase Auth.
-                            </p>
-                        </div>
 
                         <div className="pt-4 border-t border-white/5">
-                            <h4 className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em] mb-4 px-2">Zona Perigosa</h4>
+                            <h4 className="text-xs font-black text-red-500 uppercase tracking-[0.2em] mb-4 px-2">Zona Perigosa</h4>
                             <button
                                 onClick={handlePurge}
                                 disabled={purgeLoading || !onPurgeData}

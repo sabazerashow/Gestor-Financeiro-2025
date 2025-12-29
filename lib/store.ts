@@ -92,14 +92,19 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
     fetchData: async (accountId) => {
         try {
-            const [tx, rec, bl, ps, bd, gl] = await Promise.all([
-                db.fetchTransactions(accountId),
-                db.fetchRecurring(accountId),
-                db.fetchBills(accountId),
-                db.fetchPayslips(accountId),
-                db.fetchBudgets(accountId),
-                db.fetchGoals(accountId),
-            ]);
+            // Using individual try-catches implicitly via db.fetch* wrappers (which handle PGRST205 now)
+            // But we still want a safe Promise.all execution.
+            const fetches = [
+                db.fetchTransactions(accountId).catch(() => []),
+                db.fetchRecurring(accountId).catch(() => []),
+                db.fetchBills(accountId).catch(() => []),
+                db.fetchPayslips(accountId).catch(() => []),
+                db.fetchBudgets(accountId).catch(() => []),
+                db.fetchGoals(accountId).catch(() => []),
+            ];
+
+            const [tx, rec, bl, ps, bd, gl] = await Promise.all(fetches);
+
             set({
                 transactions: (tx as any) || [],
                 recurringTransactions: (rec as any) || [],
@@ -109,7 +114,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
                 goals: (gl as any) || []
             });
         } catch (e) {
-            console.error('Store: Falha ao buscar dados', e);
+            console.error('Store: Falha crítica ao buscar dados', e);
         }
     },
 
