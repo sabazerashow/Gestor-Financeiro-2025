@@ -71,23 +71,23 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <p className="text-sm text-gray-500 font-medium">Análise profunda da sua saúde financeira mensal</p>
         </div>
 
-        <div className="flex items-center gap-4 p-2 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 p-2 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100">
           <div className="flex p-1 bg-gray-50 rounded-xl">
             <button
               onClick={() => setPeriodType('month')}
-              className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${periodType === 'month' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${periodType === 'month' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
               Mensal
             </button>
             <button
               onClick={() => setPeriodType('period')}
-              className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${periodType === 'period' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex-1 sm:flex-none px-4 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${periodType === 'period' ? 'bg-white text-[var(--primary)] shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
               Período
             </button>
           </div>
 
-          <div className="h-8 w-px bg-gray-100"></div>
+          <div className="hidden sm:block h-8 w-px bg-gray-100"></div>
 
           <AnimatePresence mode="wait">
             {periodType === 'month' ? (
@@ -96,12 +96,13 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
+                className="flex justify-center sm:justify-start"
               >
                 <input
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 p-0 cursor-pointer"
+                  className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 p-2 sm:p-0 cursor-pointer text-center sm:text-left"
                 />
               </motion.div>
             ) : (
@@ -110,21 +111,27 @@ const ReportsView: React.FC<ReportsViewProps> = ({
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                className="flex items-center gap-3"
+                className="flex flex-col xs:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-3 px-2 sm:px-0"
               >
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  className="bg-transparent border-none text-xs font-bold text-gray-700 p-0 focus:ring-0"
-                />
-                <span className="text-gray-300 font-bold">→</span>
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  className="bg-transparent border-none text-xs font-bold text-gray-700 p-0 focus:ring-0"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">De</span>
+                  <input
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                    className="bg-gray-50/50 border border-gray-100 rounded-lg text-[10px] sm:text-xs font-bold text-gray-700 p-1.5 focus:ring-0 w-28 sm:w-24"
+                  />
+                </div>
+                <span className="text-gray-300 font-bold hidden xs:inline">→</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">Até</span>
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                    className="bg-gray-50/50 border border-gray-100 rounded-lg text-[10px] sm:text-xs font-bold text-gray-700 p-1.5 focus:ring-0 w-28 sm:w-24"
+                  />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

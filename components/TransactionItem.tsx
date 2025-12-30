@@ -41,11 +41,11 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="font-black text-gray-900 truncate tracking-tight text-base mb-0.5">{transaction.description}</p>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#2ab29a] bg-emerald-50 px-2 py-0.5 rounded-lg">{transaction.category}</span>
-            <span className="text-gray-300 text-[10px]">•</span>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{formattedDate}</span>
+          <p className="font-black text-gray-900 line-clamp-2 tracking-tight text-sm md:text-base mb-0.5 leading-tight">{transaction.description}</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#2ab29a] bg-emerald-50 px-2 py-0.5 rounded-lg whitespace-nowrap">{transaction.category}</span>
+            <span className="text-gray-300 text-[10px] hidden md:inline">•</span>
+            <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">{formattedDate}</span>
 
             {transaction.createdByName && (
               <div className="flex items-center gap-1.5 ml-2 px-1.5 py-0.5 rounded-full bg-gray-50 border border-gray-100/50">
@@ -64,13 +64,13 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
       </div>
 
       <div className="flex items-center gap-6">
-        <div className="text-right">
-          <p className={`text-lg font-black tracking-tight ${isIncome ? 'text-emerald-500' : 'text-gray-900'}`}>
+        <div className="text-right flex flex-col items-end">
+          <p className={`text-base md:text-lg font-black tracking-tight whitespace-nowrap ${isIncome ? 'text-emerald-500' : 'text-gray-900'}`}>
             {isIncome ? `+${formattedAmount}` : formattedAmount}
           </p>
           <div className="flex items-center justify-end gap-1.5 mt-0.5">
-            <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em]">{transaction.paymentMethod || 'OUTRO'}</span>
-            {paymentInfo?.icon && <i className={`fas ${paymentInfo.icon} text-[10px] text-gray-400`}></i>}
+            <span className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-[0.15em] whitespace-nowrap">{transaction.paymentMethod || 'OUTRO'}</span>
+            {paymentInfo?.icon && <i className={`fas ${paymentInfo.icon} text-[8px] md:text-[10px] text-gray-400`}></i>}
           </div>
         </div>
 

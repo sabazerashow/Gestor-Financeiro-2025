@@ -72,9 +72,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
   if (!isOpen || !editableProfile) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-[var(--card)] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-[var(--border)] animate-in fade-in zoom-in duration-300">
-        <div className="p-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-[var(--card)] w-full max-w-2xl h-auto max-h-[90vh] md:max-h-[85vh] rounded-3xl shadow-2xl overflow-hidden border border-[var(--border)] animate-in fade-in zoom-in duration-300 flex flex-col">
+        <div className="p-6 md:p-8 overflow-y-auto flex-1 custom-scrollbar">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black text-[var(--color-text)] uppercase tracking-widest flex items-center gap-3">
               <i className="fas fa-user-circle text-[var(--primary)]"></i>
@@ -90,12 +90,12 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, userProfil
 
           {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
 
-          <div className="flex flex-col md:flex-row items-center gap-8 mb-10 pb-10 border-b border-[var(--border)]">
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 mb-6 md:mb-10 pb-6 md:pb-10 border-b border-[var(--border)]">
             <div className="relative group">
               <img
                 src={editableProfile?.photo || '/default-avatar.png'}
                 alt="Profile"
-                className="h-32 w-32 rounded-3xl object-cover ring-4 ring-[var(--surface)] shadow-xl group-hover:scale-105 transition-transform duration-500"
+                className="h-24 w-24 md:h-32 md:w-32 rounded-3xl object-cover ring-4 ring-[var(--surface)] shadow-xl group-hover:scale-105 transition-transform duration-500"
               />
               <input
                 type="file"
