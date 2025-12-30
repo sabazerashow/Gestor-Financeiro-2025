@@ -21,6 +21,9 @@ const EditBillModal: React.FC<EditBillModalProps> = ({ isOpen, onClose, bill, on
     const [amount, setAmount] = useState(bill.amount?.toString() || '');
     const [category, setCategory] = useState(bill.category || '');
     const [subcategory, setSubcategory] = useState(bill.subcategory || '');
+    const [paymentUrl, setPaymentUrl] = useState(bill.paymentUrl || '');
+    const [paymentUser, setPaymentUser] = useState(bill.paymentUser || '');
+    const [paymentPass, setPaymentPass] = useState(bill.paymentPass || '');
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -51,6 +54,9 @@ const EditBillModal: React.FC<EditBillModalProps> = ({ isOpen, onClose, bill, on
             description,
             dueDay: day,
             isAutoDebit,
+            paymentUrl,
+            paymentUser,
+            paymentPass,
         };
 
         if (isAutoDebit) {
@@ -155,6 +161,42 @@ const EditBillModal: React.FC<EditBillModalProps> = ({ isOpen, onClose, bill, on
                             </div>
                         </div>
                     )}
+
+                    <div className="space-y-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Dados de Pagamento (Opcional)</h3>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-bill-payment-url">Site para Pagamento</Label>
+                            <Input
+                                type="url"
+                                id="edit-bill-payment-url"
+                                value={paymentUrl}
+                                onChange={(e) => setPaymentUrl(e.target.value)}
+                                placeholder="https://exemplo.com"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-bill-payment-user">Usuário</Label>
+                                <Input
+                                    type="text"
+                                    id="edit-bill-payment-user"
+                                    value={paymentUser}
+                                    onChange={(e) => setPaymentUser(e.target.value)}
+                                    placeholder="Seu login"
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-bill-payment-pass">Senha</Label>
+                                <Input
+                                    type="text"
+                                    id="edit-bill-payment-pass"
+                                    value={paymentPass}
+                                    onChange={(e) => setPaymentPass(e.target.value)}
+                                    placeholder="Sua senha"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
                     {error && <p className="text-sm text-red-500 font-bold">{error}</p>}
 

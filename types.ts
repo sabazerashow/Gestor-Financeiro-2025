@@ -66,6 +66,9 @@ export interface Bill {
   category?: string;
   subcategory?: string;
   recurringTransactionId?: string;
+  paymentUrl?: string;
+  paymentUser?: string;
+  paymentPass?: string;
 }
 
 export interface GroupedTransaction {

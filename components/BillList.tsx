@@ -18,7 +18,28 @@ const BillItem: React.FC<{ bill: Bill; onDelete: (id: string) => void; onEdit: (
         )}
         <div>
           <p className="font-semibold text-[var(--color-text)] truncate">{bill.description}</p>
-          <p className="text-sm text-[var(--color-text-muted)]">Vence todo dia {String(bill.dueDay).padStart(2, '0')}</p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-sm text-[var(--color-text-muted)]">Vence todo dia {String(bill.dueDay).padStart(2, '0')}</p>
+            {bill.paymentUrl && (
+              <a
+                href={bill.paymentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[var(--primary)] hover:underline flex items-center gap-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <i className="fas fa-external-link-alt text-[10px]"></i>
+                Pagar
+              </a>
+            )}
+            {(bill.paymentUser || bill.paymentPass) && (
+              <div className="flex items-center gap-2 text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">
+                <i className="fas fa-key text-[8px]"></i>
+                {bill.paymentUser && <span title="Usuário">U: {bill.paymentUser}</span>}
+                {bill.paymentPass && <span title="Senha">•: {bill.paymentPass}</span>}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex items-center space-x-4 ml-4">

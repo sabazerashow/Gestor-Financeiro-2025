@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction, TransactionType, RecurringTransaction, Frequency, Bill, Payslip, PaymentMethod, FinancialGoal, Budget } from './types';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import ProfileMenu from './components/ProfileMenu';
 import Logo from './components/Logo';
 import ErrorBanner from './components/ui/error-banner';
 import TransactionList from './components/TransactionList';
@@ -420,6 +421,19 @@ const App: React.FC = () => {
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
   const [isAcceptInviteModalOpen, setIsAcceptInviteModalOpen] = useState(false);
+  const [isProfileMenuOpenMobile, setIsProfileMenuOpenMobile] = useState(false);
+
+  const mobileMenuRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpenMobile(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
 
 
@@ -995,21 +1009,46 @@ const App: React.FC = () => {
             <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.3em] uppercase">PILOT</span>
           </div>
         </div>
-        <button
-          onClick={() => setIsProfileModalOpen(true)}
-          className="relative active:scale-95 transition-all"
-        >
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-xl ring-1 ring-gray-100">
-            {userProfile?.photo && userProfile.photo !== defaultPhotoUrl ? (
-              <img src={userProfile.photo} alt="P" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-white font-black text-xs">
-                {userProfile?.name?.charAt(0) || 'U'}
-              </div>
+        <div className="relative" ref={mobileMenuRef}>
+          <button
+            onClick={() => setIsProfileMenuOpenMobile(!isProfileMenuOpenMobile)}
+            className="relative active:scale-95 transition-all"
+          >
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-xl ring-1 ring-gray-100">
+              {userProfile?.photo && userProfile.photo !== defaultPhotoUrl ? (
+                <img src={userProfile.photo} alt="P" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-white font-black text-xs">
+                  {userProfile?.name?.charAt(0) || 'U'}
+                </div>
+              )}
+            </div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></div>
+          </button>
+
+          <AnimatePresence>
+            {isProfileMenuOpenMobile && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="absolute right-0 mt-2 w-[220px] z-[100]"
+              >
+                <ProfileMenu
+                  onProfileClick={() => { setIsProfileMenuOpenMobile(false); setIsProfileModalOpen(true); }}
+                  onInviteClick={() => { setIsProfileMenuOpenMobile(false); setIsInviteModalOpen(true); }}
+                  onSettingsClick={() => { setIsProfileMenuOpenMobile(false); setIsSettingsModalOpen(true); }}
+                  onSecurityClick={() => { setIsProfileMenuOpenMobile(false); setIsSecurityModalOpen(true); }}
+                  onLogoutClick={async () => {
+                    setIsProfileMenuOpenMobile(false);
+                    if (!isAuthActive) return;
+                    try { await signOut(); } catch (e) { console.error('Falha ao sair', e); }
+                  }}
+                />
+              </motion.div>
             )}
-          </div>
-          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></div>
-        </button>
+          </AnimatePresence>
+        </div>
       </div>
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 lg:pt-10 pb-32 lg:pb-10 min-h-screen overflow-y-auto custom-scrollbar">

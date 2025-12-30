@@ -19,6 +19,9 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
+  const [paymentUrl, setPaymentUrl] = useState('');
+  const [paymentUser, setPaymentUser] = useState('');
+  const [paymentPass, setPaymentPass] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -47,6 +50,9 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
       description,
       dueDay: day,
       isAutoDebit,
+      paymentUrl,
+      paymentUser,
+      paymentPass,
     };
 
     if (isAutoDebit) {
@@ -70,6 +76,9 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
     setAmount('');
     setCategory('');
     setSubcategory('');
+    setPaymentUrl('');
+    setPaymentUser('');
+    setPaymentPass('');
     setError('');
   };
 
@@ -155,6 +164,42 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onAddBill }) => {
               </div>
             </div>
           )}
+
+          <div className="space-y-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Dados de Pagamento (Opcional)</h3>
+            <div className="grid gap-2">
+              <Label htmlFor="bill-payment-url">Site para Pagamento</Label>
+              <Input
+                type="url"
+                id="bill-payment-url"
+                value={paymentUrl}
+                onChange={(e) => setPaymentUrl(e.target.value)}
+                placeholder="https://exemplo.com"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="bill-payment-user">Usuário</Label>
+                <Input
+                  type="text"
+                  id="bill-payment-user"
+                  value={paymentUser}
+                  onChange={(e) => setPaymentUser(e.target.value)}
+                  placeholder="Seu login"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="bill-payment-pass">Senha</Label>
+                <Input
+                  type="text"
+                  id="bill-payment-pass"
+                  value={paymentPass}
+                  onChange={(e) => setPaymentPass(e.target.value)}
+                  placeholder="Sua senha"
+                />
+              </div>
+            </div>
+          </div>
 
           {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
           <Button type="submit" className="w-full">Salvar Conta</Button>
