@@ -284,7 +284,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         </div>
 
         <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100 flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-4">
             <div>
               <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Tipo de Lançamento</span>
               <div className="flex space-x-6">
@@ -314,7 +314,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
             </div>
 
             {type === TransactionType.EXPENSE && (
-              <label className="flex items-center cursor-pointer group bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm hover:border-[var(--primary)] transition-all self-start sm:self-auto">
+              <label className="flex items-center cursor-pointer group bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm hover:border-[var(--primary)] transition-all self-start max-w-full">
                 <input
                   id="is-installment"
                   type="checkbox"
@@ -322,7 +322,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                   onChange={(e) => setIsInstallment(e.target.checked)}
                   className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 rounded transition-all"
                 />
-                <span className="ml-2 block text-sm font-bold text-gray-600 group-hover:text-[var(--primary)] transition-colors whitespace-nowrap">
+                <span className="ml-2 block text-sm font-bold text-gray-600 group-hover:text-[var(--primary)] transition-colors">
                   Compra parcelada?
                 </span>
               </label>

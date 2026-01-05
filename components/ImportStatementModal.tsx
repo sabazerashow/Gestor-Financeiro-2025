@@ -67,17 +67,6 @@ const ImportStatementModal: React.FC<ImportStatementModalProps> = ({ isOpen, onC
             ), null, 2
         );
 
-        const responseSchema = {
-            type: Type.OBJECT,
-            properties: {
-                description: { type: Type.STRING },
-                category: { type: Type.STRING },
-                subcategory: { type: Type.STRING },
-                paymentMethod: { type: Type.STRING },
-            },
-            required: ['description', 'category', 'subcategory', 'paymentMethod'],
-        };
-
         // Batch processing would be more efficient for many transactions, but this sequential approach is simpler to implement.
         const enrichedTransactions: TransactionToReview[] = [];
         for (const raw of rawTransactions) {

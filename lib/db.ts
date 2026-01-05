@@ -272,7 +272,7 @@ export async function syncTable<T extends { id: string }>(table: TableName, rows
 
     if (fetchErr) throw fetchErr;
 
-    const dbIds = new Set((dbItems || []).map(i => i.id as string));
+    const dbIds = new Set<string>((dbItems || []).map((i: any) => String(i.id)));
     const localIds = new Set(rows.map(r => r.id));
 
     // 2. Identify IDs to delete

@@ -151,7 +151,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
       else if (raw.includes('débito') || raw.includes('debito')) paymentMethod = PaymentMethod.DEBITO;
       else if (raw.includes('pix')) paymentMethod = PaymentMethod.PIX;
       else if (raw.includes('dinheiro')) paymentMethod = PaymentMethod.DINHEIRO;
-      else if (raw.includes('boleto')) paymentMethod = PaymentMethod.BOLETO;
+      else if (raw.includes('boleto')) paymentMethod = PaymentMethod.OUTRO;
 
       let category = 'Outros';
       let subcategory = 'Presentes';
