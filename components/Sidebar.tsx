@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <motion.aside
             initial={false}
             animate={{ width: isCollapsed ? 120 : 320 }}
-            className="hidden lg:flex flex-col h-screen bg-[#0A0A0A] sticky top-0 z-40 border-r border-white-[0.05] shadow-[10px_0_30px_-15px_rgba(0,0,0,0.5)]"
+            className="hidden lg:flex flex-col h-full bg-[#0A0A0A] sticky top-0 z-40 border-r border-white-[0.05] shadow-[10px_0_30px_-15px_rgba(0,0,0,0.5)]"
         >
             <div className={`transition-all duration-300 ${isCollapsed ? 'px-4 py-8' : 'p-8'} pb-10`}>
                 <AnimatePresence mode="wait">

@@ -978,7 +978,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-col lg:flex-row overflow-x-hidden">
+    <div className="h-screen bg-[var(--background)] text-[var(--color-text)] font-sans flex flex-col lg:flex-row overflow-hidden">
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -1051,7 +1051,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 lg:pt-10 pb-32 lg:pb-10 min-h-screen overflow-y-auto custom-scrollbar">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 lg:pt-10 pb-32 lg:pb-10 h-full overflow-y-auto custom-scrollbar scroll-smooth">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
