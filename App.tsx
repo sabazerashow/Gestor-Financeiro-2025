@@ -76,6 +76,8 @@ const App: React.FC = () => {
     payslips, setPayslips,
     recurringTransactions, setRecurringTransactions,
     bills, setBills,
+    budgets, setBudgets,
+    goals, setGoals,
     userProfile, setUserProfile,
     updateTransaction, updateBill,
     fetchData, syncData
@@ -205,7 +207,7 @@ const App: React.FC = () => {
   // Sincronizar alterações locais com Supabase (apenas quando auth está ativa)
   useEffect(() => {
     if (accountId) syncData(accountId);
-  }, [transactions, recurringTransactions, bills, payslips, session, accountId]);
+  }, [transactions, recurringTransactions, bills, payslips, budgets, goals, session, accountId]);
 
   // Carregar perfil do Supabase
   useEffect(() => {
@@ -464,6 +466,14 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('userProfile', JSON.stringify(userProfile));
   }, [userProfile]);
+
+  useEffect(() => {
+    localStorage.setItem('budgets', JSON.stringify(budgets));
+  }, [budgets]);
+
+  useEffect(() => {
+    localStorage.setItem('goals', JSON.stringify(goals));
+  }, [goals]);
 
   // Data migration hook
   useEffect(() => {
@@ -1237,11 +1247,15 @@ const App: React.FC = () => {
           setRecurringTransactions([]);
           setBills([]);
           setPayslips([]);
+          setBudgets([]);
+          setGoals([]);
           try {
             localStorage.removeItem('transactions');
             localStorage.removeItem('recurringTransactions');
             localStorage.removeItem('bills');
             localStorage.removeItem('payslips');
+            localStorage.removeItem('budgets');
+            localStorage.removeItem('goals');
           } catch { }
         }}
       />

@@ -257,6 +257,45 @@ export async function bulkUpsert<T extends { id: string }>(table: TableName, row
   });
 }
 
+/**
+ * Synchronizes a table by ensuring the DB state matches the provided rows exactly for an account.
+ * This includes deleting items that are not in the 'rows' array.
+ * Useful for smaller collections like budgets and goals.
+ */
+export async function syncTable<T extends { id: string }>(table: TableName, rows: T[], accountId: string) {
+  return withSupabase(async () => {
+    // 1. Get all current IDs in DB for this account
+    const { data: dbItems, error: fetchErr } = await supabase
+      .from(table)
+      .select('id')
+      .eq('account_id', accountId);
+
+    if (fetchErr) throw fetchErr;
+
+    const dbIds = new Set((dbItems || []).map(i => i.id as string));
+    const localIds = new Set(rows.map(r => r.id));
+
+    // 2. Identify IDs to delete
+    const idsToDelete = [...dbIds].filter(id => !localIds.has(id));
+
+    // 3. Perform Deletions
+    if (idsToDelete.length > 0) {
+      console.log(`[DB] Syncing ${table}: Deleting ${idsToDelete.length} items not in local state.`);
+      const { error: delErr } = await supabase
+        .from(table)
+        .delete()
+        .in('id', idsToDelete)
+        .eq('account_id', accountId);
+      if (delErr) throw delErr;
+    }
+
+    // 4. Perform Upsert for remaining/new items
+    if (rows.length > 0) {
+      await bulkUpsert(table, rows, accountId);
+    }
+  });
+}
+
 // Convenience wrappers com tipos
 export const db = {
   fetchTransactions: (accountId?: string) => fetchAll<Transaction>('transactions', accountId),
@@ -268,9 +307,9 @@ export const db = {
   upsertBills: (rows: Bill[], accountId?: string) => bulkUpsert('bills', rows, accountId),
   upsertPayslips: (rows: Payslip[], accountId?: string) => bulkUpsert('payslips', rows, accountId),
   fetchBudgets: (accountId?: string) => fetchAll<Budget>('budgets', accountId),
-  upsertBudgets: (rows: Budget[], accountId?: string) => bulkUpsert('budgets', rows, accountId),
+  upsertBudgets: (rows: Budget[], accountId: string) => syncTable('budgets', rows, accountId),
   fetchGoals: (accountId?: string) => fetchAll<FinancialGoal>('financial_goals', accountId),
-  upsertGoals: (rows: FinancialGoal[], accountId?: string) => bulkUpsert('financial_goals', rows, accountId),
+  upsertGoals: (rows: FinancialGoal[], accountId: string) => syncTable('financial_goals', rows, accountId),
   fetchUserProfile: (userId: string) => withSupabase(async () => {
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
     if (error) throw error;

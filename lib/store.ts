@@ -140,6 +140,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     }),
 
     syncData: async (accountId) => {
+        if (!accountId) return;
         const { transactions, recurringTransactions, bills, payslips, budgets, goals } = get();
         try {
             await Promise.all([
