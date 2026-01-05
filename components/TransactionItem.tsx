@@ -69,7 +69,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
             {isIncome ? `+${formattedAmount}` : formattedAmount}
           </p>
           <div className="flex items-center justify-end gap-1.5 mt-0.5">
-            <span className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-[0.15em] whitespace-nowrap">{transaction.paymentMethod || 'OUTRO'}</span>
+            <span className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-[0.15em] whitespace-nowrap">
+              {transaction.paymentMethod === 'Outro' ? 'Pagamento: Outro' : transaction.paymentMethod || 'Pagamento: Outro'}
+            </span>
             {paymentInfo?.icon && <i className={`fas ${paymentInfo.icon} text-[8px] md:text-[10px] text-gray-400`}></i>}
           </div>
         </div>

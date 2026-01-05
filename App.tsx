@@ -215,17 +215,26 @@ const App: React.FC = () => {
     (async () => {
       try {
         const profile = await db.fetchUserProfile(session.user.id);
+        const sessionName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || '';
+
         if (profile) {
           // Mesclar com o que já temos localmente (ou defaults)
-          setUserProfile(prev => ({
-            ...prev,
+          const mergedProfile = {
+            ...userProfile,
             ...profile,
-            email: session.user.email || profile.email || prev.email
-          }));
+            name: profile.name && profile.name !== 'Seu Nome' ? profile.name : (sessionName || userProfile.name),
+            email: session.user.email || profile.email || userProfile.email
+          };
+          setUserProfile(mergedProfile);
+
+          // Se o nome no DB estava vazio ou default, mas o session tem nome, atualiza o DB
+          if ((!profile.name || profile.name === 'Seu Nome') && sessionName) {
+            await db.upsertUserProfile({ id: session.user.id, ...mergedProfile });
+          }
         } else if (!hasCheckedProfile) {
-          // Primeiro login e sem perfil no banco: usa dados da rede social mas não reseta o que o user já pode ter editado na sessão atual
+          // Primeiro login e sem perfil no banco: usa dados da rede social
           const socialProfile = {
-            name: session.user.user_metadata?.full_name || 'Novo Usuário',
+            name: sessionName || 'Novo Usuário',
             email: session.user.email || '',
             dob: '',
             gender: 'Outro',
@@ -238,8 +247,11 @@ const App: React.FC = () => {
             return prev;
           });
 
+          // Cria o perfil inicial no banco
+          await db.upsertUserProfile({ id: session.user.id, ...socialProfile });
+
           // Se for o primeiro login E não tem nome definido, abre o modal
-          if (!userProfile.name || userProfile.name === 'Seu Nome') {
+          if (!socialProfile.name || socialProfile.name === 'Seu Nome' || socialProfile.name === 'Novo Usuário') {
             setIsProfileModalOpen(true);
           }
         }

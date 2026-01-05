@@ -30,6 +30,8 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onOpenProfil
         fetchAccountMembers(accountId),
         fetchPendingInvites(accountId),
       ]);
+      console.log('InviteModal: Membros carregados:');
+      console.table(m);
       setMembers(m);
       setInvites(i);
     } catch (e: any) {
@@ -251,7 +253,10 @@ const InviteModal: React.FC<InviteModalProps> = ({ isOpen, onClose, onOpenProfil
           </div>
         </div>
 
-        <div className="p-5 bg-[var(--surface)] border-t border-[var(--border)] flex justify-end">
+        <div className="p-5 bg-[var(--surface)] border-t border-[var(--border)] flex justify-between items-center">
+          <div className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-50">
+            ID da Conta: {accountId || 'Local'}
+          </div>
           <button
             onClick={onClose}
             className="px-6 py-2.5 text-sm font-bold rounded-xl text-[var(--primary-foreground)] bg-[var(--primary)] hover:bg-[var(--primary-hover)] shadow-lg shadow-[var(--primary)]/10 transition-all active:scale-[0.95]"
