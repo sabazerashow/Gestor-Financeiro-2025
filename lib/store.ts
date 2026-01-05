@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Transaction, RecurringTransaction, Bill, Payslip, Account, Budget, FinancialGoal } from '../types';
+import { Transaction, RecurringTransaction, Bill, Payslip, Account, Budget, FinancialGoal, PaymentMethod } from '../types';
 import { db } from './db';
 
 interface FinanceState {
@@ -108,8 +108,14 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
             const [tx, rec, bl, ps, bd, gl] = await Promise.all(fetches);
 
+            // Ensure all transactions have a paymentMethod for filtering stability
+            const sanitizedTransactions = (tx as any || []).map((t: any) => ({
+                ...t,
+                paymentMethod: t.paymentMethod || PaymentMethod.OUTRO
+            }));
+
             set({
-                transactions: (tx as any) || [],
+                transactions: sanitizedTransactions,
                 recurringTransactions: (rec as any) || [],
                 bills: (bl as any) || [],
                 payslips: (ps as any) || [],

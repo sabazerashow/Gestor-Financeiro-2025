@@ -283,38 +283,38 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-          <div className="flex-grow">
-            <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Tipo de Lançamento</span>
-            <div className="flex space-x-6">
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="radio"
-                  name="type"
-                  value={TransactionType.INCOME}
-                  checked={type === TransactionType.INCOME}
-                  onChange={() => setType(TransactionType.INCOME)}
-                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 transition-all"
-                />
-                <span className="ml-2 text-sm font-bold text-income group-hover:opacity-80 transition-opacity whitespace-nowrap">Receita</span>
-              </label>
-              <label className="flex items-center cursor-pointer group">
-                <input
-                  type="radio"
-                  name="type"
-                  value={TransactionType.EXPENSE}
-                  checked={type === TransactionType.EXPENSE}
-                  onChange={() => setType(TransactionType.EXPENSE)}
-                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 transition-all"
-                />
-                <span className="ml-2 text-sm font-bold text-expense group-hover:opacity-80 transition-opacity whitespace-nowrap">Despesa</span>
-              </label>
+        <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100 flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Tipo de Lançamento</span>
+              <div className="flex space-x-6">
+                <label className="flex items-center cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="type"
+                    value={TransactionType.INCOME}
+                    checked={type === TransactionType.INCOME}
+                    onChange={() => setType(TransactionType.INCOME)}
+                    className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 transition-all"
+                  />
+                  <span className="ml-2 text-sm font-bold text-income group-hover:opacity-80 transition-opacity whitespace-nowrap">Receita</span>
+                </label>
+                <label className="flex items-center cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="type"
+                    value={TransactionType.EXPENSE}
+                    checked={type === TransactionType.EXPENSE}
+                    onChange={() => setType(TransactionType.EXPENSE)}
+                    className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 transition-all"
+                  />
+                  <span className="ml-2 text-sm font-bold text-expense group-hover:opacity-80 transition-opacity whitespace-nowrap">Despesa</span>
+                </label>
+              </div>
             </div>
-          </div>
 
-          {type === TransactionType.EXPENSE && (
-            <div className="flex items-center sm:justify-end h-10">
-              <label className="flex items-center cursor-pointer group bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm hover:border-[var(--primary)] transition-all">
+            {type === TransactionType.EXPENSE && (
+              <label className="flex items-center cursor-pointer group bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm hover:border-[var(--primary)] transition-all self-start sm:self-auto">
                 <input
                   id="is-installment"
                   type="checkbox"
@@ -323,11 +323,11 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                   className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 rounded transition-all"
                 />
                 <span className="ml-2 block text-sm font-bold text-gray-600 group-hover:text-[var(--primary)] transition-colors whitespace-nowrap">
-                  É parcelado?
+                  Compra parcelada?
                 </span>
               </label>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {error && <ErrorBanner message={error} onClose={() => setError('')} />}
