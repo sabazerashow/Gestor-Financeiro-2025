@@ -283,8 +283,8 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+          <div className="flex-grow">
             <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Tipo de Lançamento</span>
             <div className="flex space-x-6">
               <label className="flex items-center cursor-pointer group">
@@ -294,9 +294,9 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                   value={TransactionType.INCOME}
                   checked={type === TransactionType.INCOME}
                   onChange={() => setType(TransactionType.INCOME)}
-                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 transition-all"
                 />
-                <span className="ml-2 text-sm font-bold text-income group-hover:opacity-80 transition-opacity">Receita</span>
+                <span className="ml-2 text-sm font-bold text-income group-hover:opacity-80 transition-opacity whitespace-nowrap">Receita</span>
               </label>
               <label className="flex items-center cursor-pointer group">
                 <input
@@ -305,15 +305,15 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                   value={TransactionType.EXPENSE}
                   checked={type === TransactionType.EXPENSE}
                   onChange={() => setType(TransactionType.EXPENSE)}
-                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300"
+                  className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 transition-all"
                 />
-                <span className="ml-2 text-sm font-bold text-expense group-hover:opacity-80 transition-opacity">Despesa</span>
+                <span className="ml-2 text-sm font-bold text-expense group-hover:opacity-80 transition-opacity whitespace-nowrap">Despesa</span>
               </label>
             </div>
           </div>
 
           {type === TransactionType.EXPENSE && (
-            <div className="flex items-center justify-end h-10">
+            <div className="flex items-center sm:justify-end h-10">
               <label className="flex items-center cursor-pointer group bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm hover:border-[var(--primary)] transition-all">
                 <input
                   id="is-installment"
@@ -322,7 +322,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
                   onChange={(e) => setIsInstallment(e.target.checked)}
                   className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-gray-300 rounded transition-all"
                 />
-                <span className="ml-2 block text-sm font-bold text-gray-600 group-hover:text-[var(--primary)] transition-colors">
+                <span className="ml-2 block text-sm font-bold text-gray-600 group-hover:text-[var(--primary)] transition-colors whitespace-nowrap">
                   É parcelado?
                 </span>
               </label>

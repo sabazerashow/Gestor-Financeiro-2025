@@ -15,14 +15,11 @@ interface SpendingByCategoryCardProps {
 const SpendingByCategoryCard: React.FC<SpendingByCategoryCardProps> = ({ transactions, paymentMethods, title, icon, footer }) => {
   const data = useMemo(() => {
     const filtered = transactions.filter(t => {
-      // If no paymentMethods filter provided, include all of the right type
+      // If no layer-2 filter (payment methods) provided, include everything in the list
       if (!paymentMethods || paymentMethods.length === 0) return true;
 
-      // If paymentMethod is missing on transaction, include it anyway to avoid empty reports
-      // BUT only if we are showing "all" or it's a category breakdown card
-      if (!t.paymentMethod) return true;
-
-      return paymentMethods.includes(t.paymentMethod);
+      // Only include if the payment method matches explicitly
+      return t.paymentMethod && paymentMethods.includes(t.paymentMethod);
     });
 
     const total = filtered.reduce((acc: number, t) => acc + (Number(t.amount) || 0), 0);
