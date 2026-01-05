@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Transaction, CategoryExpense, CategoryIncome, PaymentMethod } from '../types';
+import { Transaction, CategoryExpense, CategoryIncome, PaymentMethod, TransactionType } from '../types';
 import { categories } from '../categories';
 import PeriodSummaryCard from './PeriodSummaryCard';
 import SpendingByCategoryCard from './report-cards/SpendingByCategoryCard';
@@ -160,7 +160,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
         <div className="lg:col-span-3">
           <SpendingByCategoryCard
-            transactions={analysisTransactions}
+            transactions={analysisTransactions.filter(t => t.type === TransactionType.EXPENSE)}
             paymentMethods={[PaymentMethod.CREDITO, PaymentMethod.DEBITO, PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
             title="Distribuição de Despesas"
             icon="fa-chart-pie"
@@ -170,7 +170,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         {/* Row 3: Credit and Debit (1/2 each) */}
         <div className="lg:col-span-3">
           <SpendingByCategoryCard
-            transactions={analysisTransactions}
+            transactions={analysisTransactions.filter(t => t.type === TransactionType.EXPENSE)}
             paymentMethods={[PaymentMethod.CREDITO]}
             title="Movimentação: Crédito"
             icon="fa-regular fa-credit-card"
@@ -179,7 +179,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
         <div className="lg:col-span-3">
           <SpendingByCategoryCard
-            transactions={analysisTransactions}
+            transactions={analysisTransactions.filter(t => t.type === TransactionType.EXPENSE)}
             paymentMethods={[PaymentMethod.DEBITO, PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
             title="Movimentação: Débito & Outros"
             icon="fa-money-bill-wave"

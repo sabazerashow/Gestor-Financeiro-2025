@@ -41,15 +41,17 @@ const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({ transactions }) =
         const savingsRate = income > 0 ? (balance / income) * 100 : 0;
         const spendingRate = income > 0 ? (expenseTotal / income) * 100 : 0;
 
-        const oneTimeExpenses = expenses
-            .filter(t => !t.installmentDetails)
-            .reduce((sum, t) => sum + Number(t.amount), 0);
-
-        const newInstallmentsTotal = expenses
+        // "Comprometido" should reflect everything already spent this month 
+        // PLUS the remaining value of new installment purchases made in this period.
+        const futureDebtFromNewPurchases = expenses
             .filter(t => t.installmentDetails?.current === 1)
-            .reduce((sum, t) => sum + t.installmentDetails!.totalAmount, 0);
+            .reduce((sum, t) => {
+                const total = t.installmentDetails!.totalAmount;
+                const paidNow = Number(t.amount);
+                return sum + Math.max(0, total - paidNow);
+            }, 0);
 
-        const committedSpending = oneTimeExpenses + newInstallmentsTotal;
+        const committedSpending = expenseTotal + futureDebtFromNewPurchases;
 
         return {
             income,
