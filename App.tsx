@@ -34,8 +34,8 @@ import EditBillModal from './components/EditBillModal';
 import PeriodSummaryCard from './components/PeriodSummaryCard';
 import ExpenseBreakdown from './components/ExpenseBreakdown';
 import IncomeBreakdown from './components/IncomeBreakdown';
-import SpendingByCategoryCard from './components/report-cards/SpendingByCategoryCard';
 import PendingInstallmentsCard from './components/report-cards/PendingInstallmentsCard';
+import UnifiedExpenseAnalysisCard from './components/report-cards/UnifiedExpenseAnalysisCard';
 import { generateContent, generateDeepSeekContent } from '@/lib/aiClient';
 import AuthGate from './components/AuthGate';
 import supabase, { isSupabaseEnabled, isAuthActive } from '@/lib/supabase';
@@ -319,18 +319,11 @@ const App: React.FC = () => {
       component: IncomeBreakdown,
     },
     {
-      id: 'creditCardSpending',
-      title: 'Gastos com Crédito',
-      description: 'Análise detalhada dos seus gastos no cartão de crédito.',
-      icon: 'fa-regular fa-credit-card',
-      component: SpendingByCategoryCard,
-    },
-    {
-      id: 'otherSpending',
-      title: 'Gastos com Débito e Outros',
-      description: 'Análise de gastos com Débito, PIX, Dinheiro, etc.',
-      icon: 'fa-money-bill-wave',
-      component: SpendingByCategoryCard,
+      id: 'unifiedExpenseAnalysis',
+      title: 'Análise Unificada de Gastos',
+      description: 'Visão completa de gastos por categoria e método de pagamento.',
+      icon: 'fa-chart-pie',
+      component: UnifiedExpenseAnalysisCard,
     },
     {
       id: 'pendingInstallments',
@@ -356,8 +349,7 @@ const App: React.FC = () => {
       periodSummary: true,
       expenseBreakdown: true,
       incomeBreakdown: true,
-      creditCardSpending: true,
-      otherSpending: true,
+      unifiedExpenseAnalysis: true,
       pendingInstallments: true,
     };
   });

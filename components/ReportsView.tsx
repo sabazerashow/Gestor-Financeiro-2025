@@ -2,10 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Transaction, CategoryExpense, CategoryIncome, PaymentMethod, TransactionType } from '../types';
-import { categories } from '../categories';
+import { Transaction } from '../types';
 import PeriodSummaryCard from './PeriodSummaryCard';
-import SpendingByCategoryCard from './report-cards/SpendingByCategoryCard';
+import UnifiedExpenseAnalysisCard from './report-cards/UnifiedExpenseAnalysisCard';
+import CashFlowEvolutionCard from './report-cards/CashFlowEvolutionCard';
 import PendingInstallmentsCard from './report-cards/PendingInstallmentsCard';
 import IntelligentAnalysisCards from './IntelligentAnalysisCards';
 
@@ -39,28 +39,6 @@ const ReportsView: React.FC<ReportsViewProps> = ({
       }
     });
   }, [transactions, periodType, selectedMonth, dateRange]);
-
-  const CreditCardFooter = () => {
-    const invoiceTotal = useMemo(() => {
-      return analysisTransactions
-        .filter(t => t.paymentMethod === PaymentMethod.CREDITO)
-        .reduce((acc, t) => acc + Number(t.amount), 0);
-    }, [analysisTransactions]);
-
-    if (invoiceTotal === 0) return null;
-
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const dueDate = new Date(year, month, 10); // Assume due date is 10th of next month
-    const invoiceMonth = new Date(year, month - 1, 1).toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
-
-    return (
-      <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
-        <i className="fas fa-info-circle text-blue-500"></i>
-        <span>Fatura {invoiceMonth} (Vence {dueDate.toLocaleDateString('pt-BR')}):</span>
-        <span className="text-gray-900">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoiceTotal)}</span>
-      </div>
-    );
-  };
 
 
   return (
@@ -149,41 +127,14 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <PeriodSummaryCard transactions={analysisTransactions} />
         </div>
 
-        {/* Row 2: Income and Expenses (50/50) */}
-        <div className="lg:col-span-3">
-          <SpendingByCategoryCard
-            transactions={analysisTransactions.filter(t => t.type === 'income')}
-            paymentMethods={[PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
-            title="Distribuição de Receitas"
-            icon="fa-chart-line"
-          />
-        </div>
-        <div className="lg:col-span-3">
-          <SpendingByCategoryCard
-            transactions={analysisTransactions.filter(t => t.type === TransactionType.EXPENSE)}
-            paymentMethods={[PaymentMethod.CREDITO, PaymentMethod.DEBITO, PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
-            title="Distribuição de Despesas"
-            icon="fa-chart-pie"
-          />
+        {/* Row 2: Cash Flow Evolution (Full Width) */}
+        <div className="lg:col-span-6">
+          <CashFlowEvolutionCard transactions={analysisTransactions} currentMonth={selectedMonth} />
         </div>
 
-        {/* Row 3: Credit and Debit (1/2 each) */}
-        <div className="lg:col-span-3">
-          <SpendingByCategoryCard
-            transactions={analysisTransactions.filter(t => t.type === TransactionType.EXPENSE)}
-            paymentMethods={[PaymentMethod.CREDITO]}
-            title="Movimentação: Crédito"
-            icon="fa-regular fa-credit-card"
-            footer={<CreditCardFooter />}
-          />
-        </div>
-        <div className="lg:col-span-3">
-          <SpendingByCategoryCard
-            transactions={analysisTransactions.filter(t => t.type === TransactionType.EXPENSE)}
-            paymentMethods={[PaymentMethod.DEBITO, PaymentMethod.PIX, PaymentMethod.DINHEIRO, PaymentMethod.OUTRO]}
-            title="Movimentação: Débito & Outros"
-            icon="fa-money-bill-wave"
-          />
+        {/* Row 3: Unified Expense Analysis (Full Width) */}
+        <div className="lg:col-span-6">
+          <UnifiedExpenseAnalysisCard transactions={analysisTransactions} />
         </div>
 
         {/* Row 4: Pending and AI (1/2 each) */}
