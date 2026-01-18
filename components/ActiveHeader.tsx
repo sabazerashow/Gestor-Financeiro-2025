@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { colors, typography, borderRadius } from '../lib/designSystem';
+import { colors, typography } from '../lib/designSystem';
 
 interface ActiveHeaderProps {
     userName: string;
@@ -26,19 +26,6 @@ const ActiveHeader: React.FC<ActiveHeaderProps> = ({
         >
             {/* Saudação Profissional */}
             <div className="flex items-center gap-4">
-                {/* Avatar Icon Profissional */}
-                <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-                    className="w-12 h-12 rounded-full flex items-center justify-center shadow-md"
-                    style={{
-                        backgroundColor: colors.primary,
-                        color: 'white'
-                    }}
-                >
-                    <i className="fas fa-user text-xl"></i>
-                </motion.div>
                 <div>
                     <h1
                         className="font-bold tracking-tight"

@@ -1,5 +1,7 @@
 import { Transaction, Bill, TransactionType, FinancialGoal, Budget } from '../types';
 
+const toLocalDate = (dateStr: string) => new Date(dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`);
+
 /**
  * Calcula o saldo atual baseado nas transações
  */
@@ -60,7 +62,7 @@ export function calculateMonthEndProjection(
     const recentExpenses = transactions
         .filter(t => {
             if (t.type !== TransactionType.EXPENSE) return false;
-            const txDate = new Date(t.date);
+            const txDate = toLocalDate(t.date);
             return txDate >= cutoffDate && txDate <= today;
         });
 
@@ -85,7 +87,7 @@ export function calculateDailyBurnRate(transactions: Transaction[], days: number
     const recentExpenses = transactions
         .filter(t => {
             if (t.type !== TransactionType.EXPENSE) return false;
-            const txDate = new Date(t.date);
+            const txDate = toLocalDate(t.date);
             return txDate >= cutoffDate;
         });
 
@@ -187,7 +189,7 @@ export function detectSpendingAnomalies(
     transactions
         .filter(t => t.type === TransactionType.EXPENSE)
         .forEach(t => {
-            const txDate = new Date(t.date);
+            const txDate = toLocalDate(t.date);
             const category = t.category || 'Outros';
             const amount = Number(t.amount) || 0;
 
@@ -363,7 +365,7 @@ export function calculateBurnRateChartData(
     const dailyData: Record<number, { income: number; expense: number }> = {};
 
     transactions.forEach(t => {
-        const txDate = new Date(t.date);
+        const txDate = toLocalDate(t.date);
         if (txDate.getMonth() + 1 !== month || txDate.getFullYear() !== year) return;
 
         const day = txDate.getDate();

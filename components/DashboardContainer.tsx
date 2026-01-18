@@ -40,6 +40,24 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
         return transactions.filter(t => t.date.startsWith(dashboardMonth));
     }, [transactions, dashboardMonth]);
 
+    const previousMonth = useMemo(() => {
+        const [year, month] = dashboardMonth.split('-').map(Number);
+        const d = new Date(year, month - 1, 1);
+        d.setMonth(d.getMonth() - 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }, [dashboardMonth]);
+
+    const previousMonthSummary = useMemo(() => {
+        const prevTransactions = transactions.filter(t => t.date.startsWith(previousMonth));
+        const income = prevTransactions
+            .filter(t => t.type === TransactionType.INCOME)
+            .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+        const expense = prevTransactions
+            .filter(t => t.type === TransactionType.EXPENSE)
+            .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+        return { income, expense, balance: income - expense };
+    }, [transactions, previousMonth]);
+
     const mainSummary = useMemo(() => {
         const income = currentMonthTransactions
             .filter(t => t.type === TransactionType.INCOME)
@@ -178,7 +196,8 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
                 currentBalance={mainSummary.balance}
                 income={mainSummary.income}
                 expense={mainSummary.expense}
-                projectedBalance={calculateMonthEndProjection(transactions, bills, dashboardMonth)}
+                projectedBalance={calculateMonthEndProjection(currentMonthTransactions, bills, dashboardMonth)}
+                previousMonthSummary={previousMonthSummary}
             />
 
             {/* Hero Card: Burn Rate */}

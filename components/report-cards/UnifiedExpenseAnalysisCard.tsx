@@ -314,7 +314,7 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
                        <p className={`text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-gray-900'}`}>
                          {isIncome ? '+' : '-'}{formatCurrency(t.amount)}
                        </p>
-                       <p className="text-[10px] text-gray-400">{new Date(t.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}</p>
+                       <p className="text-[10px] text-gray-400">{new Date(`${t.date}T00:00:00`).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}</p>
                     </div>
                   </div>
                 );
