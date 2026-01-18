@@ -129,15 +129,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <div className="bg-white p-4 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] flex flex-col min-h-[500px] md:min-h-[680px]">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-            <i className="fas fa-list-ul"></i>
-          </div>
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Histórico de Gastos</h2>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-end md:items-center mb-4 gap-6">
+        <div className="flex flex-wrap md:flex-nowrap items-center gap-4 md:gap-3 md:justify-end overflow-x-auto">
           {showSorting && (
             <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ordenar</span>

@@ -1,31 +1,37 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { Transaction, Bill } from '../types';
-import { calculateCurrentBalance, calculateMonthEndProjection, calculateBurnRateChartData } from '../lib/projectionCalculator';
+import { Transaction } from '../types';
+import { calculateBurnRateChartData } from '../lib/projectionCalculator';
 
 interface BurnRateCardProps {
     transactions: Transaction[];
-    bills: Bill[];
     currentMonth: string;
 }
 
-const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, currentMonth }) => {
-    const currentBalance = useMemo(() => calculateCurrentBalance(transactions), [transactions]);
-
-    const projectedBalance = useMemo(
-        () => calculateMonthEndProjection(transactions, bills, currentMonth),
-        [transactions, bills, currentMonth]
-    );
+const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, currentMonth }) => {
+    const isCurrentMonth = useMemo(() => {
+        const now = new Date();
+        const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        return currentMonth === currentKey;
+    }, [currentMonth]);
 
     const chartData = useMemo(
-        () => calculateBurnRateChartData(transactions, currentMonth),
-        [transactions, currentMonth]
+        () => {
+            const now = new Date();
+            const cutoffDay = isCurrentMonth ? now.getDate() : new Date(Number(currentMonth.split('-')[0]), Number(currentMonth.split('-')[1]), 0).getDate();
+            return calculateBurnRateChartData(transactions, currentMonth, {
+                cutoffDay
+            });
+        },
+        [transactions, currentMonth, isCurrentMonth]
     );
 
     // Calculate dynamic Y-axis domain
     const yAxisDomain = useMemo(() => {
-        const allValues = chartData.flatMap(d => [d.income, d.expense]);
+        const allValues = chartData
+            .flatMap(d => [d.income, d.expense])
+            .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
         const maxValue = Math.max(...allValues, 0);
         const minValue = Math.min(...allValues, 0);
         // Add 10% padding to make lines visible
@@ -34,11 +40,18 @@ const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, curren
     }, [chartData]);
 
     const today = new Date().getDate();
-    const balanceColor = currentBalance >= 0 ? 'text-emerald-600' : 'text-red-600';
-    const projectionColor = projectedBalance >= 0 ? 'text-emerald-500' : 'text-red-500';
 
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+    const renderDotOnToday =
+        (fill: string) =>
+        (props: any) => {
+            if (!isCurrentMonth) return null;
+            const day = Number(props?.payload?.day);
+            if (!Number.isFinite(day) || day !== today) return null;
+            return <circle cx={props.cx} cy={props.cy} r={5} fill={fill} stroke="#ffffff" strokeWidth={2} />;
+        };
 
     return (
         <motion.div
@@ -58,7 +71,7 @@ const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, curren
             {/* Chart - Altura aumentada */}
             <div className="h-96 md:h-[400px] relative z-10">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 28, right: 16, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -105,24 +118,29 @@ const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, curren
                                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                             }}
                             labelStyle={{ fontWeight: 'bold', color: '#111827', marginBottom: '8px' }}
-                            formatter={(value: any) => [formatCurrency(Number(value)), '']}
+                            formatter={(value: any) => {
+                                if (value === null || value === undefined) return ['—', ''];
+                                return [formatCurrency(Number(value)), ''];
+                            }}
                             labelFormatter={(label) => `Dia ${label}`}
                         />
 
                         {/* Linha de referência para o dia atual */}
-                        <ReferenceLine
-                            x={today}
-                            stroke="#6366f1"
-                            strokeWidth={2}
-                            strokeDasharray="5 5"
-                            label={{
-                                value: 'Hoje',
-                                position: 'top',
-                                fill: '#6366f1',
-                                fontSize: 10,
-                                fontWeight: 'bold'
-                            }}
-                        />
+                        {isCurrentMonth && (
+                            <ReferenceLine
+                                x={today}
+                                stroke="#6366f1"
+                                strokeWidth={2}
+                                strokeDasharray="5 5"
+                                label={{
+                                    value: 'HOJE',
+                                    position: 'top',
+                                    fill: '#6366f1',
+                                    fontSize: 10,
+                                    fontWeight: 'bold'
+                                }}
+                            />
+                        )}
 
                         {/* Área de Entradas */}
                         <Area
@@ -132,7 +150,8 @@ const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, curren
                             strokeWidth={3}
                             fill="url(#incomeGradient)"
                             name="Entradas"
-                            strokeDasharray={(point: any) => point.day > today ? '5 5' : undefined}
+                            dot={renderDotOnToday('#10b981')}
+                            activeDot={false}
                         />
 
                         {/* Área de Saídas */}
@@ -143,7 +162,8 @@ const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, curren
                             strokeWidth={3}
                             fill="url(#expenseGradient)"
                             name="Saídas"
-                            strokeDasharray={(point: any) => point.day > today ? '5 5' : undefined}
+                            dot={renderDotOnToday('#ef4444')}
+                            activeDot={false}
                         />
                     </AreaChart>
                 </ResponsiveContainer>
@@ -158,10 +178,6 @@ const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, curren
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <span className="text-xs font-bold text-gray-600">Saídas</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-px bg-gray-400" style={{ width: '20px', borderTop: '2px dashed' }}></div>
-                    <span className="text-xs font-bold text-gray-600">Previsão</span>
                 </div>
             </div>
         </motion.div>

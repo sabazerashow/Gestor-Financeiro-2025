@@ -306,6 +306,16 @@ export const db = {
   upsertRecurring: (rows: RecurringTransaction[], accountId?: string) => bulkUpsert('recurring_transactions', rows, accountId),
   upsertBills: (rows: Bill[], accountId?: string) => bulkUpsert('bills', rows, accountId),
   upsertPayslips: (rows: Payslip[], accountId?: string) => bulkUpsert('payslips', rows, accountId),
+  deleteTransactions: (ids: string[], accountId: string) => withSupabase(async () => {
+    const normalized = (ids || []).map(String).filter(Boolean);
+    if (normalized.length === 0) return;
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .in('id', normalized)
+      .eq('account_id', accountId);
+    if (error) throw error;
+  }),
   fetchBudgets: (accountId?: string) => fetchAll<Budget>('budgets', accountId),
   upsertBudgets: (rows: Budget[], accountId: string) => syncTable('budgets', rows, accountId),
   fetchGoals: (accountId?: string) => fetchAll<FinancialGoal>('financial_goals', accountId),

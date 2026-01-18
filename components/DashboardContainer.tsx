@@ -5,7 +5,6 @@ import TransactionList from './TransactionList';
 import ActiveHeader from './ActiveHeader';
 import MetricsRow from './MetricsRow';
 import BurnRateCard from './BurnRateCard';
-import SuperAnalysisCard from './SuperAnalysisCard';
 import CommitmentRadarCard from './CommitmentRadarCard';
 import { useFinanceStore } from '../lib/store';
 import { Transaction, TransactionType } from '../types';
@@ -19,6 +18,7 @@ interface DashboardContainerProps {
     onDeleteTransaction: (tx: Transaction) => void;
     onOpenIncomeModal: () => void;
     onOpenExpenseModal: () => void;
+    onOpenAddTransactionModal?: () => void;
     onAnalyzeWithAI?: () => void;
     isAnalyzing?: boolean;
 }
@@ -31,6 +31,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
     onDeleteTransaction,
     onOpenIncomeModal,
     onOpenExpenseModal,
+    onOpenAddTransactionModal,
     onAnalyzeWithAI,
     isAnalyzing = false
 }) => {
@@ -114,6 +115,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
                     notificationCount={notificationCount}
                     onOpenIncomeModal={onOpenIncomeModal}
                     onOpenExpenseModal={onOpenExpenseModal}
+                    onOpenAddTransactionModal={onOpenAddTransactionModal}
                     onOpenNotifications={() => {/* TODO: Implementar modal de notificações */ }}
                 />
 
@@ -203,19 +205,10 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
             {/* Hero Card: Burn Rate */}
             <BurnRateCard
                 transactions={currentMonthTransactions}
-                bills={bills}
                 currentMonth={dashboardMonth}
             />
 
-            {/* Middle Section: Super Card + Commitment Radar */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2">
-                    <SuperAnalysisCard transactions={currentMonthTransactions} />
-                </div>
-                <div className="xl:col-span-1">
-                    <CommitmentRadarCard bills={bills} transactions={currentMonthTransactions} />
-                </div>
-            </div>
+            <CommitmentRadarCard bills={bills} transactions={currentMonthTransactions} />
 
         </div>
     );

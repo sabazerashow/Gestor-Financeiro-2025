@@ -7,6 +7,7 @@ interface ActiveHeaderProps {
     notificationCount?: number;
     onOpenIncomeModal: () => void;
     onOpenExpenseModal: () => void;
+    onOpenAddTransactionModal?: () => void;
     onOpenNotifications?: () => void;
 }
 
@@ -15,6 +16,7 @@ const ActiveHeader: React.FC<ActiveHeaderProps> = ({
     notificationCount = 0,
     onOpenIncomeModal,
     onOpenExpenseModal,
+    onOpenAddTransactionModal,
     onOpenNotifications
 }) => {
     return (
@@ -55,6 +57,22 @@ const ActiveHeader: React.FC<ActiveHeaderProps> = ({
 
             {/* Ações Rápidas */}
             <div className="flex items-center gap-3">
+                {onOpenAddTransactionModal && (
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={onOpenAddTransactionModal}
+                        className="relative w-11 h-11 rounded-xl border shadow-sm hover:shadow-md flex items-center justify-center transition-all"
+                        style={{
+                            backgroundColor: colors.background.secondary,
+                            borderColor: colors.gray[200],
+                            color: colors.gray[600],
+                        }}
+                        title="Adicionar lançamento"
+                    >
+                        <i className="fas fa-plus text-lg"></i>
+                    </motion.button>
+                )}
                 {/* Botão Notificações */}
                 {onOpenNotifications && (
                     <motion.button

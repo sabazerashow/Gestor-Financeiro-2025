@@ -21,6 +21,10 @@ export function calculateMonthEndProjection(
     currentMonth: string
 ): number {
     const today = new Date();
+    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    if (currentMonth !== currentMonthKey) {
+        return calculateCurrentBalance(transactions);
+    }
     const [year, month] = currentMonth.split('-').map(Number);
 
     // Último dia do mês
@@ -341,24 +345,26 @@ export function generateRuleBasedInsights(
  */
 export function calculateBurnRateChartData(
     transactions: Transaction[],
-    currentMonth: string
+    currentMonth: string,
+    options?: { cutoffDay?: number; projectedBalance?: number }
 ): Array<{
     day: number;
-    income: number;
-    expense: number;
-    balance: number;
+    income: number | null;
+    expense: number | null;
+    balance: number | null;
+    forecastBalance: number | null;
 }> {
     const [year, month] = currentMonth.split('-').map(Number);
     const daysInMonth = new Date(year, month, 0).getDate();
-    const today = new Date();
-    const currentDay = today.getDate();
+    const cutoffDay = Math.min(Math.max(options?.cutoffDay ?? daysInMonth, 1), daysInMonth);
 
     // Inicializar array com todos os dias do mês
     const chartData = Array.from({ length: daysInMonth }, (_, i) => ({
         day: i + 1,
-        income: 0,
-        expense: 0,
-        balance: 0
+        income: 0 as number | null,
+        expense: 0 as number | null,
+        balance: 0 as number | null,
+        forecastBalance: null as number | null
     }));
 
     // Agrupar transações por dia
@@ -384,6 +390,7 @@ export function calculateBurnRateChartData(
     // Calcular acumulados
     let cumulativeIncome = 0;
     let cumulativeExpense = 0;
+    let balanceAtCutoff = 0;
 
     chartData.forEach((item, index) => {
         const day = item.day;
@@ -392,10 +399,32 @@ export function calculateBurnRateChartData(
         cumulativeIncome += data.income;
         cumulativeExpense += data.expense;
 
-        item.income = cumulativeIncome;
-        item.expense = cumulativeExpense;
-        item.balance = cumulativeIncome - cumulativeExpense;
+        const currentBalance = cumulativeIncome - cumulativeExpense;
+        if (day <= cutoffDay) {
+            item.income = cumulativeIncome;
+            item.expense = cumulativeExpense;
+            item.balance = currentBalance;
+        } else {
+            item.income = null;
+            item.expense = null;
+            item.balance = null;
+        }
+
+        if (day === cutoffDay) {
+            balanceAtCutoff = currentBalance;
+        }
     });
+
+    if (options?.projectedBalance !== undefined && cutoffDay < daysInMonth) {
+        const projected = Number(options.projectedBalance);
+        if (Number.isFinite(projected)) {
+            chartData.forEach(item => {
+                if (item.day < cutoffDay) return;
+                const t = (item.day - cutoffDay) / (daysInMonth - cutoffDay);
+                item.forecastBalance = balanceAtCutoff + (projected - balanceAtCutoff) * t;
+            });
+        }
+    }
 
     return chartData;
 }

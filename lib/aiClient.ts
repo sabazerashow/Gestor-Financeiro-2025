@@ -12,6 +12,33 @@ export type GLMRequest = {
   max_tokens?: number;
 };
 
+async function extractApiErrorMessage(res: Response, defaultMessage: string) {
+  const cloned = res.clone();
+  const statusHint = `${res.status}${res.statusText ? ` ${res.statusText}` : ''}`.trim();
+
+  let bodyText = '';
+  try {
+    bodyText = (await cloned.text())?.trim() || '';
+  } catch { }
+
+  if (bodyText) {
+    try {
+      const parsed = JSON.parse(bodyText);
+      if (parsed && typeof parsed === 'object' && typeof parsed.error === 'string' && parsed.error.trim()) {
+        return parsed.error.trim();
+      }
+    } catch { }
+
+    if (/ECONNREFUSED|connect\s+ECONNREFUSED|proxy error/i.test(bodyText)) {
+      return 'Backend de IA indisponível. Inicie o servidor na porta 4000 (npm run dev).';
+    }
+
+    return bodyText;
+  }
+
+  return `${defaultMessage}${statusHint ? ` (${statusHint})` : ''}`;
+}
+
 export async function generateContent(req: GenerateRequest, options?: { token?: string }) {
   const res = await fetch('/api/ai/generate', {
     method: 'POST',
@@ -22,14 +49,7 @@ export async function generateContent(req: GenerateRequest, options?: { token?: 
     body: JSON.stringify(req),
   });
   if (!res.ok) {
-    let errorMessage = 'Falha ao chamar IA';
-    const resClone = res.clone();
-    try {
-      const errorData = await res.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      errorMessage = await resClone.text() || errorMessage;
-    }
+    const errorMessage = await extractApiErrorMessage(res, 'Falha ao chamar IA');
     console.error(`AI Client Gemini Error [${res.status}]:`, errorMessage);
     throw new Error(errorMessage);
   }
@@ -47,14 +67,7 @@ export async function generateDeepSeekContent(req: GLMRequest, options?: { token
     body: JSON.stringify(req),
   });
   if (!res.ok) {
-    let errorMessage = 'Falha ao chamar DeepSeek API';
-    const resClone = res.clone();
-    try {
-      const errorData = await res.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      errorMessage = await resClone.text() || errorMessage;
-    }
+    const errorMessage = await extractApiErrorMessage(res, 'Falha ao chamar DeepSeek API');
     console.error(`AI Client DeepSeek Error [${res.status}]:`, errorMessage);
     throw new Error(errorMessage);
   }

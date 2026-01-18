@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev:web": "vite",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:server\"",
     "dev:host": "vite --host",
     "dev:server": "nodemon server/index.mjs",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:server\"",
+    "dev:all": "npm run dev",
     "build": "vite build",
     "preview": "vite preview"
   },

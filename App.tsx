@@ -389,6 +389,7 @@ const App: React.FC = () => {
   const [pendingPayslipData, setPendingPayslipData] = useState<Omit<Payslip, 'id'> | null>(null);
   const [fileContent, setFileContent] = useState<{ content: string; mimeType: string } | null>(null);
   const [isQuickAddModalOpen, setIsQuickAddModalOpen] = useState(false);
+  const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
   const [quickAddInitialDescription, setQuickAddInitialDescription] = useState<string | undefined>(undefined);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEditBillModalOpen, setIsEditBillModalOpen] = useState(false);
@@ -761,18 +762,28 @@ const App: React.FC = () => {
   };
 
   const handleDeleteTransaction = (id: string, scope: 'single' | 'all-future') => {
+    let idsToDelete: string[] = [];
     if (scope === 'single') {
       const { deleteTransaction } = useFinanceStore.getState();
       deleteTransaction(id);
+      idsToDelete = [id];
     } else {
       const transaction = transactions.find(t => t.id === id);
       if (transaction?.installmentDetails) {
         const { purchaseId, current } = transaction.installmentDetails;
-        setTransactions(transactions.filter(t =>
-          !(t.installmentDetails?.purchaseId === purchaseId && t.installmentDetails.current >= current)
-        ));
+        idsToDelete = transactions
+          .filter(t => t.installmentDetails?.purchaseId === purchaseId && t.installmentDetails.current >= current)
+          .map(t => t.id);
+        setTransactions(transactions.filter(t => !idsToDelete.includes(t.id)));
       }
     }
+
+    if (isSupabaseEnabled && accountId && idsToDelete.length > 0) {
+      db.deleteTransactions(idsToDelete, accountId).catch((e: any) => {
+        console.error('Falha ao excluir transação no Supabase:', e);
+      });
+    }
+
     setIsDeleteInstallmentModalOpen(false);
     setTransactionToDelete(null);
   };
@@ -990,6 +1001,7 @@ const App: React.FC = () => {
               setQuickAddMode('manual');
               setIsQuickAddModalOpen(true);
             }}
+            onOpenAddTransactionModal={() => setIsAddTransactionModalOpen(true)}
             onAnalyzeWithAI={async () => {
               setAnalyzeScope('pending');
               await analyzeTransactions(transactions, updateTransaction, 'pending');
@@ -999,31 +1011,39 @@ const App: React.FC = () => {
         );
       case 'history':
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <AddTransactionForm
-              onAddTransaction={addTransaction}
-            />
-            <div className="lg:col-span-2">
-              <TransactionList
-                transactions={filteredTransactionsForList}
-                onDelete={handleAttemptDelete}
-                onEdit={handleOpenEditModal}
-                installmentFilter={installmentFilter}
-                onInstallmentFilterChange={setInstallmentFilter}
-                monthFilter={monthFilter}
-                onMonthFilterChange={setMonthFilter}
-                paymentMethodFilter={paymentMethodFilter}
-                onPaymentMethodFilterChange={setPaymentMethodFilter}
-                availableMonths={availableMonths}
-                showFilters={true}
-                onAnalyze={(scope) => {
-                  setAnalyzeScope(scope);
-                  setIsConfirmAnalyzeOpen(true);
-                }}
-                isAnalyzing={isAnalyzing}
-                aiProgress={analysisProgress}
-              />
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm md:text-base font-black text-gray-900 uppercase tracking-widest">
+                Transações
+              </h2>
+              <button
+                onClick={() => setIsAddTransactionModalOpen(true)}
+                className="px-4 py-2 text-sm font-black rounded-xl transition-colors text-white bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] flex items-center justify-center gap-2"
+              >
+                <i className="fas fa-plus"></i>
+                Lançar
+              </button>
             </div>
+
+            <TransactionList
+              transactions={filteredTransactionsForList}
+              onDelete={handleAttemptDelete}
+              onEdit={handleOpenEditModal}
+              installmentFilter={installmentFilter}
+              onInstallmentFilterChange={setInstallmentFilter}
+              monthFilter={monthFilter}
+              onMonthFilterChange={setMonthFilter}
+              paymentMethodFilter={paymentMethodFilter}
+              onPaymentMethodFilterChange={setPaymentMethodFilter}
+              availableMonths={availableMonths}
+              showFilters={true}
+              onAnalyze={(scope) => {
+                setAnalyzeScope(scope);
+                setIsConfirmAnalyzeOpen(true);
+              }}
+              isAnalyzing={isAnalyzing}
+              aiProgress={analysisProgress}
+            />
           </div>
         );
       case 'bills':
@@ -1261,6 +1281,45 @@ const App: React.FC = () => {
         initialDescription={quickAddInitialDescription}
         initialMode={quickAddMode}
       />
+
+      <AnimatePresence>
+        {isAddTransactionModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 8 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-gray-100"
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="p-5 md:p-6 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="text-sm md:text-base font-black text-gray-900 uppercase tracking-widest flex items-center gap-3">
+                  <i className="fas fa-plus-circle text-[var(--primary)]"></i>
+                  Adicionar Lançamento
+                </h2>
+                <button
+                  onClick={() => setIsAddTransactionModalOpen(false)}
+                  className="text-gray-500 hover:text-gray-900 p-2 hover:bg-gray-50 rounded-full transition-colors"
+                  title="Fechar"
+                >
+                  <i className="fas fa-times text-lg"></i>
+                </button>
+              </div>
+              <div className="p-5 md:p-6 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                <AddTransactionForm onAddTransaction={addTransaction} variant="modal" />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {transactionToEdit && (
         <EditTransactionModal

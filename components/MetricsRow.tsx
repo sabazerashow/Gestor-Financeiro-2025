@@ -27,7 +27,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, color, not
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay }}
-            className="relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group"
+            className="relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group h-full flex flex-col"
             style={{
                 padding: spacing.card,
                 boxShadow: shadows.md,
@@ -89,7 +89,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, color, not
             )}
 
             {note && (
-                <p className="mt-3 text-[10px] font-bold text-gray-400 leading-snug max-w-[32ch]">
+                <p className="mt-auto pt-3 text-[10px] font-bold text-gray-400 leading-snug max-w-[32ch]">
                     {note}
                 </p>
             )}
@@ -130,7 +130,7 @@ const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay }}
-            className="relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group"
+            className="relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group h-full flex flex-col"
             style={{
                 padding: spacing.card,
                 boxShadow: shadows.md,
@@ -142,7 +142,7 @@ const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
             />
 
             <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-                <div className="py-2 sm:py-0 sm:pr-6">
+                <div className="py-2 sm:py-0 sm:pr-6 flex flex-col">
                     <p
                         className="uppercase font-bold tracking-wider mb-2"
                         style={{
@@ -164,31 +164,35 @@ const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
                     >
                         {formatCurrency(currentBalance)}
                     </p>
-                    {balanceTrend && (
-                        <div className="flex items-center gap-1">
-                            <span
-                                className="font-bold"
-                                style={{
-                                    fontSize: typography.caption.size,
-                                    color: balanceTrend.isPositive ? colors.success : colors.danger,
-                                }}
-                            >
-                                {Math.abs(balanceTrend.value)}%
-                            </span>
-                            <span
-                                className="font-medium"
-                                style={{
-                                    fontSize: typography.caption.size,
-                                    color: colors.gray[400],
-                                }}
-                            >
-                                vs mês anterior
-                            </span>
-                        </div>
-                    )}
+                    <div className="mt-auto">
+                        {balanceTrend ? (
+                            <div className="flex items-center gap-1">
+                                <span
+                                    className="font-bold"
+                                    style={{
+                                        fontSize: typography.caption.size,
+                                        color: balanceTrend.isPositive ? colors.success : colors.danger,
+                                    }}
+                                >
+                                    {Math.abs(balanceTrend.value)}%
+                                </span>
+                                <span
+                                    className="font-medium"
+                                    style={{
+                                        fontSize: typography.caption.size,
+                                        color: colors.gray[400],
+                                    }}
+                                >
+                                    vs mês anterior
+                                </span>
+                            </div>
+                        ) : (
+                            <span className="text-[10px] font-bold text-gray-300 tracking-widest">sem dados para comparação</span>
+                        )}
+                    </div>
                 </div>
 
-                <div className="py-4 sm:py-0 sm:px-6">
+                <div className="py-4 sm:py-0 sm:px-6 flex flex-col">
                     <p
                         className="uppercase font-bold tracking-wider mb-2"
                         style={{
@@ -210,31 +214,35 @@ const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
                     >
                         {formatCurrency(income)}
                     </p>
-                    {incomeTrend && (
-                        <div className="flex items-center gap-1">
-                            <span
-                                className="font-bold"
-                                style={{
-                                    fontSize: typography.caption.size,
-                                    color: incomeTrend.isPositive ? colors.success : colors.danger,
-                                }}
-                            >
-                                {Math.abs(incomeTrend.value)}%
-                            </span>
-                            <span
-                                className="font-medium"
-                                style={{
-                                    fontSize: typography.caption.size,
-                                    color: colors.gray[400],
-                                }}
-                            >
-                                vs mês anterior
-                            </span>
-                        </div>
-                    )}
+                    <div className="mt-auto">
+                        {incomeTrend ? (
+                            <div className="flex items-center gap-1">
+                                <span
+                                    className="font-bold"
+                                    style={{
+                                        fontSize: typography.caption.size,
+                                        color: incomeTrend.isPositive ? colors.success : colors.danger,
+                                    }}
+                                >
+                                    {Math.abs(incomeTrend.value)}%
+                                </span>
+                                <span
+                                    className="font-medium"
+                                    style={{
+                                        fontSize: typography.caption.size,
+                                        color: colors.gray[400],
+                                    }}
+                                >
+                                    vs mês anterior
+                                </span>
+                            </div>
+                        ) : (
+                            <span className="text-[10px] font-bold text-gray-300 tracking-widest">sem dados para comparação</span>
+                        )}
+                    </div>
                 </div>
 
-                <div className="py-2 sm:py-0 sm:pl-6">
+                <div className="py-2 sm:py-0 sm:pl-6 flex flex-col">
                     <p
                         className="uppercase font-bold tracking-wider mb-2"
                         style={{
@@ -256,28 +264,32 @@ const CombinedMetricsCard: React.FC<CombinedMetricsCardProps> = ({
                     >
                         {formatCurrency(expense)}
                     </p>
-                    {expenseTrend && (
-                        <div className="flex items-center gap-1">
-                            <span
-                                className="font-bold"
-                                style={{
-                                    fontSize: typography.caption.size,
-                                    color: expenseTrend.isPositive ? colors.success : colors.danger,
-                                }}
-                            >
-                                {Math.abs(expenseTrend.value)}%
-                            </span>
-                            <span
-                                className="font-medium"
-                                style={{
-                                    fontSize: typography.caption.size,
-                                    color: colors.gray[400],
-                                }}
-                            >
-                                vs mês anterior
-                            </span>
-                        </div>
-                    )}
+                    <div className="mt-auto">
+                        {expenseTrend ? (
+                            <div className="flex items-center gap-1">
+                                <span
+                                    className="font-bold"
+                                    style={{
+                                        fontSize: typography.caption.size,
+                                        color: expenseTrend.isPositive ? colors.success : colors.danger,
+                                    }}
+                                >
+                                    {Math.abs(expenseTrend.value)}%
+                                </span>
+                                <span
+                                    className="font-medium"
+                                    style={{
+                                        fontSize: typography.caption.size,
+                                        color: colors.gray[400],
+                                    }}
+                                >
+                                    vs mês anterior
+                                </span>
+                            </div>
+                        ) : (
+                            <span className="text-[10px] font-bold text-gray-300 tracking-widest">sem dados para comparação</span>
+                        )}
+                    </div>
                 </div>
             </div>
         </motion.div>
@@ -332,10 +344,10 @@ const MetricsRow: React.FC<MetricsRowProps> = ({
 
     return (
         <div
-            className="grid grid-cols-1 xl:grid-cols-3 gap-5"
+            className="grid grid-cols-1 xl:grid-cols-3 gap-5 items-stretch"
             style={{ marginBottom: spacing.section }}
         >
-            <div className="xl:col-span-2">
+            <div className="xl:col-span-2 h-full">
                 <CombinedMetricsCard
                     currentBalance={currentBalance}
                     income={income}

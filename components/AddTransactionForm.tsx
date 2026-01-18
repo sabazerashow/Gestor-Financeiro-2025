@@ -26,9 +26,10 @@ const cleanJsonString = (str: string) => str.replace(/```json/g, '').replace(/``
 
 interface AddTransactionFormProps {
   onAddTransaction: (transaction: Omit<Transaction, 'id'>, installmentCount?: number) => void;
+  variant?: 'card' | 'modal';
 }
 
-const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransaction }) => {
+const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransaction, variant = 'card' }) => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
@@ -39,6 +40,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
   const [isInstallment, setIsInstallment] = useState(false);
   const [installments, setInstallments] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limite para uploads gerais
@@ -118,6 +120,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
+    setSuccessMessage('');
 
     if (!description || !amount || !category || !subcategory || !date) {
       setError('Todos os campos são obrigatórios.');
@@ -151,6 +154,7 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
     setDescription('');
     setAmount('');
     setError('');
+    setSuccessMessage('Lançamento lançado com sucesso!');
     setCategory('');
     setSubcategory('');
     setDate(new Date().toISOString().split('T')[0]);
@@ -166,15 +170,8 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
   const currentCategoryList = type === TransactionType.INCOME ? incomeCategoryList : expenseCategoryList;
 
 
-  return (
-    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm min-h-[680px]">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-          <i className="fas fa-plus-circle"></i>
-        </div>
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Adicionar Lançamento</h2>
-      </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
+  const form = (
+    <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-[var(--color-text)]">Descrição</label>
           <Input
@@ -331,6 +328,12 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
         </div>
 
         {error && <ErrorBanner message={error} onClose={() => setError('')} />}
+        {successMessage && (
+          <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-3 rounded-2xl text-sm font-bold flex items-center gap-2">
+            <i className="fas fa-check-circle"></i>
+            <span>{successMessage}</span>
+          </div>
+        )}
         <div className="flex flex-col space-y-2 pt-4 border-t border-[var(--border)]">
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Adicionando...' : 'Adicionar'}
@@ -338,7 +341,22 @@ const AddTransactionForm: React.FC<AddTransactionFormProps> = ({ onAddTransactio
 
           {/* Importação/Exportação removidas: apenas adição manual de lançamentos */}
         </div>
-      </form>
+    </form>
+  );
+
+  if (variant === 'modal') {
+    return form;
+  }
+
+  return (
+    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm min-h-[680px]">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+          <i className="fas fa-plus-circle"></i>
+        </div>
+        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Adicionar Lançamento</h2>
+      </div>
+      {form}
     </div>
   );
 };
