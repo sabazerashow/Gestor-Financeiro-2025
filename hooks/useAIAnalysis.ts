@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Transaction } from '../types';
+import { Transaction, PaymentMethod } from '../types';
 import { generateContent, generateDeepSeekContent, cleanJsonString } from '../lib/aiClient';
 import { categories } from '../categories';
 
@@ -33,11 +33,11 @@ export function useAIAnalysis() {
             for (const t of pending) {
                 try {
                     const glmMessages = [
-                        { role: 'system', content: 'Você é um classificador de despesas pessoais. Responda apenas com JSON: {"category":"...","subcategory":"..."} usando uma categoria e subcategoria presentes na estrutura fornecida.' },
+                        { role: 'system', content: 'Você é um classificador de despesas pessoais. Responda apenas com JSON: {"category":"...","subcategory":"...", "clean_description": "...", "payment_method": "..."}. "clean_description": remova valores, datas e termos de pagamento, mantenha apenas o nome do estabelecimento/produto, Capitalizado. "payment_method": use um destes se identificar claramente: "PIX", "Débito", "Crédito", "Dinheiro", "Outro".' },
                         { role: 'user', content: `Descrição: ${t.description}\nEstrutura:\n${availableCategories}` }
                     ];
 
-                    let suggestion: { category?: string; subcategory?: string } = {};
+                    let suggestion: { category?: string; subcategory?: string; clean_description?: string; payment_method?: string } = {};
 
                     try {
                         const deepseekResp = await generateDeepSeekContent({ model: 'deepseek-chat', messages: glmMessages, temperature: 0.1 });
@@ -45,7 +45,7 @@ export function useAIAnalysis() {
                         suggestion = JSON.parse(cleanJsonString(deepseekText));
                     } catch (e) {
                         // Fallback to Gemini
-                        const prompt = `Dada a descrição: "${t.description}", sugira categoria/subcategoria em JSON.\nEstrutura:\n${availableCategories}`;
+                        const prompt = `Dada a descrição: "${t.description}", sugira categoria/subcategoria, uma descrição limpa (clean_description) e método de pagamento (payment_method: PIX, Débito, Crédito, Dinheiro, Outro) em JSON.\nEstrutura:\n${availableCategories}`;
                         const geminiResp = await generateContent({ model: 'gemini-1.5-flash', contents: prompt, expectJson: true });
                         suggestion = JSON.parse(cleanJsonString(geminiResp.text));
                     }
@@ -55,10 +55,24 @@ export function useAIAnalysis() {
                             ? suggestion.subcategory
                             : categories[suggestion.category].subcategories[0];
 
-                        updateTransaction(t.id, {
+                        const updates: Partial<Transaction> = {
                             category: suggestion.category,
                             subcategory: chosenSub
-                        });
+                        };
+
+                        if (suggestion.clean_description) {
+                            updates.description = suggestion.clean_description;
+                        }
+
+                        if (suggestion.payment_method) {
+                            // Validate against Enum
+                            const validMethods = Object.values(PaymentMethod);
+                            if (validMethods.includes(suggestion.payment_method as PaymentMethod)) {
+                                updates.paymentMethod = suggestion.payment_method as PaymentMethod;
+                            }
+                        }
+
+                        updateTransaction(t.id, updates);
                     }
                 } catch (err) {
                     console.error(`Erro ao analisar transação ${t.id}:`, err);

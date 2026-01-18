@@ -140,19 +140,50 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
 
     // Lightweight local parser as fallback when AI is unavailable or fails
     const localParse = (text: string): ParsedTransaction | null => {
-      const raw = text.toLowerCase();
+      let raw = text.toLowerCase();
+      let cleanText = text;
+
+      // 1. Extract Amount
       const amountMatch = raw.match(/(\d+[\.,]?\d*)\s*(reais|r\$|rs)?/);
       if (!amountMatch) return null;
       const amount = parseFloat(amountMatch[1].replace(/\./g, '').replace(',', '.'));
+      
+      // Remove amount from description (and "reais" etc)
+      const amountRegex = new RegExp(amountMatch[0], 'i');
+      cleanText = cleanText.replace(amountRegex, '');
+
+      // 2. Extract Installments
       const installmentsMatch = raw.match(/(\d+)\s*x/);
       const installments = installmentsMatch ? parseInt(installmentsMatch[1]) : 1;
-      let paymentMethod: PaymentMethod = PaymentMethod.OUTRO;
-      if (raw.includes('crédito') || raw.includes('credito') || raw.includes('cartao') || raw.includes('cartão')) paymentMethod = PaymentMethod.CREDITO;
-      else if (raw.includes('débito') || raw.includes('debito')) paymentMethod = PaymentMethod.DEBITO;
-      else if (raw.includes('pix')) paymentMethod = PaymentMethod.PIX;
-      else if (raw.includes('dinheiro')) paymentMethod = PaymentMethod.DINHEIRO;
-      else if (raw.includes('boleto')) paymentMethod = PaymentMethod.OUTRO;
+      if (installmentsMatch) {
+         cleanText = cleanText.replace(new RegExp(installmentsMatch[0], 'i'), '');
+      }
 
+      // 3. Extract Payment Method
+      let paymentMethod: PaymentMethod = PaymentMethod.OUTRO;
+      const paymentPatterns = [
+        { key: PaymentMethod.CREDITO, patterns: ['crédito', 'credito', 'cartao', 'cartão'] },
+        { key: PaymentMethod.DEBITO, patterns: ['débito', 'debito'] },
+        { key: PaymentMethod.PIX, patterns: ['pix'] },
+        { key: PaymentMethod.DINHEIRO, patterns: ['dinheiro'] },
+        { key: PaymentMethod.OUTRO, patterns: ['boleto'] }
+      ];
+
+      for (const p of paymentPatterns) {
+        const found = p.patterns.find(pat => raw.includes(pat));
+        if (found) {
+          paymentMethod = p.key;
+          // Remove payment method text from description
+          // We use a regex to match the word with optional surrounding punctuation/spaces
+          // e.g. " no crédito " -> remove "crédito"
+          // ideally we remove "no crédito" but that's harder. Let's just remove the keyword.
+          const patRegex = new RegExp(`\\b${found}\\b`, 'gi');
+          cleanText = cleanText.replace(patRegex, '');
+          break; // Stop after first match
+        }
+      }
+
+      // 4. Extract Category (Keyword Mapping) - No removal from description needed usually
       let category = 'Outros';
       let subcategory = 'Presentes';
       const map: Array<{ k: RegExp, c: string, s: string }> = [
@@ -160,15 +191,45 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, onClose, onAddTra
         { k: /(restaurante|jantar|almoço|ifood|delivery)/, c: 'Alimentação', s: 'Delivery/Apps' },
         { k: /(supermercado|mercado|compras)/, c: 'Alimentação', s: 'Supermercado/Compras' },
         { k: /(combustível|gasolina|posto)/, c: 'Transporte', s: 'Combustível/Manutenção' },
-        { k: /(internet|luz|energia|conta)/, c: 'Casa/Moradia', s: 'Contas Domésticas' },
+        { k: /(internet|luz|energia|conta|telefone|vivo|claro|tim|oi)/, c: 'Casa/Moradia', s: 'Contas Domésticas' },
         { k: /(saúde|plano|consulta|médico)/, c: 'Saúde', s: 'Consultas/Médicos' },
+        { k: /(uber|99|taxi)/, c: 'Transporte', s: 'Transporte' },
       ];
+      
+      // Update raw for category matching (keywords might have been removed? No, we used original raw for basic matching)
+      // Actually we should match against the original raw or the partially cleaned one? 
+      // Let's use the original raw for safety, but maybe we should use the cleaned one to avoid matching removed words?
+      // For now, original raw is fine.
       for (const m of map) { if (m.k.test(raw)) { category = m.c; subcategory = m.s; break; } }
 
+      // 5. Extract Date
       const date = parseDateFromText(text, today);
+      // Try to remove date strings like "dia 15", "ontem", "hoje"
+      const datePatterns = [
+         /\bdia\s*\d{1,2}\b/gi,
+         /\bhoje\b/gi,
+         /\bontem\b/gi,
+         /\b\d{1,2}\s*(?:de\s*)?(?:janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|jan|fev|mar|abr|jun|jul|ago|set|out|nov|dez)\b/gi,
+         /\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{4})?\b/gi
+      ];
+      for (const dp of datePatterns) {
+        cleanText = cleanText.replace(dp, '');
+      }
 
-      const description = text.trim();
-      return { description, amount, category, subcategory, paymentMethod, date, installments };
+      // 6. Final Cleanup of Description
+      // Remove common prepositions/connectors often left dangling: "no", "em", "de", "-", "pelo"
+      // And remove extra spaces, non-alphanumeric at start/end
+      cleanText = cleanText
+        .replace(/\b(no|na|em|de|do|da|por|pelo|pela)\b/gi, ' ') // Remove connectors
+        .replace(/[\s\-\.,]+$/g, '') // Remove trailing punctuation
+        .replace(/^[\s\-\.,]+/g, '') // Remove leading punctuation
+        .replace(/\s+/g, ' ') // Collapse spaces
+        .trim();
+
+      // Capitalize first letter
+      const description = cleanText.charAt(0).toUpperCase() + cleanText.slice(1);
+
+      return { description: description || 'Despesa', amount, category, subcategory, paymentMethod, date, installments };
     };
 
     try {
