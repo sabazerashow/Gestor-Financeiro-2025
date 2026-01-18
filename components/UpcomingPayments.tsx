@@ -62,48 +62,92 @@ const UpcomingPaymentItem: React.FC<{ bill: Bill; dueDate: Date; onPayBill: (des
 
 
 const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ bills, onPayBill, transactions }) => {
+  const [sortField, setSortField] = React.useState<'date' | 'description' | 'amount' | 'category'>('date');
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
+
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Use a consistent start-of-day for comparisons
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
 
-  const upcoming = bills
-    .filter(bill => !bill.isAutoDebit)
-    .map(bill => {
-      // The due date for the current calendar month
-      const dueDate = new Date(currentYear, currentMonth, bill.dueDay);
-      return { bill, dueDate };
-    })
-    .filter(({ bill }) => {
-      // Filter out bills that have already been paid this month.
-      const hasBeenPaidThisMonth = transactions.some(t =>
-        t.type === TransactionType.EXPENSE &&
-        t.description.toLowerCase().includes(bill.description.toLowerCase()) &&
-        new Date(t.date + 'T00:00:00').getMonth() === currentMonth &&
-        new Date(t.date + 'T00:00:00').getFullYear() === currentYear
-      );
-      return !hasBeenPaidThisMonth;
-    })
-    .filter(({ dueDate }) => {
-      // Show reminders for bills that are overdue or due within the next 15 days.
-      const diffTime = dueDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      // Show if overdue (diffDays < 0) or upcoming in the next 15 days (0 <= diffDays <= 15)
-      return diffDays <= 15;
-    })
-    .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+  const upcoming = React.useMemo(() => {
+    let list = bills
+      .filter(bill => !bill.isAutoDebit)
+      .map(bill => {
+        // The due date for the current calendar month
+        const dueDate = new Date(currentYear, currentMonth, bill.dueDay);
+        return { bill, dueDate };
+      })
+      .filter(({ bill }) => {
+        // Filter out bills that have already been paid this month.
+        const hasBeenPaidThisMonth = transactions.some(t =>
+          t.type === TransactionType.EXPENSE &&
+          t.description.toLowerCase().includes(bill.description.toLowerCase()) &&
+          new Date(t.date + 'T00:00:00').getMonth() === currentMonth &&
+          new Date(t.date + 'T00:00:00').getFullYear() === currentYear
+        );
+        return !hasBeenPaidThisMonth;
+      })
+      .filter(({ dueDate }) => {
+        // Show reminders for bills that are overdue or due within the next 15 days.
+        const diffTime = dueDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        // Show if overdue (diffDays < 0) or upcoming in the next 15 days (0 <= diffDays <= 15)
+        return diffDays <= 15;
+      });
+
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    list.sort((a, b) => {
+      switch (sortField) {
+        case 'description':
+          return dir * a.bill.description.localeCompare(b.bill.description, 'pt-BR', { sensitivity: 'base' });
+        case 'amount':
+          return dir * ((Number(a.bill.amount) || 0) - (Number(b.bill.amount) || 0));
+        case 'category':
+          return dir * (a.bill.category || '').localeCompare(b.bill.category || '', 'pt-BR', { sensitivity: 'base' });
+        case 'date':
+        default:
+          return dir * (a.dueDate.getTime() - b.dueDate.getTime());
+      }
+    });
+
+    return list;
+  }, [bills, transactions, sortField, sortDirection, currentMonth, currentYear]);
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] h-full flex flex-col min-h-[400px] md:min-h-[680px]">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
             <i className="fas fa-file-invoice-dollar"></i>
           </div>
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contas Próximas</h2>
         </div>
-        <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-100">
-          {upcoming.length} Pendentes
+        
+        <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-2 py-1">
+            <select
+                value={sortField}
+                onChange={(e) => setSortField(e.target.value as any)}
+                className="bg-transparent border-none text-[10px] font-black text-gray-500 uppercase tracking-widest focus:outline-none cursor-pointer w-20"
+            >
+                <option value="date">Data</option>
+                <option value="description">Nome</option>
+                <option value="amount">Valor</option>
+                <option value="category">Tipo</option>
+            </select>
+            <button
+                type="button"
+                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+                className="w-6 h-6 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
+                title={sortDirection === 'asc' ? 'Crescente' : 'Decrescente'}
+            >
+                <i className={`fas ${sortDirection === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-short-wide'} text-xs`}></i>
+            </button>
+            </div>
+            <div className="px-3 py-1 rounded-full bg-blue-50 text-blue-500 text-[10px] font-black uppercase tracking-widest border border-blue-100 whitespace-nowrap">
+            {upcoming.length} Pendentes
+            </div>
         </div>
       </div>
 

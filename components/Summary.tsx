@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Transaction, TransactionType } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface SummaryProps {
   income: number;
@@ -12,7 +12,7 @@ interface SummaryProps {
   onMonthChange: (direction: 'prev' | 'next') => void;
 }
 
-const COLORS = ['#2ab29a', '#3b82f6', '#8b5cf6', '#f59e0b'];
+const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
 
 const Summary: React.FC<SummaryProps> = ({ income, expense, balance, transactions = [], currentMonth, onMonthChange }) => {
   const balanceColor = balance >= 0 ? 'text-[#111111]' : 'text-red-500';
@@ -59,8 +59,7 @@ const Summary: React.FC<SummaryProps> = ({ income, expense, balance, transaction
       .map(([name, value]) => ({ name, value }));
   }, [transactions]);
 
-  // Process Expense Breakdown (for Chart)
-  const expenseBreakdown = useMemo(() => {
+  const expenseChart = useMemo(() => {
     const expenseTx = transactions.filter(t => t.type === TransactionType.EXPENSE);
     const grouped = expenseTx.reduce((acc, t) => {
       const cat = t.category || 'Outros';
@@ -68,10 +67,15 @@ const Summary: React.FC<SummaryProps> = ({ income, expense, balance, transaction
       return acc;
     }, {} as Record<string, number>);
 
-    return Object.entries(grouped)
-      .sort(([, a], [, b]) => (b as number) - (a as number))
-      .slice(0, 3) // Top 3 for chart/legend
-      .map(([name, value]) => ({ name, value }));
+    const categoryBreakdown = Object.entries(grouped)
+      .map(([name, value]) => ({ name, value: Number(value) || 0 }))
+      .filter(i => i.value > 0)
+      .sort((a, b) => b.value - a.value);
+
+    const total = categoryBreakdown.reduce((sum, i) => sum + i.value, 0);
+    const chartData = categoryBreakdown;
+
+    return { total, chartData };
   }, [transactions]);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -150,47 +154,63 @@ const Summary: React.FC<SummaryProps> = ({ income, expense, balance, transaction
 
         <div className="flex items-center flex-1 min-h-0">
           <div className="w-1/2 h-full">
-            <ResponsiveContainer width="100%" height="100%" minHeight={100}>
-              <PieChart>
-                <Pie
-                  data={expenseBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={30}
-                  outerRadius={45}
-                  paddingAngle={8}
-                  dataKey="value"
-                  stroke="none"
-                  isAnimationActive={true}
-                >
-                  {expenseBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="w-1/2 space-y-2 pl-4">
-            {expenseBreakdown.map((item, idx) => (
-              <div key={idx} className="flex flex-col">
-                <div className="flex items-center justify-between mb-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase truncate max-w-[70px]">{item.name}</span>
-                  </div>
-                  <span className="text-[10px] font-black text-gray-900">{Math.round((item.value / expense) * 100)}%</span>
-                </div>
-                <div className="w-full h-1 bg-gray-50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      backgroundColor: COLORS[idx % COLORS.length],
-                      width: `${(item.value / expense) * 100}%`
+            {expenseChart.total > 0 ? (
+              <ResponsiveContainer width="100%" height="100%" minHeight={100}>
+                <PieChart>
+                  <Pie
+                    data={expenseChart.chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={30}
+                    outerRadius={45}
+                    paddingAngle={8}
+                    dataKey="value"
+                    stroke="none"
+                    isAnimationActive={true}
+                  >
+                    {expenseChart.chartData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: any, name: any) => {
+                      const val = Number(value) || 0;
+                      const pct = expenseChart.total ? ((val / expenseChart.total) * 100).toFixed(1) : '0.0';
+                      return [`${formatCurrency(val)} (${pct}%)`, name];
                     }}
-                  ></div>
-                </div>
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-300 text-xs italic">
+                Sem dados de saída
               </div>
-            ))}
+            )}
+          </div>
+          <div className="w-1/2 space-y-2 pl-4 overflow-y-auto custom-scrollbar h-full pr-1">
+            {expenseChart.chartData.map((item, idx) => {
+              const pct = expenseChart.total ? (item.value / expenseChart.total) * 100 : 0;
+              return (
+                <div key={item.name} className="flex flex-col">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
+                      <span className="text-[10px] font-black text-gray-400 uppercase truncate max-w-[70px]">{item.name}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-gray-900 tabular-nums">{formatCurrency(item.value)}</span>
+                  </div>
+                  <div className="w-full h-1 bg-gray-50 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        backgroundColor: COLORS[idx % COLORS.length],
+                        width: `${pct}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </motion.div>

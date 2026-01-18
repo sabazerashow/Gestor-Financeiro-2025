@@ -19,6 +19,9 @@ interface TransactionListProps {
   onPaymentMethodFilterChange?: (filter: 'all' | PaymentMethod) => void;
   availableMonths?: string[];
   showFilters?: boolean;
+  showSorting?: boolean;
+  onAnalyzePending?: () => void;
+  isAnalyzingPending?: boolean;
 }
 
 const FilterButton: React.FC<{
@@ -49,10 +52,13 @@ const TransactionList: React.FC<TransactionListProps> = ({
   onPaymentMethodFilterChange,
   availableMonths = [],
   showFilters = true,
+  showSorting = true,
   onAnalyzePending,
   isAnalyzingPending
 }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [sortField, setSortField] = React.useState<'date' | 'description' | 'amount' | 'type' | 'paymentMethod'>('date');
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc');
 
   const filteredBySearch = React.useMemo(() => {
     if (!searchTerm) return transactions;
@@ -64,12 +70,38 @@ const TransactionList: React.FC<TransactionListProps> = ({
     );
   }, [transactions, searchTerm]);
 
+  const sortedTransactions = React.useMemo(() => {
+    const list = [...filteredBySearch];
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    list.sort((a, b) => {
+      switch (sortField) {
+        case 'description': {
+          return dir * a.description.localeCompare(b.description, 'pt-BR', { sensitivity: 'base' });
+        }
+        case 'amount': {
+          return dir * ((Number(a.amount) || 0) - (Number(b.amount) || 0));
+        }
+        case 'type': {
+          return dir * String(a.type).localeCompare(String(b.type), 'pt-BR', { sensitivity: 'base' });
+        }
+        case 'paymentMethod': {
+          return dir * String(a.paymentMethod || '').localeCompare(String(b.paymentMethod || ''), 'pt-BR', { sensitivity: 'base' });
+        }
+        case 'date':
+        default: {
+          return dir * (new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime());
+        }
+      }
+    });
+    return list;
+  }, [filteredBySearch, sortDirection, sortField]);
+
   const groupedTransactions = React.useMemo<Record<string, Transaction[]> | null>(() => {
     if (monthFilter !== 'all') {
       return null;
     }
 
-    return filteredBySearch.reduce((acc: Record<string, Transaction[]>, transaction) => {
+    return sortedTransactions.reduce((acc: Record<string, Transaction[]>, transaction) => {
       const date = new Date(transaction.date + 'T00:00:00');
       const monthYear = date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
@@ -79,7 +111,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       acc[monthYear].push(transaction);
       return acc;
     }, {});
-  }, [filteredBySearch, monthFilter]);
+  }, [sortedTransactions, monthFilter]);
 
 
   const renderTransactionList = (list: Transaction[]) => (
@@ -102,49 +134,76 @@ const TransactionList: React.FC<TransactionListProps> = ({
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Histórico de Gastos</h2>
         </div>
 
-        {showFilters && (
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="relative group">
-              <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs group-focus-within:text-[var(--primary)] transition-colors"></i>
-              <input
-                type="text"
-                placeholder="Pesquisar lançamentos..."
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-50 pl-10 pr-4 py-2 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-64 outline-none transition-all hover:bg-gray-100"
-              />
-            </div>
-
-            {onMonthFilterChange && (
+        <div className="flex flex-wrap items-center gap-4">
+          {showSorting && (
+            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ordenar</span>
               <select
-                value={monthFilter}
-                onChange={(e) => onMonthFilterChange(e.target.value)}
-                className="bg-gray-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/10 cursor-pointer hover:bg-gray-100 transition-all"
+                value={sortField}
+                onChange={(e) => setSortField(e.target.value as any)}
+                className="bg-transparent border-none text-xs font-black text-gray-600 uppercase tracking-widest focus:outline-none cursor-pointer"
               >
-                <option value="all">Ver Tudo</option>
-                {availableMonths.map(month => {
-                  const [year, m] = month.split('-');
-                  const monthName = new Date(Number(year), Number(m) - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-                  return <option key={month} value={month}>{monthName}</option>
-                })}
+                <option value="date">Data</option>
+                <option value="description">Nome</option>
+                <option value="amount">Valor</option>
+                <option value="type">Tipo</option>
+                <option value="paymentMethod">Pagamento</option>
               </select>
-            )}
-
-            {onAnalyzePending && (
               <button
-                onClick={onAnalyzePending}
-                disabled={isAnalyzingPending}
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--primary)] hover:bg-gray-100 transition-all"
-                title="Analisar com IA"
+                type="button"
+                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
+                title={sortDirection === 'asc' ? 'Crescente' : 'Decrescente'}
               >
-                {isAnalyzingPending ? (
-                  <i className="fas fa-spinner fa-spin"></i>
-                ) : (
-                  <i className="fas fa-wand-magic-sparkles"></i>
-                )}
+                <i className={`fas ${sortDirection === 'asc' ? 'fa-arrow-up-short-wide' : 'fa-arrow-down-short-wide'}`}></i>
               </button>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+
+          {showFilters && (
+            <>
+              <div className="relative group">
+                <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs group-focus-within:text-[var(--primary)] transition-colors"></i>
+                <input
+                  type="text"
+                  placeholder="Pesquisar lançamentos..."
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-gray-50 pl-10 pr-4 py-2 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-64 outline-none transition-all hover:bg-gray-100"
+                />
+              </div>
+
+              {onMonthFilterChange && (
+                <select
+                  value={monthFilter}
+                  onChange={(e) => onMonthFilterChange(e.target.value)}
+                  className="bg-gray-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/10 cursor-pointer hover:bg-gray-100 transition-all"
+                >
+                  <option value="all">Ver Tudo</option>
+                  {availableMonths.map(month => {
+                    const [year, m] = month.split('-');
+                    const monthName = new Date(Number(year), Number(m) - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+                    return <option key={month} value={month}>{monthName}</option>
+                  })}
+                </select>
+              )}
+
+              {onAnalyzePending && (
+                <button
+                  onClick={onAnalyzePending}
+                  disabled={isAnalyzingPending}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--primary)] hover:bg-gray-100 transition-all"
+                  title="Analisar com IA"
+                >
+                  {isAnalyzingPending ? (
+                    <i className="fas fa-spinner fa-spin"></i>
+                  ) : (
+                    <i className="fas fa-wand-magic-sparkles"></i>
+                  )}
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <div className="w-full text-left border-collapse overflow-y-auto pr-2 custom-scrollbar" style={{ height: '500px' }}>
@@ -159,7 +218,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
               </div>
             ))
           ) : (
-            renderTransactionList(filteredBySearch)
+            renderTransactionList(sortedTransactions)
           )}
         </div>
       </div>

@@ -6,7 +6,7 @@ interface EditTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   transaction: Transaction;
-  onUpdate: (id: string, transaction: Omit<Transaction, 'id'>) => void;
+  onUpdate: (id: string, transaction: Omit<Transaction, 'id'>, installmentCount?: number) => void;
 }
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onClose, transaction, onUpdate }) => {
@@ -17,17 +17,31 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
   const [subcategory, setSubcategory] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.DEBITO);
   const [date, setDate] = useState('');
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [installments, setInstallments] = useState('1');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (transaction) {
-      setDescription(transaction.description);
-      setAmount(String(transaction.amount));
+      const isInst = !!transaction.installmentDetails;
+      setIsInstallment(isInst);
+      setInstallments(String(transaction.installmentDetails?.total || 1));
+
+      const baseDescription = transaction.description.replace(/\s\(\d+\/\d+\)$/, '');
+      setDescription(baseDescription);
+
+      setAmount(String(transaction.installmentDetails?.totalAmount ?? transaction.amount));
       setType(transaction.type);
       setCategory(transaction.category || '');
       setSubcategory(transaction.subcategory || '');
       setPaymentMethod(transaction.paymentMethod || PaymentMethod.DEBITO);
-      setDate(transaction.date);
+      if (transaction.installmentDetails) {
+        const dt = new Date(transaction.date + 'T00:00:00');
+        dt.setMonth(dt.getMonth() - Math.max(0, (transaction.installmentDetails.current || 1) - 1));
+        setDate(dt.toISOString().split('T')[0]);
+      } else {
+        setDate(transaction.date);
+      }
     }
   }, [transaction]);
 
@@ -44,6 +58,14 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
       return;
     }
 
+    const installmentCount = type === TransactionType.EXPENSE && isInstallment ? parseInt(installments, 10) : 1;
+    if (type === TransactionType.EXPENSE && isInstallment) {
+      if (!Number.isFinite(installmentCount) || installmentCount < 2) {
+        setError('Número de parcelas inválido (mínimo 2).');
+        return;
+      }
+    }
+
     onUpdate(transaction.id, {
       ...transaction, // Preserve fields like installmentDetails
       description,
@@ -53,7 +75,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
       category,
       subcategory,
       paymentMethod,
-    });
+    }, installmentCount);
 
     onClose();
   };
@@ -81,13 +103,14 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
-              disabled={!!transaction.installmentDetails}
             />
-             {transaction.installmentDetails && <p className="text-xs text-[var(--color-text-muted)] mt-1">A descrição de transações parceladas não pode ser editada individualmente.</p>}
+            {transaction.installmentDetails && <p className="text-xs text-[var(--color-text-muted)] mt-1">Esta edição será aplicada à compra parcelada (todas as parcelas).</p>}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="edit-amount" className="block text-sm font-medium text-[var(--color-text)]">Valor (R$)</label>
+              <label htmlFor="edit-amount" className="block text-sm font-medium text-[var(--color-text)]">
+                {type === TransactionType.EXPENSE && isInstallment ? 'Valor total (R$)' : 'Valor (R$)'}
+              </label>
               <input
                 type="number"
                 id="edit-amount"
@@ -165,7 +188,11 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
                   name="edit-type"
                   value={TransactionType.INCOME}
                   checked={type === TransactionType.INCOME}
-                  onChange={() => setType(TransactionType.INCOME)}
+                  onChange={() => {
+                    setType(TransactionType.INCOME);
+                    setIsInstallment(false);
+                    setInstallments('1');
+                  }}
                   className="form-radio h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)]"
                 />
                 <span className="ml-2 text-sm text-income">Receita</span>
@@ -183,6 +210,37 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ isOpen, onC
               </label>
             </div>
           </div>
+          {type === TransactionType.EXPENSE && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isInstallment}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setIsInstallment(checked);
+                    if (checked && (!installments || Number(installments) < 2)) setInstallments('2');
+                    if (!checked) setInstallments('1');
+                  }}
+                  className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)] rounded"
+                />
+                <span className="text-sm font-medium text-[var(--color-text)]">Compra parcelada?</span>
+              </label>
+              <div className={isInstallment ? '' : 'opacity-50'}>
+                <label htmlFor="edit-installments" className="block text-sm font-medium text-[var(--color-text)]">Número de parcelas</label>
+                <input
+                  type="number"
+                  id="edit-installments"
+                  value={installments}
+                  onChange={(e) => setInstallments(e.target.value)}
+                  disabled={!isInstallment}
+                  min={2}
+                  step={1}
+                  className="mt-1 block w-full bg-[var(--surface)] border border-[var(--border)] rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[var(--primary)] focus:border-[var(--primary)] sm:text-sm"
+                />
+              </div>
+            </div>
+          )}
           {error && <p className="text-sm text-[var(--destructive)] mt-2">{error}</p>}
         </form>
 

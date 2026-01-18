@@ -92,33 +92,35 @@ const App: React.FC = () => {
   const [goalToEdit, setGoalToEdit] = useState<FinancialGoal | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
-  // Seed desativado: zerar dados locais caso estejam vazios
   useEffect(() => {
     if (isSupabaseEnabled) return;
-    const hasTransactions = transactions && transactions.length > 0;
-    const hasPayslips = payslips && payslips.length > 0;
-    const hasRecurring = recurringTransactions && recurringTransactions.length > 0;
-    const hasBills = bills && bills.length > 0;
 
-    if (!hasTransactions) {
-      setTransactions([]);
-      try { localStorage.removeItem('transactions'); } catch { /* ignore */ }
-    }
+    const readArray = <T,>(key: string): T[] | null => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? (parsed as T[]) : null;
+      } catch {
+        return null;
+      }
+    };
 
-    if (!hasPayslips) {
-      setPayslips([]);
-      try { localStorage.removeItem('payslips'); } catch { /* ignore */ }
-    }
+    const savedTransactions = readArray<Transaction>('transactions');
+    const savedPayslips = readArray<Payslip>('payslips');
+    const savedRecurring = readArray<RecurringTransaction>('recurringTransactions');
+    const savedBills = readArray<Bill>('bills');
+    const savedBudgets = readArray<Budget>('budgets');
+    const savedGoals = readArray<FinancialGoal>('goals');
 
-    if (!hasRecurring) {
-      setRecurringTransactions([]);
-      try { localStorage.removeItem('recurringTransactions'); } catch { /* ignore */ }
+    if (savedTransactions && savedTransactions.length > 0) {
+      setTransactions(savedTransactions.map(t => ({ ...t, paymentMethod: t.paymentMethod || PaymentMethod.OUTRO })));
     }
-
-    if (!hasBills) {
-      setBills([]);
-      try { localStorage.removeItem('bills'); } catch { /* ignore */ }
-    }
+    if (savedPayslips && savedPayslips.length > 0) setPayslips(savedPayslips);
+    if (savedRecurring && savedRecurring.length > 0) setRecurringTransactions(savedRecurring);
+    if (savedBills && savedBills.length > 0) setBills(savedBills);
+    if (savedBudgets && savedBudgets.length > 0) setBudgets(savedBudgets);
+    if (savedGoals && savedGoals.length > 0) setGoals(savedGoals);
   }, []);
 
   // One-shot de-duplication for transactions persisted from previous dev sessions
@@ -624,6 +626,93 @@ const App: React.FC = () => {
       };
       setTransactions(prev => [...prev, newTransaction]);
     }
+  };
+
+  const updateTransactionWithInstallments = (id: string, updated: Omit<Transaction, 'id'>, installmentCount: number = 1) => {
+    const normalizeBaseDescription = (val: string) => val.replace(/\s\(\d+\/\d+\)$/, '');
+    const splitAmounts = (totalAmount: number, count: number) => {
+      const totalCents = Math.round((Number(totalAmount) || 0) * 100);
+      const base = Math.floor(totalCents / count);
+      const cents: number[] = Array.from({ length: count }, () => base);
+      cents[count - 1] = totalCents - base * (count - 1);
+      return cents.map(v => v / 100);
+    };
+
+    setTransactions(prev => {
+      const existing = prev.find(t => t.id === id);
+      if (!existing) return prev;
+
+      const baseDescription = normalizeBaseDescription(updated.description || existing.description);
+      const nextBase: Omit<Transaction, 'id'> = {
+        ...existing,
+        ...updated,
+        description: baseDescription,
+        paymentMethod: updated.paymentMethod || existing.paymentMethod || PaymentMethod.OUTRO,
+      };
+
+      const wantInstallments = nextBase.type === TransactionType.EXPENSE && installmentCount > 1;
+
+      const buildSeries = (purchaseId: string) => {
+        const totalAmount = Number(nextBase.amount) || 0;
+        const amounts = splitAmounts(totalAmount, installmentCount);
+        const startDate = new Date(nextBase.date + 'T00:00:00');
+
+        return amounts.map((amt, idx) => {
+          const installmentDate = new Date(startDate);
+          installmentDate.setMonth(startDate.getMonth() + idx);
+          return {
+            ...nextBase,
+            id: `${purchaseId}-${idx + 1}`,
+            description: `${baseDescription} (${idx + 1}/${installmentCount})`,
+            amount: amt,
+            date: installmentDate.toISOString().split('T')[0],
+            createdBy: existing.createdBy,
+            createdByName: existing.createdByName,
+            installmentDetails: {
+              purchaseId,
+              current: idx + 1,
+              total: installmentCount,
+              totalAmount: totalAmount,
+            }
+          } as Transaction;
+        });
+      };
+
+      if (existing.installmentDetails) {
+        const purchaseId = existing.installmentDetails.purchaseId;
+        const withoutPurchase = prev.filter(t => t.installmentDetails?.purchaseId !== purchaseId);
+
+        if (!wantInstallments) {
+          const single: Transaction = {
+            ...existing,
+            ...nextBase,
+            id: existing.id,
+            description: baseDescription,
+            amount: Number(nextBase.amount) || 0,
+            installmentDetails: undefined,
+          };
+          return [...withoutPurchase, single];
+        }
+
+        return [...withoutPurchase, ...buildSeries(purchaseId)];
+      }
+
+      if (!wantInstallments) {
+        const single: Transaction = {
+          ...existing,
+          ...nextBase,
+          id: existing.id,
+          description: baseDescription,
+          amount: Number(nextBase.amount) || 0,
+          installmentDetails: undefined,
+        };
+        return prev.map(t => (t.id === id ? single : t));
+      }
+
+      const purchaseId = `inst-${new Date().getTime()}`;
+      const withoutExisting = prev.filter(t => t.id !== id);
+      return [...withoutExisting, ...buildSeries(purchaseId)];
+    });
   };
 
   const addMultipleTransactions = (transactionsToAdd: Omit<Transaction, 'id'>[]) => {
@@ -1168,7 +1257,7 @@ const App: React.FC = () => {
           isOpen={isEditModalOpen}
           onClose={handleCloseEditModal}
           transaction={transactionToEdit}
-          onUpdate={updateTransaction}
+          onUpdate={updateTransactionWithInstallments}
         />
       )}
 
