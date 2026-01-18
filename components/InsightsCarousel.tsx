@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction, FinancialGoal, Budget } from '../types';
 import { generateRuleBasedInsights, calculateMonthEndProjection, FinancialInsight } from '../lib/projectionCalculator';
+import { colors as designSystemColors } from '../lib/designSystem';
 
 interface InsightsCarouselProps {
     transactions: Transaction[];
@@ -31,6 +32,24 @@ const InsightsCarousel: React.FC<InsightsCarouselProps> = ({
         () => generateRuleBasedInsights(transactions, goals, budgets, projectedBalance),
         [transactions, goals, budgets, projectedBalance]
     );
+
+    const colorMap = {
+        goal: {
+            bg: '#EFF6FF',
+            text: designSystemColors.primary,
+            border: '#BFDBFE'
+        },
+        alert: {
+            bg: '#FFF7ED',
+            text: designSystemColors.warning,
+            border: '#FED7AA'
+        },
+        tip: {
+            bg: '#F0FDF4',
+            text: designSystemColors.success,
+            border: '#BBF7D0'
+        }
+    };
 
     const nextSlide = () => {
         setCurrentIndex((prev) => (prev + 1) % insights.length);
@@ -195,8 +214,8 @@ const InsightsCarousel: React.FC<InsightsCarouselProps> = ({
                                     key={idx}
                                     onClick={() => setCurrentIndex(idx)}
                                     className={`transition-all ${idx === currentIndex
-                                            ? 'w-8 h-2 bg-[var(--primary)] rounded-full'
-                                            : 'w-2 h-2 bg-gray-300 rounded-full hover:bg-gray-400'
+                                        ? 'w-8 h-2 bg-[var(--primary)] rounded-full'
+                                        : 'w-2 h-2 bg-gray-300 rounded-full hover:bg-gray-400'
                                         }`}
                                 />
                             ))}

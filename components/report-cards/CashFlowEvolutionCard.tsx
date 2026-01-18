@@ -13,6 +13,47 @@ const CashFlowEvolutionCard: React.FC<CashFlowEvolutionCardProps> = ({ transacti
   const today = new Date();
   const currentDay = today.getDate();
   const isCurrentMonth = today.getMonth() + 1 === month && today.getFullYear() === year;
+  const parseAmount = (value: unknown) => {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+    if (typeof value !== 'string') return 0;
+
+    const raw = value.trim();
+    if (!raw) return 0;
+
+    const cleaned = raw.replace(/[^\d,.-]/g, '');
+    if (!cleaned) return 0;
+
+    const hasComma = cleaned.includes(',');
+    const normalized = hasComma
+      ? cleaned.replace(/\./g, '').replace(',', '.')
+      : cleaned;
+
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const getDateParts = (dateStr: string): { year: number; month: number; day: number } | null => {
+    const s = (dateStr || '').trim();
+    if (!s) return null;
+
+    const datePart = s.split('T')[0];
+
+    if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(datePart)) {
+      const [y, m, d] = datePart.split('-').map(Number);
+      if (!y || !m || !d) return null;
+      return { year: y, month: m, day: d };
+    }
+
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(datePart)) {
+      const [d, m, y] = datePart.split('/').map(Number);
+      if (!y || !m || !d) return null;
+      return { year: y, month: m, day: d };
+    }
+
+    const dt = new Date(s);
+    if (Number.isNaN(dt.getTime())) return null;
+    return { year: dt.getFullYear(), month: dt.getMonth() + 1, day: dt.getDate() };
+  };
 
   const data = useMemo(() => {
     const dailyData: any[] = [];
@@ -23,12 +64,15 @@ const CashFlowEvolutionCard: React.FC<CashFlowEvolutionCardProps> = ({ transacti
     // Pre-process transactions by day
     const txByDay: Record<number, { income: number; expense: number }> = {};
     
-    transactions.forEach(t => {
-      const tDate = new Date(t.date + 'T00:00:00');
-      const d = tDate.getDate();
+    transactions
+      .forEach(t => {
+      const parts = getDateParts(t.date);
+      if (!parts || parts.year !== year || parts.month !== month) return;
+
+      const d = parts.day;
       if (!txByDay[d]) txByDay[d] = { income: 0, expense: 0 };
       
-      const amount = Number(t.amount);
+      const amount = parseAmount((t as any).amount);
       if (t.type === TransactionType.INCOME) {
         txByDay[d].income += amount;
       } else {
@@ -60,8 +104,11 @@ const CashFlowEvolutionCard: React.FC<CashFlowEvolutionCardProps> = ({ transacti
 
       dailyData.push({
         day: d,
+        incomeDay: dayValues.income,
+        expenseDay: dayValues.expense,
         incomeFull: accIncome,
         expenseFull: accExpense,
+        netFull: accIncome - accExpense,
         
         incomeSolid: isPast ? accIncome : null,
         incomeDashed: isFuture ? accIncome : null,
@@ -74,23 +121,55 @@ const CashFlowEvolutionCard: React.FC<CashFlowEvolutionCardProps> = ({ transacti
     }
     
     return { dailyData, intersectionPoint };
-  }, [transactions, daysInMonth, currentDay, isCurrentMonth]);
+  }, [transactions, daysInMonth, currentDay, isCurrentMonth, year, month]);
 
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val);
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const p = payload[0]?.payload;
+    if (!p) return null;
+    const labelDate = new Date(year, month - 1, Number(label)).toLocaleDateString('pt-BR');
+    return (
+      <div className="bg-white rounded-xl shadow-xl border border-gray-100 p-4">
+        <div className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3">{labelDate}</div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-6">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Entradas no dia</span>
+            <span className="text-xs font-black text-emerald-600 tabular-nums">{formatCurrency(Number(p.incomeDay || 0))}</span>
+          </div>
+          <div className="flex items-center justify-between gap-6">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Saídas no dia</span>
+            <span className="text-xs font-black text-red-600 tabular-nums">{formatCurrency(Number(p.expenseDay || 0))}</span>
+          </div>
+          <div className="h-px w-full bg-gray-100 my-2" />
+          <div className="flex items-center justify-between gap-6">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Entradas acumuladas</span>
+            <span className="text-xs font-black text-gray-900 tabular-nums">{formatCurrency(Number(p.incomeFull || 0))}</span>
+          </div>
+          <div className="flex items-center justify-between gap-6">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Saídas acumuladas</span>
+            <span className="text-xs font-black text-gray-900 tabular-nums">{formatCurrency(Number(p.expenseFull || 0))}</span>
+          </div>
+          <div className="flex items-center justify-between gap-6">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Saldo acumulado</span>
+            <span className={`text-xs font-black tabular-nums ${Number(p.netFull || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {formatCurrency(Number(p.netFull || 0))}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 group h-full relative overflow-hidden">
        {/* Header */}
        <div className="flex items-center justify-between mb-8 relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center shadow-inner">
-            <i className="fas fa-chart-area text-lg"></i>
-          </div>
-          <div>
-            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Fluxo de Caixa</h2>
-            <p className="text-xl font-black text-gray-900 tracking-tight">Evolução Mensal</p>
-          </div>
+        <div>
+          <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Fluxo de Caixa</h2>
+          <p className="text-xl font-black text-gray-900 tracking-tight">Evolução Mensal</p>
         </div>
         
         {/* Status Indicator */}
@@ -133,11 +212,7 @@ const CashFlowEvolutionCard: React.FC<CashFlowEvolutionCardProps> = ({ transacti
               tick={{ fontSize: 10, fill: '#94a3b8' }} 
               tickFormatter={(val) => `R$ ${val/1000}k`}
             />
-            <Tooltip 
-              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-              formatter={(val: number) => [formatCurrency(val), '']}
-              labelFormatter={(day) => `Dia ${day}`}
-            />
+            <Tooltip content={<CustomTooltip />} />
             
             {/* Areas (Gradient Fills) - Using Full Data for smooth fill */}
             <Area 

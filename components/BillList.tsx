@@ -14,7 +14,7 @@ const BillItem: React.FC<{ bill: Bill; onDelete: (id: string) => void; onEdit: (
         {bill.isAutoDebit ? (
           <i className="fas fa-check-circle text-[var(--success)]" title="Em Débito Automático"></i>
         ) : (
-          <i className="fas fa-exclamation-circle text-[var(--warning)]" title="Pagamento Manual"></i>
+          null
         )}
         <div>
           <p className="font-semibold text-[var(--color-text)] truncate">{bill.description}</p>

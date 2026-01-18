@@ -64,7 +64,6 @@ const CommittedSpending: React.FC<CommittedSpendingProps> = ({ transactions, pay
     if (!hasData) {
         return (
             <div className="text-center py-8 text-[var(--color-text-muted)]">
-                <i className="fas fa-chart-pie text-4xl mb-3"></i>
                 <p>Sem dados suficientes de transações ou salários para gerar a análise de gastos comprometidos para {year}.</p>
             </div>
         )

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Bill, Transaction } from '../types';
 import { getUpcomingCommitments } from '../lib/projectionCalculator';
+import { colors } from '../lib/designSystem';
 
 interface CommitmentRadarCardProps {
     bills: Bill[];
@@ -40,11 +41,23 @@ const CommitmentRadarCard: React.FC<CommitmentRadarCardProps> = ({ bills, transa
     const getStatusColor = (status: 'paid' | 'urgent' | 'upcoming') => {
         switch (status) {
             case 'paid':
-                return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                return {
+                    bg: '#ECFDF5',
+                    text: colors.success,
+                    border: '#A7F3D0'
+                };
             case 'urgent':
-                return 'bg-red-50 text-red-600 border-red-100';
+                return {
+                    bg: '#FEF2F2',
+                    text: colors.danger,
+                    border: '#FECACA'
+                };
             case 'upcoming':
-                return 'bg-gray-50 text-gray-600 border-gray-100';
+                return {
+                    bg: colors.background.secondary,
+                    text: colors.gray[600],
+                    border: colors.gray[200]
+                };
         }
     };
 
@@ -57,9 +70,6 @@ const CommitmentRadarCard: React.FC<CommitmentRadarCardProps> = ({ bills, transa
         >
             {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                    <i className="fas fa-radar text-xl"></i>
-                </div>
                 <div>
                     <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Compromissos</h3>
                     <p className="text-xl font-black text-gray-900 tracking-tight">Próximos Vencimentos</p>
@@ -85,7 +95,14 @@ const CommitmentRadarCard: React.FC<CommitmentRadarCardProps> = ({ bills, transa
                             {/* Commitment Item */}
                             <div className="flex items-start gap-3">
                                 {/* Icon Circle */}
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg z-10 border-2 ${getStatusColor(commitment.status)}`}>
+                                <div
+                                    className="w-8 h-8 rounded-full flex items-center justify-center text-lg z-10 border-2"
+                                    style={{
+                                        backgroundColor: getStatusColor(commitment.status).bg,
+                                        color: getStatusColor(commitment.status).text,
+                                        borderColor: getStatusColor(commitment.status).border,
+                                    }}
+                                >
                                     {commitment.icon}
                                 </div>
 
@@ -107,7 +124,14 @@ const CommitmentRadarCard: React.FC<CommitmentRadarCardProps> = ({ bills, transa
 
                                     {/* Status Badge */}
                                     <div className="mt-2">
-                                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(commitment.status)}`}>
+                                        <span
+                                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider"
+                                            style={{
+                                                backgroundColor: getStatusColor(commitment.status).bg,
+                                                color: getStatusColor(commitment.status).text,
+                                                border: `1px solid ${getStatusColor(commitment.status).border}`,
+                                            }}
+                                        >
                                             {commitment.status === 'paid' && '✓ Pago'}
                                             {commitment.status === 'urgent' && '! Urgente'}
                                             {commitment.status === 'upcoming' && '◷ Agendado'}

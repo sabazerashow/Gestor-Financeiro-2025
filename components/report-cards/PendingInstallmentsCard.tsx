@@ -92,7 +92,6 @@ const PendingInstallmentsCard: React.FC<PendingInstallmentsCardProps> = ({ allTr
         <div className="flex flex-col flex-grow">
           <div className="text-center mb-8 p-4 bg-red-50/50 rounded-2xl border border-red-100">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <i className="fas fa-exclamation-circle text-red-500 text-lg"></i>
               <p className="text-[10px] font-black text-red-600 uppercase tracking-widest">Atenção Necessária</p>
             </div>
             <p className="text-3xl font-black text-red-600 tracking-tighter tabular-nums">

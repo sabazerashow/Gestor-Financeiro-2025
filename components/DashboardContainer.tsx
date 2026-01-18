@@ -3,12 +3,13 @@ import Summary from './Summary';
 import UpcomingPayments from './UpcomingPayments';
 import TransactionList from './TransactionList';
 import ActiveHeader from './ActiveHeader';
+import MetricsRow from './MetricsRow';
 import BurnRateCard from './BurnRateCard';
 import SuperAnalysisCard from './SuperAnalysisCard';
 import CommitmentRadarCard from './CommitmentRadarCard';
-import InsightsCarousel from './InsightsCarousel';
 import { useFinanceStore } from '../lib/store';
 import { Transaction, TransactionType } from '../types';
+import { calculateMonthEndProjection } from '../lib/projectionCalculator';
 
 interface DashboardContainerProps {
     dashboardMonth: string;
@@ -172,6 +173,14 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
                 </div>
             )}
 
+            {/* Métricas Principais - Nova Linha de 4 Cards */}
+            <MetricsRow
+                currentBalance={mainSummary.balance}
+                income={mainSummary.income}
+                expense={mainSummary.expense}
+                projectedBalance={calculateMonthEndProjection(transactions, bills, dashboardMonth)}
+            />
+
             {/* Hero Card: Burn Rate */}
             <BurnRateCard
                 transactions={currentMonthTransactions}
@@ -189,15 +198,6 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
                 </div>
             </div>
 
-            {/* Insights Carousel */}
-            <InsightsCarousel
-                transactions={currentMonthTransactions}
-                goals={goals}
-                budgets={budgets}
-                currentMonth={dashboardMonth}
-                onAnalyzeWithAI={onAnalyzeWithAI}
-                isAnalyzing={isAnalyzing}
-            />
         </div>
     );
 };

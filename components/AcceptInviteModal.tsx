@@ -58,7 +58,6 @@ const AcceptInviteModal: React.FC<AcceptInviteModalProps> = ({ isOpen, onClose, 
 
                     {error && (
                         <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-500 text-xs font-bold border border-red-100 flex items-center gap-3">
-                            <i className="fas fa-exclamation-circle"></i>
                             {error}
                         </div>
                     )}

@@ -45,51 +45,18 @@ const BurnRateCard: React.FC<BurnRateCardProps> = ({ transactions, bills, curren
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="bg-gradient-to-br from-white to-gray-50/50 p-6 md:p-8 rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all relative overflow-hidden"
+            className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl transition-all relative overflow-hidden"
         >
-            {/* Background Decoration */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[var(--primary)]/5 to-transparent rounded-full blur-3xl -z-0"></div>
-
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 relative z-10">
-                <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/70 flex items-center justify-center text-white shadow-lg">
-                        <i className="fas fa-chart-line text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Fluxo de Caixa</h2>
-                        <p className="text-xl font-black text-gray-900 tracking-tight">GPS Financeiro</p>
-                    </div>
-                </div>
-
-                {/* Balance Overview */}
-                <div className="flex items-center gap-6">
-                    {/* Saldo Atual */}
-                    <div className="text-right">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Saldo Atual</p>
-                        <p className={`text-3xl font-black tracking-tighter ${balanceColor}`}>
-                            {formatCurrency(currentBalance)}
-                        </p>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="h-12 w-px bg-gray-200"></div>
-
-                    {/* Previsão */}
-                    <div className="text-right">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Previsão de Fechamento</p>
-                        <p className={`text-2xl font-black tracking-tighter ${projectionColor}`}>
-                            {formatCurrency(projectedBalance)}
-                        </p>
-                        <p className="text-[10px] text-gray-500 font-medium mt-1.5 leading-tight">
-                            Baseado em gastos fixos e média variável
-                        </p>
-                    </div>
+            {/* Header Simplificado */}
+            <div className="flex items-center gap-4 mb-6 relative z-10">
+                <div>
+                    <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Fluxo de Caixa</h2>
+                    <p className="text-xl font-black text-gray-900 tracking-tight">Evolução Mensal</p>
                 </div>
             </div>
 
-            {/* Chart */}
-            <div className="h-64 md:h-80 relative z-10">
+            {/* Chart - Altura aumentada */}
+            <div className="h-96 md:h-[400px] relative z-10">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>

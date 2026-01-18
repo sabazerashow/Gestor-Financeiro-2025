@@ -111,7 +111,6 @@ const SecurityModal: React.FC<SecurityModalProps> = ({ isOpen, onClose, userEmai
                     {message && (
                         <div className={`p-4 rounded-2xl mb-6 text-sm font-bold flex items-center gap-3 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
                             }`}>
-                            <i className={`fas ${message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
                             {message.text}
                         </div>
                     )}

@@ -6,7 +6,7 @@ interface PeriodSummaryCardProps {
     transactions: Transaction[];
 }
 
-const StatCard: React.FC<{ title: string; value: string; icon: string; colorClass?: string; helpText?: string; delay?: number }> = ({ title, value, icon, colorClass = 'text-gray-900', helpText, delay = 0 }) => (
+const StatCard: React.FC<{ title: string; value: string; icon?: string; colorClass?: string; helpText?: string; delay?: number }> = ({ title, value, icon, colorClass = 'text-gray-900', helpText, delay = 0 }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -16,15 +16,17 @@ const StatCard: React.FC<{ title: string; value: string; icon: string; colorClas
         title={helpText}
     >
         <div className="flex items-center text-gray-400 mb-4 z-10">
-            <div className={`w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center mr-3 group-hover:scale-110 transition-transform ${colorClass.replace('text-', 'bg-').split(' ')[0]}/10`}>
-                <i className={`fas ${icon} fa-fw text-[10px]`}></i>
-            </div>
+            {icon && (
+                <div className={`w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center mr-3 group-hover:scale-110 transition-transform ${colorClass.replace('text-', 'bg-').split(' ')[0]}/10`}>
+                    <i className={`fas ${icon} fa-fw text-[10px]`}></i>
+                </div>
+            )}
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] truncate">{title}</h3>
         </div>
         <p className={`text-2xl sm:text-3xl font-black mt-1 ${colorClass} whitespace-nowrap tabular-nums tracking-tighter z-10`}>{value}</p>
 
         {/* Decorative background icon */}
-        <i className={`fas ${icon} absolute -bottom-4 -right-4 text-6xl opacity-[0.02] group-hover:opacity-[0.05] transition-opacity`}></i>
+        {icon && <i className={`fas ${icon} absolute -bottom-4 -right-4 text-6xl opacity-[0.02] group-hover:opacity-[0.05] transition-opacity`}></i>}
     </motion.div>
 );
 
@@ -94,14 +96,12 @@ const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({ transactions }) =
                 <StatCard
                     title="Receitas"
                     value={formatCurrency(summary.income)}
-                    icon="fa-arrow-up-long"
                     colorClass="text-emerald-500"
                     delay={0.1}
                 />
                 <StatCard
                     title="Despesas"
                     value={formatCurrency(summary.expenseTotal)}
-                    icon="fa-arrow-down-long"
                     colorClass="text-rose-500"
                     delay={0.2}
                 />

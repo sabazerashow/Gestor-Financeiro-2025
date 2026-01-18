@@ -237,7 +237,6 @@ const ManualBPModal: React.FC<ManualBPModalProps> = ({ isOpen, onClose, initialD
           </div>
           {error && (
             <div className="p-4 rounded-xl bg-red-50 border border-red-100 flex items-center gap-3 text-red-600">
-              <i className="fas fa-exclamation-circle"></i>
               <p className="text-sm font-medium">{error}</p>
             </div>
           )}

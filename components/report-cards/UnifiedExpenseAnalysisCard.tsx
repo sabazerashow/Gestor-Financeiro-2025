@@ -161,9 +161,6 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
       {/* Header & Tabs */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center shadow-inner">
-            <i className="fas fa-chart-pie text-lg"></i>
-          </div>
           <div>
             <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Análise Unificada</h2>
             <p className="text-xl font-black text-gray-900 tracking-tight">Gastos do Período</p>

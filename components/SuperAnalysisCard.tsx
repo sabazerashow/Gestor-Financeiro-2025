@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
 import { Transaction, TransactionType } from '../types';
+import { colors } from '../lib/designSystem';
 
 interface SuperAnalysisCardProps {
     transactions: Transaction[];
@@ -86,34 +87,32 @@ const SuperAnalysisCard: React.FC<SuperAnalysisCardProps> = ({ transactions }) =
             transition={{ duration: 0.4, delay: 0.1 }}
             className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl transition-all relative overflow-hidden"
         >
-            {/* Alerta de Itens A Verificar */}
-            <AnimatePresence>
-                {unverifiedCount > 0 && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-6 rounded-lg"
-                    >
-                        <div className="flex items-center gap-2">
-                            <i className="fas fa-exclamation-triangle text-yellow-600"></i>
-                            <span className="text-sm font-bold text-yellow-800">
-                                {unverifiedCount} {unverifiedCount === 1 ? 'item precisa' : 'itens precisam'} de classificação
-                            </span>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
 
             {/* Header com Switcher */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <i className="fas fa-chart-pie text-xl"></i>
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Análise</h3>
-                        <p className="text-xl font-black text-gray-900 tracking-tight">Raio-X dos Gastos</p>
+                    <div className="flex items-center gap-3">
+                        <div>
+                            <h3 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Análise</h3>
+                            <p className="text-xl font-black text-gray-900 tracking-tight">Raio-X dos Gastos</p>
+                        </div>
+                        {/* Badge de Alerta Discreto */}
+                        {unverifiedCount > 0 && (
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="px-2 py-1 rounded-lg flex items-center gap-1.5"
+                                style={{
+                                    backgroundColor: '#FFF7ED',
+                                    border: `1px solid ${colors.warning}`,
+                                }}
+                            >
+                                <span className="text-xs font-bold" style={{ color: colors.warning }}>
+                                    {unverifiedCount}
+                                </span>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
 
@@ -231,7 +230,6 @@ const SuperAnalysisCard: React.FC<SuperAnalysisCardProps> = ({ transactions }) =
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                    <i className="fas fa-chart-pie text-5xl mb-4 opacity-20"></i>
                     <p className="text-sm font-bold">Nenhuma despesa registrada ainda</p>
                     <p className="text-xs mt-1">Adicione transações para ver a análise</p>
                 </div>

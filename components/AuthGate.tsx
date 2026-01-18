@@ -51,9 +51,6 @@ const AuthGate: React.FC<AuthGateProps> = ({ onSignedIn }) => {
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)] text-[var(--foreground)] p-4">
       <div className="w-full max-w-md rounded-xl shadow-2xl p-8 bg-[var(--card)] border border-[var(--border)]">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-[var(--primary)]/10 mb-4">
-            <i className="fas fa-wallet text-[var(--primary)] text-2xl"></i>
-          </div>
           <h1 className="text-3xl font-bold tracking-tight">Finance Pilot</h1>
           <p className="text-sm text-[var(--muted-foreground)] mt-2">
             {isLogin ? 'Bem-vindo de volta! Entre na sua conta.' : 'Crie sua conta e comece a pilotar suas finanças.'}

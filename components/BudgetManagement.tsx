@@ -124,7 +124,6 @@ const BudgetManagement: React.FC<BudgetManagementProps> = ({ onAddBudget, onEdit
                                     </div>
 
                                     <div className={`flex items-center gap-2 p-2 rounded-xl border ${isOver ? 'bg-red-50 border-red-100 text-red-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-                                        <i className={`fas ${isOver ? 'fa-arrow-up' : 'fa-check'} text-[10px]`}></i>
                                         <p className="text-[10px] font-black uppercase tracking-[0.05em]">
                                             {isOver
                                                 ? `Excedeu em ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(spent - budget.amount)}`

@@ -189,7 +189,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                         {message && (
                             <div className={`p-4 rounded-2xl mb-6 text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
                                 }`}>
-                                <i className={`fas ${message.type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
                                 {message.text}
                             </div>
                         )}

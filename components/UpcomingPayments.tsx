@@ -39,7 +39,7 @@ const UpcomingPaymentItem: React.FC<{ bill: Bill; dueDate: Date; onPayBill: (des
     >
       <div className="flex items-center gap-4">
         <div className={`w-10 h-10 rounded-xl ${diffDays < 0 ? 'bg-red-50 text-red-500' : 'bg-[var(--primary)]/10 text-[var(--primary)]'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-          <i className={`fas ${diffDays < 0 ? 'fa-exclamation-circle' : 'fa-calendar-day'} text-lg`}></i>
+          <i className="fas fa-calendar-day text-lg"></i>
         </div>
         <div>
           <p className="font-black text-sm text-gray-900 tracking-tight">{bill.description}</p>
