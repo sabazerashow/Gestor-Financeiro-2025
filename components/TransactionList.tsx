@@ -22,6 +22,7 @@ interface TransactionListProps {
   showSorting?: boolean;
   onAnalyze?: (scope: 'all' | 'pending') => void;
   isAnalyzing?: boolean;
+  aiProgress?: { current: number; total: number } | null;
 }
 
 const FilterButton: React.FC<{
@@ -54,23 +55,13 @@ const TransactionList: React.FC<TransactionListProps> = ({
   showFilters = true,
   showSorting = true,
   onAnalyze,
-  isAnalyzing
+  isAnalyzing,
+  aiProgress
 }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortField, setSortField] = React.useState<'date' | 'description' | 'amount' | 'type' | 'paymentMethod'>('date');
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc');
-  const [isAnalyzeMenuOpen, setIsAnalyzeMenuOpen] = React.useState(false);
-  const analyzeMenuRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (analyzeMenuRef.current && !analyzeMenuRef.current.contains(event.target as Node)) {
-        setIsAnalyzeMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const [selectedAnalyzeScope, setSelectedAnalyzeScope] = React.useState<'all' | 'pending'>('pending');
 
   const filteredBySearch = React.useMemo(() => {
     if (!searchTerm) return transactions;
@@ -138,7 +129,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <div className="bg-white p-4 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] flex flex-col min-h-[500px] md:min-h-[680px]">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
             <i className="fas fa-list-ul"></i>
@@ -198,61 +189,58 @@ const TransactionList: React.FC<TransactionListProps> = ({
                   })}
                 </select>
               )}
-
-              {onAnalyze && (
-                <div className="relative" ref={analyzeMenuRef}>
-                  <button
-                    onClick={() => setIsAnalyzeMenuOpen(!isAnalyzeMenuOpen)}
-                    disabled={isAnalyzing}
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--primary)] hover:bg-gray-100 transition-all"
-                    title="Analisar com IA"
-                  >
-                    {isAnalyzing ? (
-                      <i className="fas fa-spinner fa-spin"></i>
-                    ) : (
-                      <i className="fas fa-wand-magic-sparkles"></i>
-                    )}
-                  </button>
-
-                  <AnimatePresence>
-                    {isAnalyzeMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-                      >
-                        <div className="p-2 space-y-1">
-                          <button
-                            onClick={() => {
-                              onAnalyze('pending');
-                              setIsAnalyzeMenuOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
-                          >
-                            <i className="fas fa-clock text-amber-500"></i>
-                            Analisar 'A Verificar'
-                          </button>
-                          <button
-                            onClick={() => {
-                              onAnalyze('all');
-                              setIsAnalyzeMenuOpen(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
-                          >
-                            <i className="fas fa-list-check text-indigo-500"></i>
-                            Analisar Tudo
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
             </>
+          )}
+
+          {onAnalyze && (
+            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">IA</span>
+              <select
+                value={selectedAnalyzeScope}
+                onChange={(e) => setSelectedAnalyzeScope(e.target.value as 'all' | 'pending')}
+                disabled={isAnalyzing}
+                className="bg-transparent border-none text-xs font-black text-gray-600 uppercase tracking-widest focus:outline-none cursor-pointer"
+                title="Escopo da análise"
+              >
+                <option value="pending">A verificar</option>
+                <option value="all">Tudo</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => onAnalyze(selectedAnalyzeScope)}
+                disabled={isAnalyzing}
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
+                title="Classificar com IA"
+              >
+                {isAnalyzing ? (
+                  <i className="fas fa-spinner fa-spin"></i>
+                ) : (
+                  <i className="fas fa-wand-magic-sparkles"></i>
+                )}
+              </button>
+            </div>
           )}
         </div>
       </div>
+
+      {isAnalyzing && aiProgress?.total ? (
+        <div className="bg-gray-50 rounded-2xl px-4 py-3 border border-gray-100 mb-8">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Atualizando com IA</span>
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+              {aiProgress.current} de {aiProgress.total}
+            </span>
+          </div>
+          <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-gray-100">
+            <div
+              className="h-full bg-[var(--primary)] transition-all"
+              style={{ width: `${Math.min(100, Math.round((aiProgress.current / aiProgress.total) * 100))}%` }}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="mb-8" />
+      )}
 
       <div className="w-full text-left border-collapse overflow-y-auto pr-2 custom-scrollbar" style={{ height: '500px' }}>
         <div className="space-y-2">

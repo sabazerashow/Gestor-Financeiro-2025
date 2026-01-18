@@ -84,7 +84,7 @@ const App: React.FC = () => {
   } = useFinanceStore();
 
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const { analyzeTransactions, isAnalyzing, analysisError, setAnalysisError } = useAIAnalysis();
+  const { analyzeTransactions, isAnalyzing, analysisError, analysisProgress, setAnalysisError } = useAIAnalysis();
   const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
   const [analyzeScope, setAnalyzeScope] = useState<'all' | 'pending'>('pending');
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
@@ -1008,6 +1008,7 @@ const App: React.FC = () => {
                   setIsConfirmAnalyzeOpen(true);
                 }}
                 isAnalyzing={isAnalyzing}
+                aiProgress={analysisProgress}
               />
             </div>
           </div>

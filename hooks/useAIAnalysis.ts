@@ -6,6 +6,7 @@ import { categories } from '../categories';
 export function useAIAnalysis() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
+    const [analysisProgress, setAnalysisProgress] = useState<{ current: number; total: number } | null>(null);
 
 
     const analyzeTransactions = async (
@@ -28,6 +29,9 @@ export function useAIAnalysis() {
                 return;
             }
 
+            const total = transactionsToAnalyze.length;
+            setAnalysisProgress({ current: 0, total });
+
             const availableCategories = JSON.stringify(
                 Object.fromEntries(
                     Object.keys(categories)
@@ -36,7 +40,8 @@ export function useAIAnalysis() {
                 ), null, 2
             );
 
-            for (const t of transactionsToAnalyze) {
+            for (let i = 0; i < transactionsToAnalyze.length; i++) {
+                const t = transactionsToAnalyze[i];
                 try {
                     const systemPrompt = `Você é um assistente financeiro meticuloso. Sua tarefa é limpar e categorizar transações.
 Analise a descrição bruta e retorne APENAS um JSON válido com:
@@ -103,14 +108,17 @@ Regras para 'payment_method':
                     }
                 } catch (err) {
                     console.error(`Erro ao analisar transação ${t.id}:`, err);
+                } finally {
+                    setAnalysisProgress({ current: i + 1, total });
                 }
             }
         } catch (err) {
             setAnalysisError("Ocorreu um erro durante a análise inteligente.");
         } finally {
             setIsAnalyzing(false);
+            setAnalysisProgress(null);
         }
     };
 
-    return { analyzeTransactions, isAnalyzing, analysisError, setAnalysisError };
+    return { analyzeTransactions, isAnalyzing, analysisError, analysisProgress, setAnalysisError };
 }
