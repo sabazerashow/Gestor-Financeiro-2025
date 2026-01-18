@@ -286,48 +286,40 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
               </div>
             ) : (
               filteredList.map((t) => {
-                const isPending = t.status === 'pending'; // Assuming status field exists or implied logic
-                const isVerify = t.category === 'A verificar';
-
+                const isPending = t.category === 'A verificar';
+                const isIncome = t.type === TransactionType.INCOME;
+                
                 return (
-                  <motion.div
-                    layout
-                    key={t.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: isPending ? 0.6 : 1, x: 0 }}
-                    className={`p-3 rounded-xl border transition-all hover:shadow-md flex items-center justify-between gap-3 ${isVerify
-                      ? 'bg-amber-50 border-amber-100'
-                      : 'bg-white border-gray-100 hover:border-indigo-100'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isVerify ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500'
-                        }`}>
-                        <i className={`fas ${categories[t.category]?.icon || 'fa-receipt'} text-sm`}></i>
+                  <div key={t.id} className="group/item flex items-center justify-between p-3 rounded-xl hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-sm transition-all">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs ${
+                        isPending ? 'bg-amber-100 text-amber-600' :
+                        isIncome ? 'bg-emerald-100 text-emerald-600' :
+                        'bg-gray-100 text-gray-500'
+                      }`}>
+                        <i className={`fas ${
+                          isPending ? 'fa-clock' :
+                          categories[t.category || '']?.icon || 'fa-tag'
+                        }`}></i>
                       </div>
                       <div className="min-w-0">
-                        <p className={`text-sm font-bold truncate ${isVerify ? 'text-amber-700' : 'text-gray-900'}`}>
-                          {t.description}
-                        </p>
-                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                          <span>{new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
-                          <span>•</span>
-                          <span className="uppercase">{t.paymentMethod}</span>
-                          {isPending && (
-                            <>
-                              <span>•</span>
-                              <span className="text-amber-500 flex items-center gap-1">
-                                <i className="fas fa-clock"></i> Pendente
-                              </span>
-                            </>
+                        <p className="text-xs font-bold text-gray-700 truncate">{t.description}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-400 font-medium truncate">{t.category}</span>
+                          {t.paymentMethod && (
+                             <span className="text-[10px] text-gray-300">• {t.paymentMethod}</span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <span className="font-black text-gray-900 text-sm whitespace-nowrap">
-                      {formatCurrency(Number(t.amount))}
-                    </span>
-                  </motion.div>
+                    
+                    <div className="text-right">
+                       <p className={`text-xs font-black ${isIncome ? 'text-emerald-600' : 'text-gray-900'}`}>
+                         {isIncome ? '+' : '-'}{formatCurrency(t.amount)}
+                       </p>
+                       <p className="text-[10px] text-gray-400">{new Date(t.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'})}</p>
+                    </div>
+                  </div>
                 );
               })
             )}

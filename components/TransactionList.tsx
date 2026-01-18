@@ -20,8 +20,8 @@ interface TransactionListProps {
   availableMonths?: string[];
   showFilters?: boolean;
   showSorting?: boolean;
-  onAnalyzePending?: () => void;
-  isAnalyzingPending?: boolean;
+  onAnalyze?: (scope: 'all' | 'pending') => void;
+  isAnalyzing?: boolean;
 }
 
 const FilterButton: React.FC<{
@@ -53,12 +53,24 @@ const TransactionList: React.FC<TransactionListProps> = ({
   availableMonths = [],
   showFilters = true,
   showSorting = true,
-  onAnalyzePending,
-  isAnalyzingPending
+  onAnalyze,
+  isAnalyzing
 }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortField, setSortField] = React.useState<'date' | 'description' | 'amount' | 'type' | 'paymentMethod'>('date');
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc');
+  const [isAnalyzeMenuOpen, setIsAnalyzeMenuOpen] = React.useState(false);
+  const analyzeMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (analyzeMenuRef.current && !analyzeMenuRef.current.contains(event.target as Node)) {
+        setIsAnalyzeMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const filteredBySearch = React.useMemo(() => {
     if (!searchTerm) return transactions;
@@ -187,19 +199,55 @@ const TransactionList: React.FC<TransactionListProps> = ({
                 </select>
               )}
 
-              {onAnalyzePending && (
-                <button
-                  onClick={onAnalyzePending}
-                  disabled={isAnalyzingPending}
-                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--primary)] hover:bg-gray-100 transition-all"
-                  title="Analisar com IA"
-                >
-                  {isAnalyzingPending ? (
-                    <i className="fas fa-spinner fa-spin"></i>
-                  ) : (
-                    <i className="fas fa-wand-magic-sparkles"></i>
-                  )}
-                </button>
+              {onAnalyze && (
+                <div className="relative" ref={analyzeMenuRef}>
+                  <button
+                    onClick={() => setIsAnalyzeMenuOpen(!isAnalyzeMenuOpen)}
+                    disabled={isAnalyzing}
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--primary)] hover:bg-gray-100 transition-all"
+                    title="Analisar com IA"
+                  >
+                    {isAnalyzing ? (
+                      <i className="fas fa-spinner fa-spin"></i>
+                    ) : (
+                      <i className="fas fa-wand-magic-sparkles"></i>
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isAnalyzeMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+                      >
+                        <div className="p-2 space-y-1">
+                          <button
+                            onClick={() => {
+                              onAnalyze('pending');
+                              setIsAnalyzeMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
+                          >
+                            <i className="fas fa-clock text-amber-500"></i>
+                            Analisar 'A Verificar'
+                          </button>
+                          <button
+                            onClick={() => {
+                              onAnalyze('all');
+                              setIsAnalyzeMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-600 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-2"
+                          >
+                            <i className="fas fa-list-check text-indigo-500"></i>
+                            Analisar Tudo
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               )}
             </>
           )}

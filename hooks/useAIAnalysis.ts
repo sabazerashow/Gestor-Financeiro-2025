@@ -10,15 +10,21 @@ export function useAIAnalysis() {
 
     const analyzeTransactions = async (
         transactions: Transaction[],
-        updateTransaction: (id: string, updates: Partial<Transaction>) => void
+        updateTransaction: (id: string, updates: Partial<Transaction>) => void,
+        scope: 'all' | 'pending' = 'pending'
     ) => {
         try {
             setIsAnalyzing(true);
             setAnalysisError(null);
 
-            const pending = transactions.filter(t => t.category === 'A verificar');
-            if (pending.length === 0) {
-                setAnalysisError("Nenhum registro marcado como 'A verificar' para analisar.");
+            const transactionsToAnalyze = scope === 'all' 
+                ? transactions 
+                : transactions.filter(t => t.category === 'A verificar');
+
+            if (transactionsToAnalyze.length === 0) {
+                setAnalysisError(scope === 'pending' 
+                    ? "Nenhum registro marcado como 'A verificar' para analisar." 
+                    : "Nenhuma transação para analisar.");
                 return;
             }
 
@@ -30,11 +36,32 @@ export function useAIAnalysis() {
                 ), null, 2
             );
 
-            for (const t of pending) {
+            for (const t of transactionsToAnalyze) {
                 try {
+                    const systemPrompt = `Você é um assistente financeiro meticuloso. Sua tarefa é limpar e categorizar transações.
+Analise a descrição bruta e retorne APENAS um JSON válido com:
+{
+  "category": "Categoria da lista fornecida",
+  "subcategory": "Subcategoria da lista",
+  "clean_description": "Descrição limpa e legível",
+  "payment_method": "Método de pagamento identificado"
+}
+
+Regras para 'clean_description':
+1. REMOVA valores monetários (ex: 108,00), datas e símbolos soltos.
+2. REMOVA termos de pagamento como 'pix', 'crédito', 'débito', 'visa', 'master', 'elo'.
+3. MANTENHA o nome do estabelecimento, produto ou serviço.
+4. Capitalize como Título (Title Case).
+5. Exemplo: '108,00 - telefone - vivo - crédito' -> 'Conta Vivo' ou 'Telefone Vivo'.
+
+Regras para 'payment_method':
+1. Procure termos como 'pix', 'débito', 'crédito', 'dinheiro'.
+2. Mapeie para: "PIX", "Débito", "Crédito", "Dinheiro".
+3. Se não encontrar, retorne null ou "Outro".`;
+
                     const glmMessages = [
-                        { role: 'system', content: 'Você é um classificador de despesas pessoais. Responda apenas com JSON: {"category":"...","subcategory":"...", "clean_description": "...", "payment_method": "..."}. "clean_description": remova valores, datas e termos de pagamento, mantenha apenas o nome do estabelecimento/produto, Capitalizado. "payment_method": use um destes se identificar claramente: "PIX", "Débito", "Crédito", "Dinheiro", "Outro".' },
-                        { role: 'user', content: `Descrição: ${t.description}\nEstrutura:\n${availableCategories}` }
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: `Descrição Bruta: "${t.description}"\nLista de Categorias:\n${availableCategories}` }
                     ];
 
                     let suggestion: { category?: string; subcategory?: string; clean_description?: string; payment_method?: string } = {};
@@ -45,7 +72,7 @@ export function useAIAnalysis() {
                         suggestion = JSON.parse(cleanJsonString(deepseekText));
                     } catch (e) {
                         // Fallback to Gemini
-                        const prompt = `Dada a descrição: "${t.description}", sugira categoria/subcategoria, uma descrição limpa (clean_description) e método de pagamento (payment_method: PIX, Débito, Crédito, Dinheiro, Outro) em JSON.\nEstrutura:\n${availableCategories}`;
+                        const prompt = `${systemPrompt}\n\nDescrição Bruta: "${t.description}"\nLista de Categorias:\n${availableCategories}`;
                         const geminiResp = await generateContent({ model: 'gemini-1.5-flash', contents: prompt, expectJson: true });
                         suggestion = JSON.parse(cleanJsonString(geminiResp.text));
                     }

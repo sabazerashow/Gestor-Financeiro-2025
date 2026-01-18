@@ -86,6 +86,7 @@ const App: React.FC = () => {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const { analyzeTransactions, isAnalyzing, analysisError, setAnalysisError } = useAIAnalysis();
   const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
+  const [analyzeScope, setAnalyzeScope] = useState<'all' | 'pending'>('pending');
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [budgetToEdit, setBudgetToEdit] = useState<Budget | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -1002,8 +1003,11 @@ const App: React.FC = () => {
                 onPaymentMethodFilterChange={setPaymentMethodFilter}
                 availableMonths={availableMonths}
                 showFilters={true}
-                onAnalyzePending={() => setIsConfirmAnalyzeOpen(true)}
-                isAnalyzingPending={isAnalyzing}
+                onAnalyze={(scope) => {
+                  setAnalyzeScope(scope);
+                  setIsConfirmAnalyzeOpen(true);
+                }}
+                isAnalyzing={isAnalyzing}
               />
             </div>
           </div>
@@ -1054,8 +1058,8 @@ const App: React.FC = () => {
     }
   };
 
-  const analyzePendingTransactions = async () => {
-    await analyzeTransactions(transactions, updateTransaction);
+  const handleAnalyzeConfirm = async () => {
+    await analyzeTransactions(transactions, updateTransaction, analyzeScope);
   };
 
   // Placeholder de carregamento enquanto valida sessão
@@ -1358,10 +1362,10 @@ const App: React.FC = () => {
         onClose={() => setIsConfirmAnalyzeOpen(false)}
         onConfirm={async () => {
           setIsConfirmAnalyzeOpen(false);
-          await analyzePendingTransactions();
+          await handleAnalyzeConfirm();
         }}
         title={'Confirmar análise por IA'}
-        message={'Esta análise usa créditos de IA e pode consumir saldo. Deseja continuar?'}
+        message={`Você está prestes a analisar ${analyzeScope === 'all' ? 'TODAS as transações' : 'apenas transações "A Verificar"'}. Isso consumirá créditos de IA. Deseja continuar?`}
         confirmText={'Analisar'}
       />
     </div>
