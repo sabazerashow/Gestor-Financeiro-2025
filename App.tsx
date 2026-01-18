@@ -982,6 +982,19 @@ const App: React.FC = () => {
             onPayBill={handlePayBill}
             onEditTransaction={handleOpenEditModal}
             onDeleteTransaction={handleAttemptDelete}
+            onOpenIncomeModal={() => {
+              setQuickAddMode('manual');
+              setIsQuickAddModalOpen(true);
+            }}
+            onOpenExpenseModal={() => {
+              setQuickAddMode('manual');
+              setIsQuickAddModalOpen(true);
+            }}
+            onAnalyzeWithAI={async () => {
+              setAnalyzeScope('pending');
+              await analyzeTransactions(transactions, updateTransaction, 'pending');
+            }}
+            isAnalyzing={isAnalyzing}
           />
         );
       case 'history':

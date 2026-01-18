@@ -1,8 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Summary from './Summary';
 import UpcomingPayments from './UpcomingPayments';
 import TransactionList from './TransactionList';
-import IntelligentAnalysisCards from './IntelligentAnalysisCards';
+import ActiveHeader from './ActiveHeader';
+import BurnRateCard from './BurnRateCard';
+import SuperAnalysisCard from './SuperAnalysisCard';
+import CommitmentRadarCard from './CommitmentRadarCard';
+import InsightsCarousel from './InsightsCarousel';
 import { useFinanceStore } from '../lib/store';
 import { Transaction, TransactionType } from '../types';
 
@@ -12,6 +16,10 @@ interface DashboardContainerProps {
     onPayBill: (billId: string, description?: string) => void;
     onEditTransaction: (tx: Transaction) => void;
     onDeleteTransaction: (tx: Transaction) => void;
+    onOpenIncomeModal: () => void;
+    onOpenExpenseModal: () => void;
+    onAnalyzeWithAI?: () => void;
+    isAnalyzing?: boolean;
 }
 
 const DashboardContainer: React.FC<DashboardContainerProps> = ({
@@ -19,9 +27,13 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
     onMonthChange,
     onPayBill,
     onEditTransaction,
-    onDeleteTransaction
+    onDeleteTransaction,
+    onOpenIncomeModal,
+    onOpenExpenseModal,
+    onAnalyzeWithAI,
+    isAnalyzing = false
 }) => {
-    const { transactions, bills, budgets } = useFinanceStore();
+    const { transactions, bills, budgets, goals, userProfile } = useFinanceStore();
 
     const currentMonthTransactions = useMemo(() => {
         return transactions.filter(t => t.date.startsWith(dashboardMonth));
@@ -42,19 +54,51 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
         return new Date(Number(year), Number(month) - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
     }, [dashboardMonth]);
 
+    const notificationCount = useMemo(() => {
+        // Conta notificações: contas urgentes + transações não classificadas
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const currentDay = today.getDate();
+
+        const urgentBills = bills.filter(b => {
+            // Conta está vencendo hoje ou amanhã?
+            const isUrgent = b.dueDay === currentDay || b.dueDay === tomorrow.getDate();
+            if (!isUrgent) return false;
+
+            // Verifica se já foi paga
+            const year = today.getFullYear();
+            const month = today.getMonth() + 1;
+            const billDateStr = `${year}-${String(month).padStart(2, '0')}-${String(b.dueDay).padStart(2, '0')}`;
+
+            const alreadyPaid = currentMonthTransactions.some(t =>
+                t.date === billDateStr &&
+                t.description.toLowerCase().includes(b.description.toLowerCase())
+            );
+
+            return !alreadyPaid;
+        }).length;
+
+        const unclassified = currentMonthTransactions.filter(t =>
+            t.category === 'A Verificar' || t.category === 'Outros'
+        ).length;
+
+        return urgentBills + unclassified;
+    }, [bills, currentMonthTransactions]);
+
     return (
         <div className="space-y-8 pb-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] shadow-sm border border-[var(--primary)]/10">
-                        <i className="fas fa-chart-line text-xl"></i>
-                    </div>
-                    <div>
-                        <h1 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.3em] mb-1">Performance Financeira</h1>
-                        <p className="text-2xl font-black text-gray-900 tracking-tight">Visão Geral</p>
-                    </div>
-                </div>
+            {/* Active Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <ActiveHeader
+                    userName={userProfile.name || 'Usuário'}
+                    notificationCount={notificationCount}
+                    onOpenIncomeModal={onOpenIncomeModal}
+                    onOpenExpenseModal={onOpenExpenseModal}
+                    onOpenNotifications={() => {/* TODO: Implementar modal de notificações */ }}
+                />
 
+                {/* Month Selector */}
                 <div className="flex items-center bg-gray-50/50 p-1.5 rounded-2xl border border-gray-100/50 backdrop-blur-sm shadow-sm gap-2">
                     <button
                         onClick={() => onMonthChange('prev')}
@@ -72,6 +116,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
                 </div>
             </div>
 
+            {/* Budget Status (mantido do layout antigo) */}
             {budgets.length > 0 && (
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
@@ -127,31 +172,32 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
                 </div>
             )}
 
-            <Summary
-                income={mainSummary.income}
-                expense={mainSummary.expense}
-                balance={mainSummary.balance}
+            {/* Hero Card: Burn Rate */}
+            <BurnRateCard
                 transactions={currentMonthTransactions}
+                bills={bills}
                 currentMonth={dashboardMonth}
-                onMonthChange={onMonthChange}
             />
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-                <div className="xl:col-span-1 rounded-xl">
-                    <UpcomingPayments
-                        bills={bills}
-                        onPayBill={onPayBill}
-                        transactions={currentMonthTransactions}
-                    />
-                </div>
+
+            {/* Middle Section: Super Card + Commitment Radar */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <div className="xl:col-span-2">
-                    <TransactionList
-                        transactions={currentMonthTransactions}
-                        onDelete={onDeleteTransaction}
-                        onEdit={onEditTransaction}
-                        showFilters={false}
-                    />
+                    <SuperAnalysisCard transactions={currentMonthTransactions} />
+                </div>
+                <div className="xl:col-span-1">
+                    <CommitmentRadarCard bills={bills} transactions={currentMonthTransactions} />
                 </div>
             </div>
+
+            {/* Insights Carousel */}
+            <InsightsCarousel
+                transactions={currentMonthTransactions}
+                goals={goals}
+                budgets={budgets}
+                currentMonth={dashboardMonth}
+                onAnalyzeWithAI={onAnalyzeWithAI}
+                isAnalyzing={isAnalyzing}
+            />
         </div>
     );
 };
