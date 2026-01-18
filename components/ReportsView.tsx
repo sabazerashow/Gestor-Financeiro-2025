@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction } from '../types';
@@ -8,6 +7,10 @@ import UnifiedExpenseAnalysisCard from './report-cards/UnifiedExpenseAnalysisCar
 import CashFlowEvolutionCard from './report-cards/CashFlowEvolutionCard';
 import PendingInstallmentsCard from './report-cards/PendingInstallmentsCard';
 import IntelligentAnalysisCards from './IntelligentAnalysisCards';
+import SubscriptionDetectorCard from './report-cards/SubscriptionDetectorCard';
+import ParetoExpensesCard from './report-cards/ParetoExpensesCard';
+import FinancialHeatmapCard from './report-cards/FinancialHeatmapCard';
+import NetWorthEvolutionCard from './report-cards/NetWorthEvolutionCard';
 
 interface ReportsViewProps {
   transactions: Transaction[];
@@ -143,6 +146,22 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         </div>
         <div className="lg:col-span-3">
           <IntelligentAnalysisCards transactions={analysisTransactions} />
+        </div>
+
+        {/* Row 5: Subscription Detector and Pareto Chart (1/2 each) */}
+        <div className="lg:col-span-3">
+          <SubscriptionDetectorCard transactions={analysisTransactions} />
+        </div>
+        <div className="lg:col-span-3">
+          <ParetoExpensesCard transactions={analysisTransactions} />
+        </div>
+
+        {/* Row 6: Financial Heatmap and Net Worth (1/2 each) */}
+        <div className="lg:col-span-3">
+          <FinancialHeatmapCard transactions={analysisTransactions} />
+        </div>
+        <div className="lg:col-span-3">
+          <NetWorthEvolutionCard transactions={transactions} />
         </div>
       </motion.div>
     </div>

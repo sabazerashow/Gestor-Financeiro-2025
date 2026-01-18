@@ -50,15 +50,16 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
   const [activeTab, setActiveTab] = useState<'category' | 'method'>('category');
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [filterKey, setFilterKey] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'date' | 'name' | 'value'>('date');
 
   // 1. Prepare Data
-  const expenses = useMemo(() => 
-    transactions.filter(t => t.type === TransactionType.EXPENSE), 
-  [transactions]);
+  const expenses = useMemo(() =>
+    transactions.filter(t => t.type === TransactionType.EXPENSE),
+    [transactions]);
 
-  const totalExpenses = useMemo(() => 
-    expenses.reduce((sum, t) => sum + Number(t.amount), 0), 
-  [expenses]);
+  const totalExpenses = useMemo(() =>
+    expenses.reduce((sum, t) => sum + Number(t.amount), 0),
+    [expenses]);
 
   // Group by Category
   const categoryData = useMemo(() => {
@@ -69,9 +70,9 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
     }, {} as Record<string, number>);
 
     return Object.entries(grouped)
-      .map(([name, value]) => ({ 
-        name, 
-        value, 
+      .map(([name, value]) => ({
+        name,
+        value: value as number,
         color: categories[name]?.color || '#94a3b8',
         icon: categories[name]?.icon || 'fa-tag'
       }))
@@ -79,19 +80,21 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
       .slice(0, 5); // Top 5
   }, [expenses]);
 
-  // Group by Method
+  // Group by Method - Grouped: Credit vs Cash
   const methodData = useMemo(() => {
     const grouped = expenses.reduce((acc, t) => {
       const method = t.paymentMethod || PaymentMethod.OUTRO;
-      acc[method] = (acc[method] || 0) + Number(t.amount);
+      // Group: Credit (parcelado) vs Cash (à vista - debito, pix, dinheiro, outro)
+      const groupKey = method === PaymentMethod.CREDITO ? 'Crédito (Parcelado)' : 'À Vista';
+      acc[groupKey] = (acc[groupKey] || 0) + Number(t.amount);
       return acc;
     }, {} as Record<string, number>);
 
     return Object.entries(grouped)
-      .map(([name, value]) => ({ 
-        name, 
-        value,
-        color: PAYMENT_COLORS[name] || '#64748b'
+      .map(([name, value]) => ({
+        name,
+        value: value as number,
+        color: name === 'Crédito (Parcelado)' ? '#f97316' : '#10b981' // Orange for credit, green for cash
       }))
       .sort((a, b) => b.value - a.value);
   }, [expenses]);
@@ -101,26 +104,44 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
   // 2. Interactive List Logic
   const filteredList = useMemo(() => {
     let filtered = expenses;
-    
+
     // Apply Drill-down filter
     if (filterKey) {
       if (activeTab === 'category') {
         filtered = filtered.filter(t => (t.category || 'Outros') === filterKey);
       } else {
-        filtered = filtered.filter(t => (t.paymentMethod || PaymentMethod.OUTRO) === filterKey);
+        // Handle grouped payment methods
+        if (filterKey === 'Crédito (Parcelado)') {
+          filtered = filtered.filter(t => t.paymentMethod === PaymentMethod.CREDITO);
+        } else if (filterKey === 'À Vista') {
+          filtered = filtered.filter(t =>
+            t.paymentMethod !== PaymentMethod.CREDITO || !t.paymentMethod
+          );
+        }
       }
     }
 
-    // Sort: Pending/Check first, then date desc
-    return filtered.sort((a, b) => {
-      // Prioritize "A verificar"
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      // Prioritize "A verificar" first
       if (a.category === 'A verificar' && b.category !== 'A verificar') return -1;
       if (b.category === 'A verificar' && a.category !== 'A verificar') return 1;
-      
-      // Then date
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+
+      // Then apply user-selected sort
+      switch (sortBy) {
+        case 'date':
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case 'name':
+          return a.description.localeCompare(b.description, 'pt-BR');
+        case 'value':
+          return Number(b.amount) - Number(a.amount);
+        default:
+          return 0;
+      }
     });
-  }, [expenses, filterKey, activeTab]);
+
+    return sorted;
+  }, [expenses, filterKey, activeTab, sortBy]);
 
   const handlePieClick = (data: any, index: number) => {
     if (activeIndex === index) {
@@ -132,7 +153,7 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
     }
   };
 
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
@@ -152,21 +173,19 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
         <div className="bg-gray-100/50 p-1.5 rounded-xl flex gap-1">
           <button
             onClick={() => { setActiveTab('category'); setActiveIndex(-1); setFilterKey(null); }}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'category' 
-                ? 'bg-white text-indigo-600 shadow-sm' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'category'
+              ? 'bg-white text-indigo-600 shadow-sm'
+              : 'text-gray-400 hover:text-gray-600'
+              }`}
           >
             Por Categoria
           </button>
           <button
             onClick={() => { setActiveTab('method'); setActiveIndex(-1); setFilterKey(null); }}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'method' 
-                ? 'bg-white text-indigo-600 shadow-sm' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'method'
+              ? 'bg-white text-indigo-600 shadow-sm'
+              : 'text-gray-400 hover:text-gray-600'
+              }`}
           >
             Por Método
           </button>
@@ -176,54 +195,87 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[400px]">
         {/* Left: Donut Chart */}
         <div className="relative flex items-center justify-center">
-           {/* Center Total */}
-           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</span>
-             <span className="text-2xl font-black text-gray-900 tracking-tight">
-               {formatCurrency(totalExpenses)}
-             </span>
-           </div>
+          {/* Center Total */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</span>
+            <span className="text-2xl font-black text-gray-900 tracking-tight">
+              {formatCurrency(totalExpenses)}
+            </span>
+          </div>
 
-           <ResponsiveContainer width="100%" height="100%">
-             <PieChart>
-               <Pie
-                 activeIndex={activeIndex}
-                 activeShape={renderActiveShape}
-                 data={currentChartData}
-                 cx="50%"
-                 cy="50%"
-                 innerRadius={80}
-                 outerRadius={110}
-                 paddingAngle={4}
-                 dataKey="value"
-                 onClick={handlePieClick}
-                 cursor="pointer"
-               >
-                 {currentChartData.map((entry, index) => (
-                   <Cell 
-                     key={`cell-${index}`} 
-                     fill={activeTab === 'category' ? (COLORS[index % COLORS.length]) : (entry.color)} 
-                     strokeWidth={0}
-                   />
-                 ))}
-               </Pie>
-               <RechartsTooltip 
-                 formatter={(value: number) => formatCurrency(value)}
-                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-               />
-             </PieChart>
-           </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                activeIndex={activeIndex}
+                activeShape={renderActiveShape}
+                data={currentChartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={80}
+                outerRadius={110}
+                paddingAngle={4}
+                dataKey="value"
+                onClick={handlePieClick}
+                cursor="pointer"
+              >
+                {currentChartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={activeTab === 'category' ? (COLORS[index % COLORS.length]) : (entry.color)}
+                    strokeWidth={0}
+                  />
+                ))}
+              </Pie>
+              <RechartsTooltip
+                formatter={(value: number) => formatCurrency(value)}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Right: Transaction List */}
         <div className="flex flex-col h-full overflow-hidden bg-gray-50/50 rounded-3xl border border-gray-100">
-          <div className="p-4 border-b border-gray-100 bg-white/50 backdrop-blur-sm flex justify-between items-center">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider">
-              {filterKey ? `Filtrado por: ${filterKey}` : 'Todas as Transações'}
-            </h3>
-            <span className="bg-indigo-100 text-indigo-600 text-[10px] font-bold px-2 py-1 rounded-full">
-              {filteredList.length} itens
-            </span>
+          <div className="p-4 border-b border-gray-100 bg-white/50 backdrop-blur-sm">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider">
+                {filterKey ? `Filtrado por: ${filterKey}` : 'Todas as Transações'}
+              </h3>
+              <span className="bg-indigo-100 text-indigo-600 text-[10px] font-bold px-2 py-1 rounded-full">
+                {filteredList.length} itens
+              </span>
+            </div>
+
+            {/* Sort Controls */}
+            <div className="flex gap-1 bg-gray-100/50 p-1 rounded-lg">
+              <button
+                onClick={() => setSortBy('date')}
+                className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${sortBy === 'date'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
+                  }`}
+              >
+                <i className="fas fa-calendar-alt mr-1"></i>Data
+              </button>
+              <button
+                onClick={() => setSortBy('name')}
+                className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${sortBy === 'name'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
+                  }`}
+              >
+                <i className="fas fa-font mr-1"></i>Nome
+              </button>
+              <button
+                onClick={() => setSortBy('value')}
+                className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${sortBy === 'value'
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
+                  }`}
+              >
+                <i className="fas fa-dollar-sign mr-1"></i>Valor
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
@@ -236,23 +288,21 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
               filteredList.map((t) => {
                 const isPending = t.status === 'pending'; // Assuming status field exists or implied logic
                 const isVerify = t.category === 'A verificar';
-                
+
                 return (
                   <motion.div
                     layout
                     key={t.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: isPending ? 0.6 : 1, x: 0 }}
-                    className={`p-3 rounded-xl border transition-all hover:shadow-md flex items-center justify-between gap-3 ${
-                      isVerify 
-                        ? 'bg-amber-50 border-amber-100' 
-                        : 'bg-white border-gray-100 hover:border-indigo-100'
-                    }`}
+                    className={`p-3 rounded-xl border transition-all hover:shadow-md flex items-center justify-between gap-3 ${isVerify
+                      ? 'bg-amber-50 border-amber-100'
+                      : 'bg-white border-gray-100 hover:border-indigo-100'
+                      }`}
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        isVerify ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isVerify ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500'
+                        }`}>
                         <i className={`fas ${categories[t.category]?.icon || 'fa-receipt'} text-sm`}></i>
                       </div>
                       <div className="min-w-0">
@@ -260,7 +310,7 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
                           {t.description}
                         </p>
                         <div className="flex items-center gap-2 text-[10px] text-gray-400">
-                          <span>{new Date(t.date).toLocaleDateString('pt-BR', {day: '2-digit', month: 'short'})}</span>
+                          <span>{new Date(t.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
                           <span>•</span>
                           <span className="uppercase">{t.paymentMethod}</span>
                           {isPending && (
