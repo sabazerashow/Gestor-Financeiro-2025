@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction } from '../types';
 import PeriodSummaryCard from './PeriodSummaryCard';
 import UnifiedExpenseAnalysisCard from './report-cards/UnifiedExpenseAnalysisCard';
-import CashFlowEvolutionCard from './report-cards/CashFlowEvolutionCard';
 import PendingInstallmentsCard from './report-cards/PendingInstallmentsCard';
 import IntelligentAnalysisCards from './IntelligentAnalysisCards';
 import SubscriptionDetectorCard from './report-cards/SubscriptionDetectorCard';
@@ -130,12 +129,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
           <PeriodSummaryCard transactions={analysisTransactions} />
         </div>
 
-        {/* Row 2: Cash Flow Evolution (Full Width) */}
-        <div className="lg:col-span-6">
-          <CashFlowEvolutionCard transactions={analysisTransactions} currentMonth={selectedMonth} />
-        </div>
-
-        {/* Row 3: Unified Expense Analysis (Full Width) */}
+        {/* Row 2: Unified Expense Analysis (Full Width) */}
         <div className="lg:col-span-6">
           <UnifiedExpenseAnalysisCard transactions={analysisTransactions} />
         </div>

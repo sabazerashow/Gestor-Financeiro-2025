@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Transaction, TransactionType, paymentMethodDetails } from '../types';
-import { categories } from '../categories';
 
 interface TransactionItemProps {
   transaction: Transaction;
@@ -11,19 +10,12 @@ interface TransactionItemProps {
 
 const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, onDelete }) => {
   const isIncome = transaction.type === TransactionType.INCOME;
-  const amountColor = isIncome ? 'text-[var(--color-success)]' : 'text-[var(--color-text)]';
-  const iconBg = isIncome ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--muted)] text-[var(--color-text-muted)]';
 
   const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(transaction.amount);
   const transactionDate = new Date(transaction.date + 'T00:00:00');
   const formattedDate = transactionDate.toLocaleDateString('pt-BR');
 
-  const categoryInfo = transaction.category ? categories[transaction.category] : null;
   const paymentInfo = transaction.paymentMethod ? paymentMethodDetails[transaction.paymentMethod] : null;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isFuture = transactionDate > today;
 
   return (
     <motion.li
@@ -35,15 +27,15 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
       className="flex items-center justify-between p-3 md:p-5 bg-white rounded-2xl border border-gray-50/50 hover:border-[var(--primary)]/30 hover:shadow-md transition-all group cursor-pointer"
       onClick={() => onEdit(transaction)}
     >
-      <div className="flex items-center gap-5 flex-1 min-w-0">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all ${isIncome ? 'bg-emerald-50 text-emerald-500' : 'bg-gray-50 text-gray-400'} group-hover:scale-110`}>
-          <i className={`fas ${categoryInfo?.icon || 'fa-tag'}`}></i>
-        </div>
-
+      <div className="flex items-center gap-3 flex-1 min-w-0">
         <div className="flex-1 min-w-0">
           <p className="font-black text-gray-900 line-clamp-2 tracking-tight text-sm md:text-base mb-0.5 leading-tight">{transaction.description}</p>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#2ab29a] bg-emerald-50 px-2 py-0.5 rounded-lg whitespace-nowrap">{transaction.category}</span>
+            {transaction.category && (
+              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#2ab29a] bg-emerald-50 px-2 py-0.5 rounded-lg whitespace-nowrap">
+                {transaction.category}
+              </span>
+            )}
             <span className="text-gray-300 text-[10px] hidden md:inline">•</span>
             <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">{formattedDate}</span>
 

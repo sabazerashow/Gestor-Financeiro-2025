@@ -3,6 +3,44 @@ import { Transaction, PaymentMethod } from '../types';
 import { generateContent, generateDeepSeekContent, cleanJsonString } from '../lib/aiClient';
 import { categories } from '../categories';
 
+function normalizeText(text: string) {
+    return (text || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+}
+
+function inferPaymentMethodFromText(text: string): PaymentMethod | null {
+    const normalized = normalizeText(text);
+
+    const hasWord = (word: string) => new RegExp(`\\b${word}\\b`, 'i').test(normalized);
+
+    if (hasWord('credito') || hasWord('cartao') || hasWord('cartao-de-credito') || hasWord('visa') || hasWord('master') || hasWord('elo')) return PaymentMethod.CREDITO;
+    if (hasWord('debito')) return PaymentMethod.DEBITO;
+    if (hasWord('pix')) return PaymentMethod.PIX;
+    if (hasWord('dinheiro')) return PaymentMethod.DINHEIRO;
+
+    return null;
+}
+
+function mapPaymentMethodFromSuggestion(value: unknown): PaymentMethod | null {
+    if (typeof value !== 'string') return null;
+    const normalized = normalizeText(value);
+
+    if (!normalized) return null;
+    if (normalized === 'outro' || normalized === 'other' || normalized === 'nenhum' || normalized === 'null') return null;
+
+    if (normalized.includes('credito')) return PaymentMethod.CREDITO;
+    if (normalized.includes('debito')) return PaymentMethod.DEBITO;
+    if (normalized.includes('pix')) return PaymentMethod.PIX;
+    if (normalized.includes('dinheiro')) return PaymentMethod.DINHEIRO;
+
+    const validMethods = Object.values(PaymentMethod);
+    if (validMethods.includes(value as PaymentMethod) && value !== PaymentMethod.OUTRO) return value as PaymentMethod;
+
+    return null;
+}
+
 export function useAIAnalysis() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -60,16 +98,18 @@ Regras para 'clean_description':
 5. Exemplo: '108,00 - telefone - vivo - crédito' -> 'Conta Vivo' ou 'Telefone Vivo'.
 
 Regras para 'payment_method':
-1. Procure termos como 'pix', 'débito', 'crédito', 'dinheiro'.
-2. Mapeie para: "PIX", "Débito", "Crédito", "Dinheiro".
-3. Se não encontrar, retorne null ou "Outro".`;
+1. Use a descrição bruta para identificar o método (considere variações sem acento: 'credito', 'debito', 'cartao').
+2. Se houver termos como 'crédito/credito', retorne "Crédito".
+3. Se houver 'débito/debito', retorne "Débito".
+4. Se houver 'pix', retorne "PIX". Se houver 'dinheiro', retorne "Dinheiro".
+5. Retorne exatamente um destes valores: "PIX", "Débito", "Crédito", "Dinheiro", ou null.`;
 
                     const glmMessages = [
                         { role: 'system', content: systemPrompt },
                         { role: 'user', content: `Descrição Bruta: "${t.description}"\nLista de Categorias:\n${availableCategories}` }
                     ];
 
-                    let suggestion: { category?: string; subcategory?: string; clean_description?: string; payment_method?: string } = {};
+                    let suggestion: { category?: string; subcategory?: string; clean_description?: string; payment_method?: string | null } = {};
 
                     try {
                         const deepseekResp = await generateDeepSeekContent({ model: 'deepseek-chat', messages: glmMessages, temperature: 0.1 });
@@ -96,13 +136,10 @@ Regras para 'payment_method':
                             updates.description = suggestion.clean_description;
                         }
 
-                        if (suggestion.payment_method) {
-                            // Validate against Enum
-                            const validMethods = Object.values(PaymentMethod);
-                            if (validMethods.includes(suggestion.payment_method as PaymentMethod)) {
-                                updates.paymentMethod = suggestion.payment_method as PaymentMethod;
-                            }
-                        }
+                        const paymentFromRaw = inferPaymentMethodFromText(t.description);
+                        const paymentFromSuggestion = mapPaymentMethodFromSuggestion(suggestion.payment_method);
+                        const paymentMethod = paymentFromRaw || paymentFromSuggestion;
+                        if (paymentMethod) updates.paymentMethod = paymentMethod;
 
                         updateTransaction(t.id, updates);
                     }

@@ -9,13 +9,6 @@ interface UnifiedExpenseAnalysisCardProps {
 }
 
 const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', '#94a3b8'];
-const PAYMENT_COLORS: Record<string, string> = {
-  [PaymentMethod.CREDITO]: '#3b82f6', // blue-500
-  [PaymentMethod.DEBITO]: '#10b981', // emerald-500
-  [PaymentMethod.PIX]: '#8b5cf6', // violet-500
-  [PaymentMethod.DINHEIRO]: '#f59e0b', // amber-500
-  [PaymentMethod.OUTRO]: '#64748b', // slate-500
-};
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value } = props;
@@ -57,6 +50,10 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
     transactions.filter(t => t.type === TransactionType.EXPENSE),
     [transactions]);
 
+  const cashExpenses = useMemo(() => (
+    expenses.filter(t => !t.installmentDetails || Number(t.installmentDetails.total) <= 1)
+  ), [expenses]);
+
   const totalExpenses = useMemo(() =>
     expenses.reduce((sum, t) => sum + Number(t.amount), 0),
     [expenses]);
@@ -80,12 +77,11 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
       .slice(0, 5); // Top 5
   }, [expenses]);
 
-  // Group by Method - Grouped: Credit vs Cash
+  // Group by Method - Grouped: Crédito vs Outros Meios de Pagamento (à vista)
   const methodData = useMemo(() => {
-    const grouped = expenses.reduce((acc, t) => {
+    const grouped = cashExpenses.reduce((acc, t) => {
       const method = t.paymentMethod || PaymentMethod.OUTRO;
-      // Group: Credit (parcelado) vs Cash (à vista - debito, pix, dinheiro, outro)
-      const groupKey = method === PaymentMethod.CREDITO ? 'Crédito (Parcelado)' : 'À Vista';
+      const groupKey = method === PaymentMethod.CREDITO ? 'Crédito' : 'Outros Meios de Pagamento';
       acc[groupKey] = (acc[groupKey] || 0) + Number(t.amount);
       return acc;
     }, {} as Record<string, number>);
@@ -94,16 +90,16 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
       .map(([name, value]) => ({
         name,
         value: value as number,
-        color: name === 'Crédito (Parcelado)' ? '#f97316' : '#10b981' // Orange for credit, green for cash
+        color: name === 'Crédito' ? '#f97316' : '#10b981'
       }))
       .sort((a, b) => b.value - a.value);
-  }, [expenses]);
+  }, [cashExpenses]);
 
   const currentChartData = activeTab === 'category' ? categoryData : methodData;
 
   // 2. Interactive List Logic
   const filteredList = useMemo(() => {
-    let filtered = expenses;
+    let filtered = activeTab === 'method' ? cashExpenses : expenses;
 
     // Apply Drill-down filter
     if (filterKey) {
@@ -111,9 +107,9 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
         filtered = filtered.filter(t => (t.category || 'Outros') === filterKey);
       } else {
         // Handle grouped payment methods
-        if (filterKey === 'Crédito (Parcelado)') {
+        if (filterKey === 'Crédito') {
           filtered = filtered.filter(t => t.paymentMethod === PaymentMethod.CREDITO);
-        } else if (filterKey === 'À Vista') {
+        } else if (filterKey === 'Outros Meios de Pagamento') {
           filtered = filtered.filter(t =>
             t.paymentMethod !== PaymentMethod.CREDITO || !t.paymentMethod
           );
@@ -141,7 +137,7 @@ const UnifiedExpenseAnalysisCard: React.FC<UnifiedExpenseAnalysisCardProps> = ({
     });
 
     return sorted;
-  }, [expenses, filterKey, activeTab, sortBy]);
+  }, [expenses, cashExpenses, filterKey, activeTab, sortBy]);
 
   const handlePieClick = (data: any, index: number) => {
     if (activeIndex === index) {
