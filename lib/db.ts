@@ -316,6 +316,10 @@ export const db = {
       .eq('account_id', accountId);
     if (error) throw error;
   }),
+  deleteAllTransactions: (accountId: string) => withSupabase(async () => {
+    const { error } = await supabase.from('transactions').delete().eq('account_id', accountId);
+    if (error) throw error;
+  }),
   fetchBudgets: (accountId?: string) => fetchAll<Budget>('budgets', accountId),
   upsertBudgets: (rows: Budget[], accountId: string) => syncTable('budgets', rows, accountId),
   fetchGoals: (accountId?: string) => fetchAll<FinancialGoal>('financial_goals', accountId),

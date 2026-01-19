@@ -413,6 +413,9 @@ const App: React.FC = () => {
   const [monthFilter, setMonthFilter] = useState<'all' | string>(() => {
     return new Date().toISOString().slice(0, 7); // Default to current month YYYY-MM
   });
+  const [transactionSearchTerm, setTransactionSearchTerm] = useState('');
+  const [transactionSortField, setTransactionSortField] = useState<'date' | 'description' | 'amount' | 'type' | 'paymentMethod'>('date');
+  const [transactionSortDirection, setTransactionSortDirection] = useState<'asc' | 'desc'>('desc');
   const [dashboardMonth, setDashboardMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const handleDashboardMonthChange = (direction: 'prev' | 'next') => {
@@ -974,6 +977,35 @@ const App: React.FC = () => {
       });
   }, [transactions, installmentFilter, monthFilter, paymentMethodFilter]);
 
+  const orderedTransactionsForAnalysis = useMemo(() => {
+    const lower = transactionSearchTerm.trim().toLowerCase();
+    const filtered = !lower ? filteredTransactionsForList : filteredTransactionsForList.filter(t =>
+      t.description.toLowerCase().includes(lower) ||
+      t.category?.toLowerCase().includes(lower) ||
+      t.amount.toString().includes(lower)
+    );
+
+    const dir = transactionSortDirection === 'asc' ? 1 : -1;
+    const list = [...filtered];
+    list.sort((a, b) => {
+      switch (transactionSortField) {
+        case 'description':
+          return dir * a.description.localeCompare(b.description, 'pt-BR', { sensitivity: 'base' });
+        case 'amount':
+          return dir * ((Number(a.amount) || 0) - (Number(b.amount) || 0));
+        case 'type':
+          return dir * String(a.type).localeCompare(String(b.type), 'pt-BR', { sensitivity: 'base' });
+        case 'paymentMethod':
+          return dir * String(a.paymentMethod || '').localeCompare(String(b.paymentMethod || ''), 'pt-BR', { sensitivity: 'base' });
+        case 'date':
+        default:
+          return dir * (new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime());
+      }
+    });
+
+    return list;
+  }, [filteredTransactionsForList, transactionSearchTerm, transactionSortDirection, transactionSortField]);
+
   const toggleCardVisibility = (cardId: string) => {
     setCardVisibility(prev => ({ ...prev, [cardId]: !prev[cardId] }));
   };
@@ -1017,9 +1049,9 @@ const App: React.FC = () => {
               setIsQuickAddModalOpen(true);
             }}
             onOpenAddTransactionModal={() => setIsAddTransactionModalOpen(true)}
-            onAnalyzeWithAI={async () => {
+            onAnalyzeWithAI={() => {
               setAnalyzeScope('pending');
-              await analyzeTransactions(transactions, updateTransaction, 'pending');
+              setIsConfirmAnalyzeOpen(true);
             }}
             isAnalyzing={isAnalyzing}
           />
@@ -1075,6 +1107,12 @@ const App: React.FC = () => {
               onPaymentMethodFilterChange={setPaymentMethodFilter}
               availableMonths={availableMonths}
               showFilters={true}
+              searchTerm={transactionSearchTerm}
+              onSearchTermChange={setTransactionSearchTerm}
+              sortField={transactionSortField}
+              onSortFieldChange={setTransactionSortField}
+              sortDirection={transactionSortDirection}
+              onSortDirectionToggle={() => setTransactionSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
               isAnalyzing={isAnalyzing}
               aiProgress={analysisProgress}
               aiCurrentTransactionId={analyzingTransactionId}
@@ -1133,7 +1171,7 @@ const App: React.FC = () => {
   };
 
   const handleAnalyzeConfirm = async () => {
-    await analyzeTransactions(transactions, updateTransaction, analyzeScope);
+    await analyzeTransactions(orderedTransactionsForAnalysis, updateTransaction, analyzeScope);
   };
 
   // Placeholder de carregamento enquanto valida sessão

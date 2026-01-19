@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import db from '@/lib/db';
+import db, { purgeAccountData } from '@/lib/db';
 import { seedMockData } from '@/lib/seed';
 import { Transaction } from '@/types';
 
@@ -52,6 +52,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [showConfirmSeed, setShowConfirmSeed] = useState(false);
+    const [showConfirmImport, setShowConfirmImport] = useState(false);
+    const [pendingImportData, setPendingImportData] = useState<any>(null);
+    const [showConfirmResetTransactions, setShowConfirmResetTransactions] = useState(false);
 
     const handleSeed = async () => {
         console.log('[Settings] handleSeed called. accountId:', accountId);
@@ -130,29 +133,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
             try {
                 const content = event.target?.result as string;
                 const data = JSON.parse(content);
-
-                // Suporte para o formato antigo (apenas array de transações)
-                if (Array.isArray(data)) {
-                    await db.upsertTransactions(data as any, accountId);
-                } else if (data && typeof data === 'object') {
-                    // Novo formato: objeto com múltiplas coleções
-                    const tasks = [];
-                    if (data.transactions) tasks.push(db.upsertTransactions(data.transactions, accountId));
-                    if (data.recurring_transactions) tasks.push(db.upsertRecurring(data.recurring_transactions, accountId));
-                    if (data.bills) tasks.push(db.upsertBills(data.bills, accountId));
-                    if (data.payslips) tasks.push(db.upsertPayslips(data.payslips, accountId));
-                    if (data.budgets) tasks.push(db.upsertBudgets(data.budgets, accountId));
-                    if (data.financial_goals) tasks.push(db.upsertGoals(data.financial_goals, accountId));
-
-                    await Promise.all(tasks);
-                } else {
+                if (!data || (typeof data !== 'object' && !Array.isArray(data))) {
                     throw new Error("Formato de arquivo de backup inválido.");
                 }
 
-                setMessage({ type: 'success', text: "Backup importado com sucesso! Recarregando..." });
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
+                setPendingImportData(data);
+                setShowConfirmImport(true);
             } catch (err: any) {
                 setMessage({ type: 'error', text: "Erro ao importar: " + err.message });
             } finally {
@@ -161,6 +147,65 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
             }
         };
         reader.readAsText(file);
+    };
+
+    const runImport = async (mode: 'append' | 'replace') => {
+        if (!accountId || !pendingImportData) return;
+        setShowConfirmImport(false);
+        setLoading(true);
+        setMessage(null);
+        try {
+            if (mode === 'replace') {
+                if (Array.isArray(pendingImportData)) {
+                    await db.deleteAllTransactions(accountId);
+                } else {
+                    await purgeAccountData(accountId);
+                }
+            }
+
+            if (Array.isArray(pendingImportData)) {
+                await db.upsertTransactions(pendingImportData as any, accountId);
+            } else if (pendingImportData && typeof pendingImportData === 'object') {
+                const tasks = [];
+                if (pendingImportData.transactions) tasks.push(db.upsertTransactions(pendingImportData.transactions, accountId));
+                if (pendingImportData.recurring_transactions) tasks.push(db.upsertRecurring(pendingImportData.recurring_transactions, accountId));
+                if (pendingImportData.bills) tasks.push(db.upsertBills(pendingImportData.bills, accountId));
+                if (pendingImportData.payslips) tasks.push(db.upsertPayslips(pendingImportData.payslips, accountId));
+                if (pendingImportData.budgets) tasks.push(db.upsertBudgets(pendingImportData.budgets, accountId));
+                if (pendingImportData.financial_goals) tasks.push(db.upsertGoals(pendingImportData.financial_goals, accountId));
+                await Promise.all(tasks);
+            } else {
+                throw new Error("Formato de arquivo de backup inválido.");
+            }
+
+            onDataChanged?.();
+            setMessage({ type: 'success', text: "Backup importado com sucesso! Recarregando..." });
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } catch (err: any) {
+            setMessage({ type: 'error', text: "Erro ao importar: " + err.message });
+        } finally {
+            setLoading(false);
+            setPendingImportData(null);
+        }
+    };
+
+    const confirmResetTransactions = async () => {
+        if (!accountId) return;
+        setShowConfirmResetTransactions(false);
+        setLoading(true);
+        setMessage(null);
+        try {
+            await db.deleteAllTransactions(accountId);
+            onDataChanged?.();
+            setMessage({ type: 'success', text: "Lançamentos zerados com sucesso! Recarregando..." });
+            setTimeout(() => window.location.reload(), 1200);
+        } catch (err: any) {
+            setMessage({ type: 'error', text: "Erro ao zerar lançamentos: " + err.message });
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -215,6 +260,56 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                             </div>
                         )}
 
+                        {showConfirmImport && (
+                            <div className="p-6 rounded-3xl mb-6 bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-in zoom-in-95 duration-200">
+                                <p className="text-sm font-bold text-[var(--color-text)] mb-4">
+                                    Deseja adicionar estes dados aos atuais ou substituir tudo?
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => { setShowConfirmImport(false); setPendingImportData(null); }}
+                                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-bold transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={() => runImport('append')}
+                                        className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 text-xs font-bold transition-all"
+                                    >
+                                        Adicionar
+                                    </button>
+                                    <button
+                                        onClick={() => runImport('replace')}
+                                        className="flex-1 py-2 rounded-xl bg-[var(--primary)] text-white text-xs font-bold transition-all hover:brightness-110"
+                                    >
+                                        Substituir
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {showConfirmResetTransactions && (
+                            <div className="p-6 rounded-3xl mb-6 bg-red-500/5 border border-red-500/20 animate-in zoom-in-95 duration-200">
+                                <p className="text-sm font-bold text-[var(--color-text)] mb-4">
+                                    Deseja zerar todos os lançamentos desta conta?
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setShowConfirmResetTransactions(false)}
+                                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-bold transition-all"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={confirmResetTransactions}
+                                        className="flex-[2] py-2 rounded-xl bg-red-500 text-white text-xs font-bold transition-all hover:brightness-110"
+                                    >
+                                        Confirmar Zerar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <section>
                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 ml-1">Ferramentas</h4>
                             <SettingsOption
@@ -247,6 +342,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, accountI
                                     loading={loading}
                                 />
                             </div>
+                            <SettingsOption
+                                title="Zerar Lançamentos"
+                                description="Remove todos os lançamentos desta conta (ações irreversíveis)."
+                                icon="fa-trash"
+                                variant="danger"
+                                onClick={() => setShowConfirmResetTransactions(true)}
+                                loading={loading}
+                            />
                         </section>
 
                     </div>

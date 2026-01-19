@@ -18,6 +18,12 @@ interface TransactionListProps {
   availableMonths?: string[];
   showFilters?: boolean;
   showSorting?: boolean;
+  searchTerm: string;
+  onSearchTermChange: (value: string) => void;
+  sortField: 'date' | 'description' | 'amount' | 'type' | 'paymentMethod';
+  onSortFieldChange: (value: 'date' | 'description' | 'amount' | 'type' | 'paymentMethod') => void;
+  sortDirection: 'asc' | 'desc';
+  onSortDirectionToggle: () => void;
   isAnalyzing?: boolean;
   aiProgress?: { current: number; total: number } | null;
   aiCurrentTransactionId?: string | null;
@@ -36,14 +42,16 @@ const TransactionList: React.FC<TransactionListProps> = ({
   availableMonths = [],
   showFilters = true,
   showSorting = true,
+  searchTerm,
+  onSearchTermChange,
+  sortField,
+  onSortFieldChange,
+  sortDirection,
+  onSortDirectionToggle,
   isAnalyzing,
   aiProgress,
   aiCurrentTransactionId
 }) => {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [sortField, setSortField] = React.useState<'date' | 'description' | 'amount' | 'type' | 'paymentMethod'>('date');
-  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc');
-
   const filteredBySearch = React.useMemo(() => {
     if (!searchTerm) return transactions;
     const lower = searchTerm.toLowerCase();
@@ -123,7 +131,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ordenar</span>
               <select
                 value={sortField}
-                onChange={(e) => setSortField(e.target.value as any)}
+                onChange={(e) => onSortFieldChange(e.target.value as any)}
                 className="bg-transparent border-none text-xs font-black text-gray-600 uppercase tracking-widest focus:outline-none cursor-pointer"
               >
                 <option value="date">Data</option>
@@ -134,7 +142,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
               </select>
               <button
                 type="button"
-                onClick={() => setSortDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+                onClick={onSortDirectionToggle}
                 className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
                 title={sortDirection === 'asc' ? 'Crescente' : 'Decrescente'}
               >
@@ -149,7 +157,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
             <input
               type="text"
               placeholder="Pesquisar lançamentos..."
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => onSearchTermChange(e.target.value)}
               className="bg-gray-50 px-4 py-2 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-[320px] outline-none transition-all hover:bg-gray-100"
             />
           </div>
