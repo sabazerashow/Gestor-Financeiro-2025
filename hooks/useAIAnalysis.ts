@@ -45,6 +45,7 @@ export function useAIAnalysis() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
     const [analysisProgress, setAnalysisProgress] = useState<{ current: number; total: number } | null>(null);
+    const [analyzingTransactionId, setAnalyzingTransactionId] = useState<string | null>(null);
 
 
     const analyzeTransactions = async (
@@ -80,6 +81,7 @@ export function useAIAnalysis() {
 
             for (let i = 0; i < transactionsToAnalyze.length; i++) {
                 const t = transactionsToAnalyze[i];
+                setAnalyzingTransactionId(t.id);
                 try {
                     const systemPrompt = `Você é um assistente financeiro meticuloso. Sua tarefa é limpar e categorizar transações.
 Analise a descrição bruta e retorne APENAS um JSON válido com:
@@ -147,6 +149,7 @@ Regras para 'payment_method':
                     console.error(`Erro ao analisar transação ${t.id}:`, err);
                 } finally {
                     setAnalysisProgress({ current: i + 1, total });
+                    setAnalyzingTransactionId(null);
                 }
             }
         } catch (err) {
@@ -154,8 +157,9 @@ Regras para 'payment_method':
         } finally {
             setIsAnalyzing(false);
             setAnalysisProgress(null);
+            setAnalyzingTransactionId(null);
         }
     };
 
-    return { analyzeTransactions, isAnalyzing, analysisError, analysisProgress, setAnalysisError };
+    return { analyzeTransactions, isAnalyzing, analysisError, analysisProgress, analyzingTransactionId, setAnalysisError };
 }

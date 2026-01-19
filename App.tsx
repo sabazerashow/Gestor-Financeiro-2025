@@ -87,7 +87,7 @@ const App: React.FC = () => {
   } = useFinanceStore();
 
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const { analyzeTransactions, isAnalyzing, analysisError, analysisProgress, setAnalysisError } = useAIAnalysis();
+  const { analyzeTransactions, isAnalyzing, analysisError, analysisProgress, analyzingTransactionId, setAnalysisError } = useAIAnalysis();
   const [isConfirmAnalyzeOpen, setIsConfirmAnalyzeOpen] = useState(false);
   const [analyzeScope, setAnalyzeScope] = useState<'all' | 'pending'>('pending');
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
@@ -212,7 +212,10 @@ const App: React.FC = () => {
 
   // Sincronizar alterações locais com Supabase (apenas quando auth está ativa)
   useEffect(() => {
-    if (accountId) syncData(accountId);
+    if (!accountId) return;
+    syncData(accountId).catch(() => {
+      setGlobalError('Falha ao sincronizar alterações com o banco de dados');
+    });
   }, [transactions, recurringTransactions, bills, payslips, budgets, goals, session, accountId]);
 
   // Carregar perfil do Supabase
@@ -784,6 +787,7 @@ const App: React.FC = () => {
     if (isSupabaseEnabled && accountId && idsToDelete.length > 0) {
       db.deleteTransactions(idsToDelete, accountId).catch((e: any) => {
         console.error('Falha ao excluir transação no Supabase:', e);
+        setGlobalError('Falha ao sincronizar exclusão com o banco de dados');
       });
     }
 
@@ -1027,13 +1031,36 @@ const App: React.FC = () => {
               <h2 className="text-sm md:text-base font-black text-gray-900 uppercase tracking-widest">
                 Transações
               </h2>
-              <button
-                onClick={() => setIsAddTransactionModalOpen(true)}
-                className="px-4 py-2 text-sm font-black rounded-xl transition-colors text-white bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] flex items-center justify-center gap-2"
-              >
-                <i className="fas fa-plus"></i>
-                Lançar
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2 shadow-sm">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">IA</span>
+                  <select
+                    value={analyzeScope}
+                    onChange={(e) => setAnalyzeScope(e.target.value as 'all' | 'pending')}
+                    disabled={isAnalyzing}
+                    className="bg-transparent border-none text-xs font-black text-gray-600 uppercase tracking-widest focus:outline-none cursor-pointer"
+                  >
+                    <option value="pending">A verificar</option>
+                    <option value="all">Tudo</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setIsConfirmAnalyzeOpen(true)}
+                    disabled={isAnalyzing}
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-[var(--primary)] text-white hover:bg-[var(--color-primary-hover)] transition-all disabled:opacity-60"
+                    title="Classificar com IA"
+                  >
+                    {isAnalyzing ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-wand-magic-sparkles"></i>}
+                  </button>
+                </div>
+                <button
+                  onClick={() => setIsAddTransactionModalOpen(true)}
+                  className="px-4 py-2 text-sm font-black rounded-xl transition-colors text-white bg-[var(--primary)] hover:bg-[var(--color-primary-hover)] flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-plus"></i>
+                  Lançar
+                </button>
+              </div>
             </div>
 
             <TransactionList
@@ -1048,12 +1075,9 @@ const App: React.FC = () => {
               onPaymentMethodFilterChange={setPaymentMethodFilter}
               availableMonths={availableMonths}
               showFilters={true}
-              onAnalyze={(scope) => {
-                setAnalyzeScope(scope);
-                setIsConfirmAnalyzeOpen(true);
-              }}
               isAnalyzing={isAnalyzing}
               aiProgress={analysisProgress}
+              aiCurrentTransactionId={analyzingTransactionId}
             />
           </div>
         );
@@ -1209,6 +1233,9 @@ const App: React.FC = () => {
       </div>
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-4 lg:pt-10 pb-32 lg:pb-10 h-full overflow-y-auto custom-scrollbar scroll-smooth">
+        <div className="mb-4">
+          <ErrorBanner message={globalError} onClose={() => setGlobalError(null)} />
+        </div>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

@@ -9,8 +9,6 @@ interface TransactionListProps {
   transactions: Transaction[];
   onDelete: (transaction: Transaction) => void;
   onEdit: (transaction: Transaction) => void;
-  onAnalyzePending?: () => void;
-  isAnalyzingPending?: boolean;
   installmentFilter?: 'all' | 'single' | 'installments';
   onInstallmentFilterChange?: (filter: 'all' | 'single' | 'installments') => void;
   monthFilter?: 'all' | string;
@@ -20,26 +18,10 @@ interface TransactionListProps {
   availableMonths?: string[];
   showFilters?: boolean;
   showSorting?: boolean;
-  onAnalyze?: (scope: 'all' | 'pending') => void;
   isAnalyzing?: boolean;
   aiProgress?: { current: number; total: number } | null;
+  aiCurrentTransactionId?: string | null;
 }
-
-const FilterButton: React.FC<{
-  label: string;
-  isActive: boolean;
-  onClick: () => void;
-}> = ({ label, isActive, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full transition-all ${isActive
-      ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20'
-      : 'bg-[var(--muted)] text-[var(--color-text-muted)] hover:bg-[var(--border)]'
-      }`}
-  >
-    {label}
-  </button>
-);
 
 const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
@@ -54,14 +36,13 @@ const TransactionList: React.FC<TransactionListProps> = ({
   availableMonths = [],
   showFilters = true,
   showSorting = true,
-  onAnalyze,
   isAnalyzing,
-  aiProgress
+  aiProgress,
+  aiCurrentTransactionId
 }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [sortField, setSortField] = React.useState<'date' | 'description' | 'amount' | 'type' | 'paymentMethod'>('date');
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc');
-  const [selectedAnalyzeScope, setSelectedAnalyzeScope] = React.useState<'all' | 'pending'>('pending');
 
   const filteredBySearch = React.useMemo(() => {
     if (!searchTerm) return transactions;
@@ -121,7 +102,13 @@ const TransactionList: React.FC<TransactionListProps> = ({
     <AnimatePresence initial={false}>
       <motion.ul layout className="space-y-4">
         {list.map(transaction => (
-          <TransactionItem key={transaction.id} transaction={transaction} onDelete={onDelete} onEdit={onEdit} />
+          <TransactionItem
+            key={transaction.id}
+            transaction={transaction}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            isAiAnalyzing={!!aiCurrentTransactionId && aiCurrentTransactionId === transaction.id}
+          />
         ))}
       </motion.ul>
     </AnimatePresence>
@@ -129,8 +116,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
   return (
     <div className="bg-white p-4 md:p-8 rounded-[var(--radius-lg)] border border-gray-100 shadow-[var(--card-shadow)] flex flex-col min-h-[500px] md:min-h-[680px]">
-      <div className="flex flex-col md:flex-row md:justify-end md:items-center mb-4 gap-6">
-        <div className="flex flex-wrap md:flex-nowrap items-center gap-4 md:gap-3 md:justify-end overflow-x-auto">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
+        <div className="flex flex-wrap items-center gap-3">
           {showSorting && (
             <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ordenar</span>
@@ -155,63 +142,33 @@ const TransactionList: React.FC<TransactionListProps> = ({
               </button>
             </div>
           )}
+        </div>
 
-          {showFilters && (
-            <>
-              <div className="relative group">
-                <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs group-focus-within:text-[var(--primary)] transition-colors"></i>
-                <input
-                  type="text"
-                  placeholder="Pesquisar lançamentos..."
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-gray-50 pl-10 pr-4 py-2 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-64 outline-none transition-all hover:bg-gray-100"
-                />
-              </div>
+        {showFilters && (
+          <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-center">
+            <input
+              type="text"
+              placeholder="Pesquisar lançamentos..."
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-gray-50 px-4 py-2 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest border-none shadow-sm focus:ring-2 focus:ring-[var(--primary)]/10 w-full md:w-[320px] outline-none transition-all hover:bg-gray-100"
+            />
+          </div>
+        )}
 
-              {onMonthFilterChange && (
-                <select
-                  value={monthFilter}
-                  onChange={(e) => onMonthFilterChange(e.target.value)}
-                  className="bg-gray-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/10 cursor-pointer hover:bg-gray-100 transition-all"
-                >
-                  <option value="all">Ver Tudo</option>
-                  {availableMonths.map(month => {
-                    const [year, m] = month.split('-');
-                    const monthName = new Date(Number(year), Number(m) - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-                    return <option key={month} value={month}>{monthName}</option>
-                  })}
-                </select>
-              )}
-            </>
-          )}
-
-          {onAnalyze && (
-            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">IA</span>
-              <select
-                value={selectedAnalyzeScope}
-                onChange={(e) => setSelectedAnalyzeScope(e.target.value as 'all' | 'pending')}
-                disabled={isAnalyzing}
-                className="bg-transparent border-none text-xs font-black text-gray-600 uppercase tracking-widest focus:outline-none cursor-pointer"
-                title="Escopo da análise"
-              >
-                <option value="pending">A verificar</option>
-                <option value="all">Tudo</option>
-              </select>
-              <button
-                type="button"
-                onClick={() => onAnalyze(selectedAnalyzeScope)}
-                disabled={isAnalyzing}
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-white shadow-sm border border-gray-100 text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
-                title="Classificar com IA"
-              >
-                {isAnalyzing ? (
-                  <i className="fas fa-spinner fa-spin"></i>
-                ) : (
-                  <i className="fas fa-wand-magic-sparkles"></i>
-                )}
-              </button>
-            </div>
+        <div className="flex items-center justify-end gap-3">
+          {showFilters && onMonthFilterChange && (
+            <select
+              value={monthFilter}
+              onChange={(e) => onMonthFilterChange(e.target.value)}
+              className="bg-gray-50 border-none rounded-xl px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/10 cursor-pointer hover:bg-gray-100 transition-all"
+            >
+              <option value="all">Ver Tudo</option>
+              {availableMonths.map(month => {
+                const [year, m] = month.split('-');
+                const monthName = new Date(Number(year), Number(m) - 1).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+                return <option key={month} value={month}>{monthName}</option>
+              })}
+            </select>
           )}
         </div>
       </div>

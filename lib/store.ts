@@ -159,6 +159,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
             ]);
         } catch (e) {
             console.error('Store: Falha ao sincronizar dados', e);
+            throw e;
         }
     }
 }));

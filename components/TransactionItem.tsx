@@ -1,21 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Transaction, TransactionType, paymentMethodDetails } from '../types';
+import { Transaction, TransactionType } from '../types';
 
 interface TransactionItemProps {
   transaction: Transaction;
   onDelete: (transaction: Transaction) => void;
   onEdit: (transaction: Transaction) => void;
+  isAiAnalyzing?: boolean;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, onDelete }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, onDelete, isAiAnalyzing }) => {
   const isIncome = transaction.type === TransactionType.INCOME;
 
   const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(transaction.amount);
   const transactionDate = new Date(transaction.date + 'T00:00:00');
   const formattedDate = transactionDate.toLocaleDateString('pt-BR');
-
-  const paymentInfo = transaction.paymentMethod ? paymentMethodDetails[transaction.paymentMethod] : null;
 
   return (
     <motion.li
@@ -28,6 +27,11 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
       onClick={() => onEdit(transaction)}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
+        {isAiAnalyzing ? (
+          <div className="w-6 h-6 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-[var(--primary)] shrink-0">
+            <i className="fas fa-arrows-rotate fa-spin text-[10px]"></i>
+          </div>
+        ) : null}
         <div className="flex-1 min-w-0">
           <p className="font-black text-gray-900 line-clamp-2 tracking-tight text-sm md:text-base mb-0.5 leading-tight">{transaction.description}</p>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -64,7 +68,6 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, onEdit, 
             <span className="text-[8px] md:text-[9px] font-black text-gray-400 uppercase tracking-[0.15em] whitespace-nowrap">
               {transaction.paymentMethod === 'Outro' ? 'Pagamento: Outro' : transaction.paymentMethod || 'Pagamento: Outro'}
             </span>
-            {paymentInfo?.icon && <i className={`fas ${paymentInfo.icon} text-[8px] md:text-[10px] text-gray-400`}></i>}
           </div>
         </div>
 
