@@ -57,6 +57,8 @@ export interface RecurringTransaction {
   linkedBillId?: string;
 }
 
+export type BillStatus = 'paid' | 'pending' | 'overdue';
+
 export interface Bill {
   id: string;
   description: string;
@@ -69,6 +71,12 @@ export interface Bill {
   paymentUrl?: string;
   paymentUser?: string;
   paymentPass?: string;
+  // New fields for Subscriptions & Recurrence
+  contractEndDate?: string; // YYYY-MM-DD - Data de fim do contrato/fidelidade
+  providerLogo?: string; // Identificador do provedor (ex: 'netflix', 'spotify') ou URL customizada
+  lastAmount?: number; // Valor do mês anterior para cálculo de tendência
+  status?: BillStatus; // Status atual: paid, pending, overdue
+  paidDate?: string; // YYYY-MM-DD - Data do último pagamento
 }
 
 export interface GroupedTransaction {

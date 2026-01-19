@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import ProfileMenu from './components/ProfileMenu';
 import Logo from './components/Logo';
 import ErrorBanner from './components/ui/error-banner';
+
 import TransactionList from './components/TransactionList';
 import AddTransactionForm from './components/AddTransactionForm';
 import ImportNFeModal from './components/ImportNFeModal';
@@ -15,6 +16,8 @@ import { categories } from './categories';
 import QuickAddModal from './components/QuickAddModal';
 import BillList from './components/BillList';
 import AddBillForm from './components/AddBillForm';
+import SubscriptionsView from './components/SubscriptionsView';
+import AddSubscriptionForm from './components/AddSubscriptionForm';
 import EditTransactionModal from './components/EditTransactionModal';
 import ImportBPModal from './components/ImportBPModal';
 import ManualBPModal from './components/ManualBPModal';
@@ -892,6 +895,14 @@ const App: React.FC = () => {
     updateBill(id, updates);
   };
 
+  const handleMarkBillAsPaid = (billId: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    updateBill(billId, {
+      status: 'paid',
+      paidDate: today
+    });
+  };
+
 
 
   const handleFileSelected = (selectedFile: { content: string; mimeType: string }, type: 'nfe' | 'statement' | 'bp') => {
@@ -1048,9 +1059,22 @@ const App: React.FC = () => {
         );
       case 'bills':
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <AddBillForm onAddBill={addBill} />
-            <BillList bills={bills} onDelete={handleAttemptDeleteBill} onEdit={handleOpenEditBillModal} />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <SubscriptionsView
+                  bills={bills}
+                  monthlyIncome={5000} // TODO: Calcular renda média real baseado em transações/payslips
+                  onMarkAsPaid={handleMarkBillAsPaid}
+                  onEdit={handleOpenEditBillModal}
+                  onDelete={handleAttemptDeleteBill}
+                  onBillClick={handleOpenEditBillModal}
+                />
+              </div>
+              <div>
+                <AddSubscriptionForm onAddBill={addBill} />
+              </div>
+            </div>
           </div>
         );
       case 'reports':

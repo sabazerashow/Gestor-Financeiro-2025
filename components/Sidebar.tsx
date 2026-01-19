@@ -142,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         isCollapsed={isCollapsed}
                     />
                     <SidebarItem
-                        label="Contas Fixo" icon="fa-calendar-check"
+                        label="Assinaturas & Recorrência" icon="fa-sync-alt"
                         isActive={activeTab === 'bills'} onClick={() => setActiveTab('bills')}
                         isCollapsed={isCollapsed}
                     />
