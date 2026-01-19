@@ -1059,23 +1059,15 @@ const App: React.FC = () => {
         );
       case 'bills':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <SubscriptionsView
-                  bills={bills}
-                  monthlyIncome={5000} // TODO: Calcular renda média real baseado em transações/payslips
-                  onMarkAsPaid={handleMarkBillAsPaid}
-                  onEdit={handleOpenEditBillModal}
-                  onDelete={handleAttemptDeleteBill}
-                  onBillClick={handleOpenEditBillModal}
-                />
-              </div>
-              <div>
-                <AddSubscriptionForm onAddBill={addBill} />
-              </div>
-            </div>
-          </div>
+          <SubscriptionsView
+            bills={bills}
+            monthlyIncome={5000} // TODO: Calcular renda média real baseado em transações/payslips
+            onMarkAsPaid={handleMarkBillAsPaid}
+            onEdit={handleOpenEditBillModal}
+            onDelete={handleAttemptDeleteBill}
+            onBillClick={handleOpenEditBillModal}
+            onAddBill={addBill}
+          />
         );
       case 'reports':
         return <ReportsView transactions={transactions} />;

@@ -12,15 +12,15 @@ const ContractAlerts: React.FC<ContractAlertsProps> = ({ bills }) => {
 
     if (alerts.length === 0) {
         return (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-[32px] border border-green-200 shadow-sm mb-6">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-green-500 flex items-center justify-center flex-shrink-0">
-                        <i className="fas fa-shield-check text-white text-xl"></i>
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-200/50 shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
+                        <i className="fas fa-shield-check text-white text-sm"></i>
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-lg font-bold text-green-700">Tudo em ordem! 🎉</h3>
-                        <p className="text-sm text-green-600 mt-1">
-                            Nenhum contrato de fidelidade vencendo nos próximos 30 dias.
+                        <p className="text-sm font-bold text-green-700">Contratos sob controle!</p>
+                        <p className="text-xs text-green-600 mt-0.5">
+                            Nenhum contrato vencendo nos próximos 30 dias
                         </p>
                     </div>
                 </div>
@@ -29,7 +29,7 @@ const ContractAlerts: React.FC<ContractAlertsProps> = ({ bills }) => {
     }
 
     return (
-        <div className="bg-white p-6 rounded-[32px] border border-orange-200 shadow-sm mb-6">
+        <div className="bg-white p-6 rounded-[32px] border border-orange-200 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
                     <i className="fas fa-bell text-orange-600"></i>
@@ -52,8 +52,8 @@ const ContractAlerts: React.FC<ContractAlertsProps> = ({ bills }) => {
                         <div
                             key={bill.id}
                             className={`p-4 rounded-2xl border-2 ${isUrgent
-                                    ? 'bg-red-50 border-red-300 animate-pulse'
-                                    : 'bg-yellow-50 border-yellow-300'
+                                ? 'bg-red-50 border-red-300 animate-pulse'
+                                : 'bg-yellow-50 border-yellow-300'
                                 }`}
                         >
                             <div className="flex items-start gap-3">

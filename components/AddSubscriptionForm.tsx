@@ -123,18 +123,32 @@ const AddSubscriptionForm: React.FC<AddSubscriptionFormProps> = ({ onAddBill }) 
                     {/* Provedor/Serviço */}
                     <div className="grid gap-2">
                         <Label htmlFor="bill-provider">Serviço / Provedor</Label>
-                        <Select
-                            id="bill-provider"
-                            value={providerLogo}
-                            onChange={(e) => setProviderLogo(e.target.value)}
-                        >
-                            <option value="">Selecione (opcional)</option>
-                            {providerOptions.map(opt => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            {providerLogo && (
+                                <div
+                                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                                    style={{ backgroundColor: providerOptions.find(p => p.value === providerLogo)?.color + '20' || '#f3f4f6' }}
+                                >
+                                    <i
+                                        className={providerOptions.find(p => p.value === providerLogo)?.icon}
+                                        style={{ color: providerOptions.find(p => p.value === providerLogo)?.color || '#6b7280' }}
+                                    ></i>
+                                </div>
+                            )}
+                            <Select
+                                id="bill-provider"
+                                value={providerLogo}
+                                onChange={(e) => setProviderLogo(e.target.value)}
+                                className="flex-1"
+                            >
+                                <option value="">Selecione (opcional)</option>
+                                {providerOptions.map(opt => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
                         <p className="text-xs text-gray-500">Escolha para ter um ícone personalizado</p>
                     </div>
 
