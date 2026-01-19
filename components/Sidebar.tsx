@@ -166,6 +166,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                         isCollapsed={isCollapsed}
                     />
                     <SidebarItem
+                        label="Simulações" icon="fa-flask"
+                        isActive={activeTab === 'simulations'} onClick={() => setActiveTab('simulations')}
+                        isCollapsed={isCollapsed}
+                    />
+                    <SidebarItem
                         label="BP Analysis" icon="fa-wand-magic-sparkles"
                         isActive={activeTab === 'bp-analysis'} onClick={() => setActiveTab('bp-analysis')}
                         isCollapsed={isCollapsed}

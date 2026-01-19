@@ -164,3 +164,33 @@ export interface FinancialGoal {
   color?: string;
   createdAt?: string;
 }
+
+// Simulation types
+export interface SimulationResult {
+  id: string;
+  type: 'compound-interest' | 'reverse-dream' | 'fire';
+  createdAt: string;
+  parameters: CompoundInterestParams | ReverseDreamParams | FIREParams;
+  result: any;
+}
+
+export interface CompoundInterestParams {
+  principal: number;
+  monthlyContribution: number;
+  annualRate: number;
+  years: number;
+}
+
+export interface ReverseDreamParams {
+  targetAmount: number;
+  deadline: string;
+  annualRate: number;
+  principal?: number;
+}
+
+export interface FIREParams {
+  monthlyExpenses: number;
+  currentAssets?: number;
+  monthlyContribution?: number;
+  annualRate?: number;
+}

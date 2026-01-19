@@ -51,6 +51,10 @@ import GoalsView from './components/GoalsView';
 import GoalModal from './components/GoalModal';
 import { useAIAnalysis } from './hooks/useAIAnalysis';
 import MobileNavbar from './components/MobileNavbar';
+import SimulationsView from './components/SimulationsView';
+import CompoundInterestSimulator from './components/CompoundInterestSimulator';
+import ReverseDreamPlanner from './components/ReverseDreamPlanner';
+import FIRECalculator from './components/FIRECalculator';
 
 export interface DashboardCardConfig {
   id: string;
@@ -95,6 +99,7 @@ const App: React.FC = () => {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [goalToEdit, setGoalToEdit] = useState<FinancialGoal | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [activeSimulator, setActiveSimulator] = useState<'hub' | 'compound-interest' | 'reverse-dream' | 'fire'>('hub');
 
   useEffect(() => {
     if (isSupabaseEnabled) return;
@@ -453,6 +458,13 @@ const App: React.FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Reset simulator to hub when switching away from simulations tab
+  useEffect(() => {
+    if (activeTab !== 'simulations') {
+      setActiveSimulator('hub');
+    }
+  }, [activeTab]);
 
 
 
@@ -1165,6 +1177,77 @@ const App: React.FC = () => {
             onManualAdd={() => setIsManualBPModalOpen(true)}
           />
         );
+      case 'simulations':
+        // Reset simulator when entering simulations tab
+        if (activeSimulator === 'hub') {
+          return (
+            <SimulationsView
+              onNavigateToSimulator={(type) => setActiveSimulator(type)}
+            />
+          );
+        } else if (activeSimulator === 'compound-interest') {
+          return (
+            <CompoundInterestSimulator
+              onBack={() => setActiveSimulator('hub')}
+              onCreateGoal={(goalData) => {
+                const newGoal: FinancialGoal = {
+                  ...goalData,
+                  id: `goal-${Date.now()}`,
+                  accountId: accountId || '',
+                  createdAt: new Date().toISOString()
+                };
+                setGoals([...goals, newGoal]);
+                setActiveTab('goals');
+                setActiveSimulator('hub');
+              }}
+            />
+          );
+        } else if (activeSimulator === 'reverse-dream') {
+          // Calculate user monthly income from payslips
+          const monthlyIncome = payslips.length > 0
+            ? payslips[payslips.length - 1].netTotal
+            : undefined;
+
+          return (
+            <ReverseDreamPlanner
+              onBack={() => setActiveSimulator('hub')}
+              userMonthlyIncome={monthlyIncome}
+              onCreateGoal={(goalData) => {
+                const newGoal: FinancialGoal = {
+                  ...goalData,
+                  id: `goal-${Date.now()}`,
+                  accountId: accountId || '',
+                  createdAt: new Date().toISOString()
+                };
+                setGoals([...goals, newGoal]);
+                setActiveTab('goals');
+                setActiveSimulator('hub');
+              }}
+            />
+          );
+        } else if (activeSimulator === 'fire') {
+          // Calculate current balance from goals
+          const currentBalance = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+
+          return (
+            <FIRECalculator
+              onBack={() => setActiveSimulator('hub')}
+              currentBalance={currentBalance}
+              onCreateGoal={(goalData) => {
+                const newGoal: FinancialGoal = {
+                  ...goalData,
+                  id: `goal-${Date.now()}`,
+                  accountId: accountId || '',
+                  createdAt: new Date().toISOString()
+                };
+                setGoals([...goals, newGoal]);
+                setActiveTab('goals');
+                setActiveSimulator('hub');
+              }}
+            />
+          );
+        }
+        return null;
       default:
         return null;
     }
